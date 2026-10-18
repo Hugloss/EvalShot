@@ -8,7 +8,6 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const RUNTIME_SCHEMA = 'agents-cookbook-opencode-runtime/v3';
-const BENCHMARK_COMPACTION_RESERVE = 10000;
 const SECRET_KEYS = new Set([
   'api_key',
   'apikey',
@@ -429,7 +428,6 @@ function benchmarkOverlay(config, subjectExposure, agentName, scratch, privateTm
       ? sha256Text(canonicalJson(subjectExposure))
       : null,
     config: {
-      compaction: { auto: true, reserved: BENCHMARK_COMPACTION_RESERVE },
       permission: {
         external_directory: {
           [scratch]: 'allow',
@@ -455,14 +453,11 @@ function verifyBenchmarkConfig(
 ) {
   const original = inspectConfig(base, agentName);
   const resolved = inspectConfig(effective, agentName);
-  if (
-    !effective.compaction ||
-    effective.compaction.auto !== true ||
-    effective.compaction.reserved !== BENCHMARK_COMPACTION_RESERVE
-  ) {
-    throw new Error(
-      'benchmark OpenCode auto-compaction reserve did not resolve',
-    );
+  // Compaction belongs to the selected OpenCode/provider configuration.
+  // The benchmark overlay must preserve it rather than create its own policy.
+  if (canonicalJson(base.compaction ?? null) !==
+      canonicalJson(effective.compaction ?? null)) {
+    throw new Error('benchmark overlay changed native OpenCode compaction');
   }
   for (const [pattern, action] of Object.entries(
     overlay.config.permission.external_directory,
@@ -1151,16 +1146,6 @@ function prepareBenchmarkConfig({
     if (!selectedSubject && subjectExposure) {
       throw new Error('bare benchmark must not expose a subject');
     }
-    const limits = base.inspection.model_limits;
-    if (!limits || !Number.isSafeInteger(limits.context) ||
-        !Number.isSafeInteger(limits.output) ||
-        limits.output <= 0 ||
-        limits.context <= limits.output + BENCHMARK_COMPACTION_RESERVE) {
-      throw new Error(
-        'native OpenCode model limits leave no usable prompt budget; '
-        + 'correct provider model limit.context and limit.output before running',
-      );
-    }
     const scratch = benchmarkScratch(repoDir, env, controlRoot);
     const privateTmp = env.BENCHMARK_PRIVATE_TMP === '1';
     const overlay = benchmarkOverlay(
@@ -1235,8 +1220,8 @@ function prepareBenchmarkConfig({
       native_subject_identity: subjectExecutable,
       overlay_identity: {
         shape: overlay.shape,
-        compaction_auto: true,
-        compaction_reserved: BENCHMARK_COMPACTION_RESERVE,
+        compaction_auto: effective.config.compaction?.auto ?? null,
+        compaction_reserved: effective.config.compaction?.reserved ?? null,
         scratch_path: scratch,
         private_tmp: privateTmp,
         selected_subject: selectedSubject,
