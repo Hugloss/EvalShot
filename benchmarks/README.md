@@ -4,6 +4,8 @@ This directory owns reusable, product-neutral experiments for agents, tools, evi
 
 ## Authority boundary
 
+EvalShot owns [measurement of runtime-reported model context usage](../docs/model-context-observation.md) and tool-routing measurement (`benchmarks/tool_routing.py`). Model/provider configuration owns context limits and compaction behavior; cookbook prompts retain model-neutral context and reviewer-selection guidance. A campaign can record the runtime context configuration selected for that experiment, but the runtime/provider—not EvalShot—sets the window; task-specific budgets do not establish a second model-context limit.
+
 The harness is the experiment authority. A product under test never grades itself.
 
 Repository-location scoring keeps semantic correctness and answer-format compliance separate. One unambiguous JSON object, whether bare, in one JSON fence, or in one JSON fence surrounded by prose, may be semantically gradeable; only the bare exact object is format-compliant. Multiple fences, duplicate keys, malformed JSON, or prose with only inline JSON remain ungradeable. Any change to this interpretation advances the frozen experiment/scoring authority before a new campaign.

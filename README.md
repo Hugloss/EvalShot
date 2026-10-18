@@ -8,6 +8,8 @@ reports, and evaluation fixtures. The canonical skills, agents, flows, and
 installation adapters live in
 [agentsCookbook](https://github.com/Hugloss/agentsCookbook).
 
+EvalShot also owns [observing and evaluating runtime-reported model context usage](docs/model-context-observation.md), [tool-routing measurement](benchmarks/tool_routing.py), and [Agent Economics execution security](SECURITY.md). Model context limits and compaction settings belong to the selected model provider/agent runtime, not EvalShot or the cookbook. The cookbook retains portable prompt guidance and reviewer-selection flows; neither provides duplicate scoring or process-execution implementations.
+
 ## Get started
 
 The Python harness uses the standard library and the Python version pinned in

@@ -18,6 +18,32 @@ process execution, runtime identity, configuration, result persistence, and
 scoring. The shared bounded process implementation remains in
 `scripts.agent_economics.bounded_process`.
 
+## Model context ownership — do not drift
+
+The **model/provider and agent host** (e.g. OpenCode/Pi), not EvalShot,
+configure the actual context window, output limits, and compaction policy.
+Do not add a project-wide token window, required reserve, model override,
+automatic resize or context-based admission gate in the harness. Do not
+move a runtime configuration decision into evaluator settings just because
+that makes a benchmark easier to run.
+
+EvalShot observes usage and behavior on the operator-selected configuration.
+When token consumption, truncation or compaction cannot be observed,
+report that evidence as unknown rather than estimating a qualifying window.
+Comparisons may deliberately freeze different **host-provided**
+configurations; the suite records the inputs and scores outcomes but
+does not own the model-context mechanism.
+
+Keep **experiment-specific time, output, artifact and other limits** distinct
+from model context capacity. Those existing frozen experiment contracts
+remain valid but cannot turn into a cookbook/runtime-wide context policy.
+For the normative boundary, read
+[Model Context Observation](docs/model-context-observation.md)
+and [agentsCookbook Context Discipline](https://github.com/Hugloss/agentsCookbook/blob/main/protocols/context-discipline.md).
+
+Before merging evaluator/configuration changes, check that no new default
+or acceptance requirement incorrectly assumes a particular model window.
+
 ## Python and validation
 
 Use uv with the pinned `.python-version`. The stdlib-only harness keeps the
