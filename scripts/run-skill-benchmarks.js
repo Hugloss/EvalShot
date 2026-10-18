@@ -191,8 +191,8 @@ function copyOpenCodeConfig(tempHome) {
   return target;
 }
 
-function openCodeAgent(systemPrompt, model) {
-  return `---\ndescription: Read-only behavioral evaluator for one canonical cookbook skill.\nname: skill-benchmark\nmode: primary\ntemperature: 0.1\n${model ? `model: ${model}\n` : ''}permission:\n  "*": deny\n  read: allow\n  grep: allow\n  glob: allow\n  list: allow\n  find: allow\n  ls: allow\n---\n\n${systemPrompt}\n`;
+function openCodeAgent(systemPrompt) {
+  return `---\ndescription: Read-only behavioral evaluator for one canonical cookbook skill.\nname: skill-benchmark\nmode: primary\npermission:\n  "*": deny\n  read: allow\n  grep: allow\n  glob: allow\n  list: allow\n  find: allow\n  ls: allow\n---\n\n${systemPrompt}\n`;
 }
 
 function runOpenCode(systemPrompt, prompt, cwd, model) {
@@ -200,9 +200,13 @@ function runOpenCode(systemPrompt, prompt, cwd, model) {
   try {
     const configDir = copyOpenCodeConfig(tempHome);
     const agentDir = path.join(configDir, 'agents'); ensureDir(agentDir);
-    fs.writeFileSync(path.join(agentDir, 'skill-benchmark.md'), openCodeAgent(systemPrompt, model));
+    fs.writeFileSync(path.join(agentDir, 'skill-benchmark.md'), openCodeAgent(systemPrompt));
     const env = { ...process.env, HOME: tempHome, XDG_CONFIG_HOME: path.join(tempHome, '.config') };
-    return run(process.env.OPENCODE_BIN || 'opencode', ['run', '--dir', cwd, '--agent', 'skill-benchmark', prompt], cwd, env);
+    const args = ['run', '--dir', cwd, '--agent', 'skill-benchmark'];
+    // Only an explicit operator selection overrides native model resolution.
+    if (model) args.push('--model', model);
+    args.push(prompt);
+    return run(process.env.OPENCODE_BIN || 'opencode', args, cwd, env);
   } finally { fs.rmSync(tempHome, { recursive: true, force: true }); }
 }
 

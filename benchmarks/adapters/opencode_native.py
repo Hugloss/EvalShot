@@ -188,7 +188,7 @@ def _run_failure_diagnostic(
             if stdout_tail:
                 details.append(f"OpenCode run stdout tail:\n{stdout_tail}")
         signal = run_evidence.get("signal")
-        if isinstance(signal, str) and signal:
+        if signal:
             details.append(f"OpenCode run signal: {signal}")
 
     runtime = _bounded_diagnostic(runtime_stderr)
@@ -304,7 +304,6 @@ def _native_environment(context: TrialContext) -> dict[str, str]:
         "HOME": context.environment["BENCHMARK_NATIVE_HOME"],
         "XDG_CONFIG_HOME": context.environment["BENCHMARK_NATIVE_XDG_CONFIG_HOME"],
         "OPENCODE_DISABLE_AUTOUPDATE": "1",
-        "OPENCODE_DISABLE_PRUNE": "1",
         "OPENCODE_AUTO_SHARE": "false",
         "TMPDIR": context.environment["TMPDIR"],
         "TMP": context.environment["TMP"],
