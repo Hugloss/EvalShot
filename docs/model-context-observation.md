@@ -17,6 +17,21 @@ must match what the backend actually supports; increasing a client-side
 declaration does not enlarge the model server's real capacity.
 Compaction behavior also belongs to the agent host, not the evaluation suite.
 
+## Native OpenCode benchmark execution
+
+The evaluator's OpenCode trial overlay controls the selected MCP subject and
+trial workspace permissions; it does **not** write `compaction`, reserve a
+fixed number of tokens, or reject a model because its context metadata is
+missing or smaller than an evaluator-chosen threshold. A freshly observed
+base configuration and the effective trial configuration must retain the same
+compaction policy. If the host's token limits are absent, their value is
+unknown to EvalShot rather than an evaluator admission failure.
+
+Host/provider failures during actual model execution remain real observed
+results; this boundary removes only the evaluator's competing preflight rule.
+Independent experiment timeouts, output evidence bounds and subject/tool
+selection are unaffected.
+
 ## EvalShot's responsibility
 
 EvalShot observes and grades outcomes, not the agent's context-management

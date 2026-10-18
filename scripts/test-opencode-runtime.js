@@ -114,6 +114,9 @@ function config() {
     },
     mcp: nested ? { servers } : servers,
   };
+  if (process.env.FAKE_COMPACTION_POLICY === 'custom') {
+    base.compaction = { auto: false, reserved: 2048 };
+  }
   if (
     process.env.FAKE_CONFIG_DRIFT_AFTER_RUN === '1' &&
     statePath &&
@@ -124,6 +127,10 @@ function config() {
   const inline = process.env.OPENCODE_CONFIG_CONTENT
     ? JSON.parse(process.env.OPENCODE_CONFIG_CONTENT) : {};
   const resolved = merge(base, inline);
+  if (process.env.FAKE_EFFECTIVE_COMPACTION_DRIFT === '1' &&
+      process.env.OPENCODE_CONFIG_CONTENT) {
+    resolved.compaction = { auto: true, reserved: 10000 };
+  }
   if (process.env.FAKE_EFFECTIVE_MCP_DRIFT === '1') {
     const selected = resolved.mcp.servers?.hashmarks || resolved.mcp.hashmarks;
     if (selected) {
@@ -469,17 +476,18 @@ async function testSharedLifecycle() {
       );
       const content = JSON.parse(prepared.environment.OPENCODE_CONFIG_CONTENT);
       const servers = shape === 'nested' ? content.mcp.servers : content.mcp;
-      assert.deepStrictEqual(content.compaction, {
-        auto: true,
-        reserved: 10000,
-      });
+      assert.strictEqual(
+        Object.hasOwn(content, 'compaction'), false,
+        'benchmark must not override the host compaction policy',
+      );
       assert.deepStrictEqual(content.permission.external_directory, {
         [scratch]: 'allow',
         [`${scratch}/**`]: 'allow',
       });
       assert.strictEqual(prepared.overlay_identity.scratch_path, scratch);
       assert.strictEqual(prepared.overlay_identity.private_tmp, false);
-      assert.strictEqual(prepared.overlay_identity.compaction_auto, true);
+      assert.strictEqual(prepared.overlay_identity.compaction_auto, null);
+      assert.strictEqual(prepared.overlay_identity.compaction_reserved, null);
       assert.strictEqual(content.provider.liteLLM.options.apiKey, 'inline-secret');
       assert.strictEqual(content.permission.bash, 'deny');
       assert.deepStrictEqual(servers.hashmarks.command, exposure.command);
@@ -590,16 +598,50 @@ async function testSharedLifecycle() {
       agentName: 'build',
       env: { ...env, FAKE_MISSING_MODEL_LIMITS: '1' },
     });
-    assert.strictEqual(missingLimits.status, 'failed');
-    assert.match(missingLimits.reason, /no usable prompt budget/);
+    assert.strictEqual(missingLimits.status, 'completed', missingLimits.reason);
+    assert.strictEqual(missingLimits.inspection.model_limits, null);
+    assert.strictEqual(
+      Object.hasOwn(JSON.parse(missingLimits.environment.OPENCODE_CONFIG_CONTENT),
+        'compaction'), false,
+    );
     const badLimits = prepare({
       opencodeBin: fake,
       repoDir: root,
       agentName: 'build',
       env: { ...env, FAKE_BAD_MODEL_LIMITS: '1' },
     });
-    assert.strictEqual(badLimits.status, 'failed');
-    assert.match(badLimits.reason, /no usable prompt budget/);
+    assert.strictEqual(badLimits.status, 'completed', badLimits.reason);
+    assert.deepStrictEqual(badLimits.inspection.model_limits, {
+      context: 12000, output: 4000,
+    });
+    const hostCompaction = prepare({
+      opencodeBin: fake,
+      repoDir: root,
+      agentName: 'build',
+      env: { ...env, FAKE_COMPACTION_POLICY: 'custom' },
+    });
+    assert.strictEqual(hostCompaction.status, 'completed', hostCompaction.reason);
+    assert.strictEqual(
+      Object.hasOwn(JSON.parse(hostCompaction.environment.OPENCODE_CONFIG_CONTENT),
+        'compaction'), false,
+    );
+    assert.strictEqual(hostCompaction.overlay_identity.compaction_auto, false);
+    assert.strictEqual(hostCompaction.overlay_identity.compaction_reserved, 2048);
+    const compactionDrift = prepare({
+      opencodeBin: fake,
+      repoDir: root,
+      agentName: 'build',
+      env: {
+        ...env,
+        FAKE_COMPACTION_POLICY: 'custom',
+        FAKE_EFFECTIVE_COMPACTION_DRIFT: '1',
+      },
+    });
+    assert.strictEqual(compactionDrift.status, 'failed');
+    assert.match(
+      compactionDrift.reason,
+      /benchmark overlay changed native OpenCode compaction/,
+    );
     const outsideScratch = prepare({
       opencodeBin: fake,
       repoDir: root,
