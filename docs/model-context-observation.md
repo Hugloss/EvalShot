@@ -34,17 +34,23 @@ algorithm. For tests that claim context behavior, record as available:
 **Missing token data is UNKNOWN**, not a PASS, FAIL or guessed capacity.
 Character/byte measurements alone do not establish token-window compliance.
 
-## Experiment-specific budgets
+## Experimental comparison of runtime settings
 
-A frozen benchmark may deliberately impose a **scenario-specific**
-context budget to compare defined conditions. Such a budget is part of
-that suite's independently specified experiment, not a default for the
-entire project and not a source of runtime model configuration.
-Existing frozen suites, identities, and historical results remain intact.
+A benchmark may compare **operator-selected runtime configurations** with
+different model context windows or compaction behavior. The experiment can
+freeze and report the selected configuration identity, but EvalShot does not
+impose an additional context-window threshold on an agent, resize a model,
+or override the provider's limits. Configure each condition in the host
+(e.g. OpenCode) and record the observed result.
 
-Evaluation must not override a correctly configured runtime to manufacture
-a profile match, silently discard task requirements, or declare failure
-solely because one unrelated model uses a different context window.
+Existing frozen suite budgets for time, evidence, output or particular
+experiments retain their historical authority; they must not be
+misinterpreted as a global model context setting. Frozen definitions,
+identities and historical results remain intact.
+
+Evaluation must not silently discard task requirements or declare failure
+solely because an otherwise supported model has a different context
+window.
 
 ## Cookbook boundary
 
