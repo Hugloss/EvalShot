@@ -26,7 +26,7 @@ jobs:
         with:
           repository: Hugloss/agentsCookbook
           # Explicit integration source; distinct from frozen migration provenance.
-          ref: 16ebfd111a014e9bd668e01b1fec6f4fe41452ea
+          ref: b551ca494e5073764ac6c460babec54f9f0c1ecb
           path: .test-inputs/agentsCookbook
           persist-credentials: false
 
