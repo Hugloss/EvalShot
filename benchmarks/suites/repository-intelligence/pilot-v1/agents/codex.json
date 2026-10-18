@@ -1,0 +1,18 @@
+{
+  "id": "codex",
+  "adapter": "codex",
+  "identity": {
+    "id": "codex",
+    "version": "runtime-observed-v1"
+  },
+  "capabilities": [
+    "shell",
+    "workspace_edit",
+    "mcp",
+    "jsonl_trace"
+  ],
+  "configuration": {
+    "model": null,
+    "timeout_seconds": 600
+  }
+}

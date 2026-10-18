@@ -1,0 +1,55 @@
+{
+  "id": "repository-intelligence-pilot-v1",
+  "version": 1,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "locate-receipt-completion-owner",
+    "locate-bounded-process-owner",
+    "repair-partial-receipt-regression"
+  ],
+  "conditions": [
+    {
+      "id": "bare-codex",
+      "subject": "none",
+      "agent": "codex",
+      "trials": 1,
+      "replicate_ids": [
+        4101
+      ]
+    },
+    {
+      "id": "hashmarks-codex",
+      "subject": "hashmarks",
+      "agent": "codex",
+      "trials": 1,
+      "replicate_ids": [
+        4101
+      ]
+    },
+    {
+      "id": "enola-codex",
+      "subject": "enola",
+      "agent": "codex",
+      "trials": 1,
+      "replicate_ids": [
+        4101
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "repository-intelligence-pilot-score",
+    "version": 1,
+    "metrics": [
+      "task_success",
+      "command_calls",
+      "mcp_calls",
+      "subject_mcp_calls",
+      "subject_tool_invoked",
+      "mcp_result_bytes",
+      "input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ]
+  }
+}

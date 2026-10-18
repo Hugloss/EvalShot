@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "experiment.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "version",
+    "suite",
+    "tasks",
+    "conditions",
+    "scoring"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "suite": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "oracle_reviews": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "subject",
+          "agent",
+          "trials"
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "seed"
+            ]
+          },
+          {
+            "required": [
+              "replicate_ids"
+            ]
+          }
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1
+          },
+          "agent": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trials": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "replicate_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer"
+            }
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "group",
+              "variant",
+              "kind",
+              "prompt_suffix"
+            ],
+            "properties": {
+              "group": {
+                "type": "string",
+                "minLength": 1
+              },
+              "variant": {
+                "type": "string",
+                "minLength": 1
+              },
+              "kind": {
+                "enum": [
+                  "neutral",
+                  "placebo",
+                  "authority_claim",
+                  "urgency_claim",
+                  "misleading_hint"
+                ]
+              },
+              "prompt_suffix": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "scoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version",
+        "metrics"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "metrics": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "analysis_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary_observation",
+        "minimum_pairs",
+        "minimum_replicates",
+        "below_minimum",
+        "cross_agent_ranking"
+      ],
+      "properties": {
+        "primary_observation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minimum_pairs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum_replicates": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "below_minimum": {
+          "enum": [
+            "descriptive-only"
+          ]
+        },
+        "cross_agent_ranking": {
+          "type": "boolean"
+        }
+      }
+    },
+    "subject_exposure_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "require_probe_contract"
+      ],
+      "properties": {
+        "require_probe_contract": {
+          "const": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,37 @@
+diff --git a/benchmark_case/verification_00/pyproject.toml b/benchmark_case/verification_00/pyproject.toml
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_00/pyproject.toml
+@@ -0,0 +1,2 @@
++[tool.pytest.ini_options]
++testpaths = ["tests"]
+diff --git a/benchmark_case/verification_00/src/feature0042/service.py b/benchmark_case/verification_00/src/feature0042/service.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_00/src/feature0042/service.py
+@@ -0,0 +1,2 @@
++def apply_policy(value: int) -> int:
++    return value
+diff --git a/benchmark_case/verification_00/tests/feature0042/test_contract.py b/benchmark_case/verification_00/tests/feature0042/test_contract.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_00/tests/feature0042/test_contract.py
+@@ -0,0 +1,4 @@
++from benchmark_case.verification_00.src.feature0042.service import apply_policy
++
++def test_contract():
++    assert apply_policy(1) == 1
+diff --git a/benchmark_case/verification_00/tests/regression/test_apply_policy_other.py b/benchmark_case/verification_00/tests/regression/test_apply_policy_other.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_00/tests/regression/test_apply_policy_other.py
+@@ -0,0 +1,2 @@
++def test_apply_policy_other():
++    assert True
+diff --git a/benchmark_case/verification_00/tests/regression/test_unrelated.py b/benchmark_case/verification_00/tests/regression/test_unrelated.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_00/tests/regression/test_unrelated.py
+@@ -0,0 +1,2 @@
++def test_unrelated():
++    assert True

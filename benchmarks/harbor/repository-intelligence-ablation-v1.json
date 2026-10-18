@@ -1,0 +1,52 @@
+{
+  "schema": "agentscookbook.harbor-harness-matrix.v1",
+  "suite": "benchmarks/suites/repository-intelligence/heldout-v1",
+  "harnesses": [
+    "opencode",
+    "codex",
+    "claude-code"
+  ],
+  "subjects": [
+    "none",
+    "hashmarks",
+    "hashmarks-no-task-evidence",
+    "hashmarks-task-evidence-only"
+  ],
+  "tool_projections": {
+    "hashmarks-no-task-evidence": {
+      "exclude": [
+        "task_evidence"
+      ]
+    },
+    "hashmarks-task-evidence-only": {
+      "include": [
+        "task_evidence"
+      ]
+    }
+  },
+  "modes": {
+    "smoke": {
+      "tasks": [
+        "locate-prefix-path-enumerator"
+      ],
+      "attempts": 1
+    },
+    "matrix": {
+      "tasks": [
+        "locate-prefix-path-enumerator",
+        "locate-stale-index-removal",
+        "locate-directory-pruning"
+      ],
+      "attempts": 3
+    }
+  },
+  "ablation": {
+    "component": "task_evidence",
+    "arms": {
+      "bare": "none",
+      "full": "hashmarks",
+      "remove": "hashmarks-no-task-evidence",
+      "only": "hashmarks-task-evidence-only"
+    }
+  }
+}

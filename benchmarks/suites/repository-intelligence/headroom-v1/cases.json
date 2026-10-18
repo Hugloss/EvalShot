@@ -1,0 +1,73 @@
+{
+  "schema": "agents-cookbook-headroom-cases.v1",
+  "cases": {
+    "change_impact-00": {
+      "authority_fields": [],
+      "expected": {
+        "changed_path": "benchmark_case/change_impact_00/src/core.py",
+        "implementation_impact": [
+          "benchmark_case/change_impact_00/src/service.py",
+          "benchmark_case/change_impact_00/src/route.py"
+        ],
+        "verification_impact": [
+          "benchmark_case/change_impact_00/tests/test_route.py"
+        ]
+      },
+      "family": "change_impact",
+      "file_checks": [
+        {
+          "contains": "return \"new\"",
+          "path": "benchmark_case/change_impact_00/src/core.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "freshness-00": {
+      "authority_fields": [
+        "cached_freshness"
+      ],
+      "expected": {
+        "cached_freshness": "unknown",
+        "current_owner": "new_owner",
+        "next_evidence": "exact-path-read"
+      },
+      "family": "freshness",
+      "file_checks": [
+        {
+          "contains": "def new_owner():",
+          "path": "benchmark_case/freshness_00/src/app.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "declarations-00": {
+      "authority_fields": [
+        "winner"
+      ],
+      "expected": {
+        "comparison": "equivalent",
+        "providers": [
+          "project-config",
+          "container-config"
+        ],
+        "winner": "not-selected"
+      },
+      "family": "declarations",
+      "file_checks": [],
+      "provenance_fields": [
+        "providers"
+      ]
+    },
+    "verification-00": {
+      "authority_fields": [],
+      "expected": {
+        "path": "benchmark_case/verification_00/tests/feature0042/test_contract.py",
+        "runner": "pytest",
+        "scope": "test-node"
+      },
+      "family": "verification",
+      "file_checks": [],
+      "provenance_fields": []
+    }
+  }
+}

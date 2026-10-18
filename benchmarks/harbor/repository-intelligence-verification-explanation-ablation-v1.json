@@ -1,0 +1,64 @@
+{
+  "schema": "agentscookbook.harbor-harness-matrix.v1",
+  "suite": "benchmarks/suites/repository-intelligence/behavioral-v4",
+  "harnesses": [
+    "opencode",
+    "codex",
+    "claude-code"
+  ],
+  "subjects": [
+    "none",
+    "hashmarks",
+    "hashmarks-no-verification-explanation",
+    "hashmarks-verification-explanation-only"
+  ],
+  "tool_projections": {
+    "hashmarks-verification-explanation-only": {
+      "include": [
+        "repository_intelligence_query"
+      ]
+    }
+  },
+  "query_surface_projections": {
+    "hashmarks-no-verification-explanation": {
+      "exclude": [
+        "verification-explanation"
+      ]
+    },
+    "hashmarks-verification-explanation-only": {
+      "include": [
+        "verification-explanation"
+      ]
+    }
+  },
+  "ablation": {
+    "component": "repository_intelligence_query",
+    "selector": {
+      "argument": "surface_name",
+      "value": "verification-explanation"
+    },
+    "arms": {
+      "bare": "none",
+      "full": "hashmarks",
+      "remove": "hashmarks-no-verification-explanation",
+      "only": "hashmarks-verification-explanation-only"
+    }
+  },
+  "modes": {
+    "smoke": {
+      "tasks": [
+        "verification-00"
+      ],
+      "attempts": 1
+    },
+    "matrix": {
+      "tasks": [
+        "verification-00",
+        "verification-01",
+        "verification-02",
+        "verification-03"
+      ],
+      "attempts": 3
+    }
+  }
+}

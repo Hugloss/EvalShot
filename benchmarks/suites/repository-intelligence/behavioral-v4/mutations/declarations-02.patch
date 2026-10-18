@@ -1,0 +1,24 @@
+diff --git a/benchmark_case/declarations_02/a.txt b/benchmark_case/declarations_02/a.txt
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_02/a.txt
+@@ -0,0 +1,1 @@
++owner: alpha
+diff --git a/benchmark_case/declarations_02/b.txt b/benchmark_case/declarations_02/b.txt
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_02/b.txt
+@@ -0,0 +1,1 @@
++owner: alpha
+diff --git a/benchmark_case/declarations_02/c.txt b/benchmark_case/declarations_02/c.txt
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_02/c.txt
+@@ -0,0 +1,1 @@
++owner: alpha
+diff --git a/benchmark_case/declarations_02/observations.json b/benchmark_case/declarations_02/observations.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_02/observations.json
+@@ -0,0 +1,1 @@
++{"providers":["A","B","C"],"pairs":[["A","B"],["B","C"]],"concept":"ownership"}

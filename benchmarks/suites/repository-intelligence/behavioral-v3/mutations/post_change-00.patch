@@ -1,0 +1,23 @@
+diff --git a/benchmark_case/post_change_00/src/engine.py b/benchmark_case/post_change_00/src/engine.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_00/src/engine.py
+@@ -0,0 +1,2 @@
++def transform(value: str) -> str:
++    return "old" if value == "accepted" else value
+diff --git a/benchmark_case/post_change_00/src/unrelated.py b/benchmark_case/post_change_00/src/unrelated.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_00/src/unrelated.py
+@@ -0,0 +1,2 @@
++def stable() -> int:
++    return 1
+diff --git a/benchmark_case/post_change_00/tests/test_engine.py b/benchmark_case/post_change_00/tests/test_engine.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_00/tests/test_engine.py
+@@ -0,0 +1,4 @@
++from benchmark_case.post_change_00.src.engine import transform
++
++def test_accepted_contract():
++    assert transform("accepted") == "new"

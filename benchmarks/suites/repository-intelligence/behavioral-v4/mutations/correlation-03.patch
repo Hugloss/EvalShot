@@ -1,0 +1,12 @@
+diff --git a/benchmark_case/correlation_03/observation.json b/benchmark_case/correlation_03/observation.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/correlation_03/observation.json
+@@ -0,0 +1,1 @@
++{"provider":"runtime-log","path":"benchmark_case/correlation_03/src/owner.py","matching_revision":"computed-from-source","other_revision":"0000000000000000000000000000000000000000000000000000000000000000"}
+diff --git a/benchmark_case/correlation_03/src/owner.py b/benchmark_case/correlation_03/src/owner.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/correlation_03/src/owner.py
+@@ -0,0 +1,1 @@
++VALUE = 1

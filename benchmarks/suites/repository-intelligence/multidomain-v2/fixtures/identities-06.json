@@ -1,0 +1,11 @@
+{
+  "source_symbol": "useDepartmentSelectionGuard",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-6"
+  },
+  "after": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-6-changed"
+  }
+}

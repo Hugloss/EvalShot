@@ -1,0 +1,6 @@
+# These frozen CSV fixtures intentionally contain CRLF records. Preserve their
+# exact bytes across checkouts because source identities and oracles bind them.
+benchmarks/suites/repository-intelligence/multidomain-v2/fixtures/*.csv -text whitespace=cr-at-eol
+
+# The self-contained historical repository is an opaque Git fixture.
+benchmarks/tests/fixtures/*.bundle binary

@@ -1,0 +1,11 @@
+{
+  "source_symbol": "readRequest",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-3"
+  },
+  "after": {
+    "artifact": "artifact-b",
+    "semantic": "semantic-3-changed"
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "id": "change_impact-02",
+  "version": 1,
+  "family": "change_impact",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/change_impact_02. Fix engine.Value to return the required value, then identify the dependent implementation and focused Go test. Change only benchmark_case/change_impact_02/engine/engine.go. Return exactly one JSON object with keys changed_path, implementation_impact, verification_impact; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "change_impact-02-baseline",
+    "artifact": "mutations/change_impact-02.patch",
+    "sha256": "07809d7bf91f003a34ab295b840dc8e30c8da57707487bfb9b068fb5d9837f19",
+    "changed_paths": [
+      "benchmark_case/change_impact_02/engine/engine.go",
+      "benchmark_case/change_impact_02/go.mod",
+      "benchmark_case/change_impact_02/route/route.go",
+      "benchmark_case/change_impact_02/route/route_test.go"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "change_impact-02-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "change_impact-02"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "change_impact-02"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmark_case/change_impact_02/engine/engine.go"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

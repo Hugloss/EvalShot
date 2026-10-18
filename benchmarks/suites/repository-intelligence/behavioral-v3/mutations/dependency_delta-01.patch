@@ -1,0 +1,42 @@
+diff --git a/benchmark_case/dependency_delta_01/before/tree.json b/benchmark_case/dependency_delta_01/before/tree.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_01/before/tree.json
+@@ -0,0 +1,16 @@
++{
++  "groupId": "example.fixture",
++  "artifactId": "dummy-app",
++  "version": "0.1.0",
++  "type": "jar",
++  "scope": "",
++  "children": [
++    {
++      "groupId": "example.fixture",
++      "artifactId": "dummy-dep",
++      "version": "1.0.0",
++      "type": "jar",
++      "scope": "compile"
++    }
++  ]
++}
+diff --git a/benchmark_case/dependency_delta_01/after/tree.json b/benchmark_case/dependency_delta_01/after/tree.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_01/after/tree.json
+@@ -0,0 +1,16 @@
++{
++  "groupId": "example.fixture",
++  "artifactId": "dummy-app",
++  "version": "0.1.0",
++  "type": "jar",
++  "scope": "",
++  "children": [
++    {
++      "groupId": "example.fixture",
++      "artifactId": "dummy-dep",
++      "version": "1.0.0",
++      "type": "jar",
++      "scope": "runtime"
++    }
++  ]
++}

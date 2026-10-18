@@ -1,0 +1,64 @@
+{
+  "id": "freshness-02",
+  "version": 1,
+  "family": "freshness",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/freshness_02. A cached hit was retained after its source changed without a freshness signal. Decide whether it proves unique ownership. Change only benchmark_case/freshness_02/src/b.py. Return exactly one JSON object with keys unique_owner_proven, cached_hit_freshness, next_evidence; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "freshness-02-baseline",
+    "artifact": "mutations/freshness-02.patch",
+    "sha256": "483fd3cd19d57cd8dbd601aeab74683a8766bbfe7f9d1e0479e8b4b6ba763438",
+    "changed_paths": [
+      "benchmark_case/freshness_02/observations/cache.json",
+      "benchmark_case/freshness_02/src/a.py",
+      "benchmark_case/freshness_02/src/b.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "freshness-02-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "freshness-02"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "freshness-02"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmark_case/freshness_02/src/b.py"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "verification-00",
+  "version": 1,
+  "family": "verification",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "For the task \"verify apply_policy behavior for feature0042\", choose the most relevant verification target in benchmark_case/verification_00 and identify the native verification runner and scope. Do not edit files or run a broad unrelated suite. Return exactly one JSON object with keys path, runner, scope.",
+  "mutation": {
+    "id": "verification-00-baseline",
+    "artifact": "mutations/verification-00.patch",
+    "sha256": "5056ec9e1f79c5e741578adeaf4520e5f00bc1075d3a63b94f709670be524ef4",
+    "changed_paths": [
+      "benchmark_case/verification_00/pyproject.toml",
+      "benchmark_case/verification_00/src/feature0042/service.py",
+      "benchmark_case/verification_00/tests/feature0042/test_contract.py",
+      "benchmark_case/verification_00/tests/regression/test_apply_policy_other.py",
+      "benchmark_case/verification_00/tests/regression/test_unrelated.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "verification-00-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "verification-00"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "verification-00"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30,
+      "result_format": "lexigram-v1"
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "id": "change_impact-03",
+  "version": 1,
+  "family": "change_impact",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/change_impact_03. Update the shared OpenAPI version to 3.1.1, then report the directly and transitively affected declared projects. Preserve the declared provenance. Change only benchmark_case/change_impact_03/openapi.yaml. Return exactly one JSON object with keys changed_path, affected_projects, provenance; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "change_impact-03-baseline",
+    "artifact": "mutations/change_impact-03.patch",
+    "sha256": "07af510392910d083a397f0bf1c469fa8021d210f9da713412bb031d97c7628f",
+    "changed_paths": [
+      ".hashmarks-project-links.toml",
+      "benchmark_case/change_impact_03/backend/pom.xml",
+      "benchmark_case/change_impact_03/backend/src/Api.java",
+      "benchmark_case/change_impact_03/frontend/package.json",
+      "benchmark_case/change_impact_03/frontend/src/api.ts",
+      "benchmark_case/change_impact_03/mobile/package.json",
+      "benchmark_case/change_impact_03/mobile/src/api.ts",
+      "benchmark_case/change_impact_03/openapi.yaml"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "change_impact-03-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "change_impact-03"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "change_impact-03"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmark_case/change_impact_03/openapi.yaml"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

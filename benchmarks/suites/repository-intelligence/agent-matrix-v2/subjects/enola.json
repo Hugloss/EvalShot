@@ -1,0 +1,19 @@
+{
+  "id": "enola",
+  "kind": "repository_intelligence",
+  "adapter": "enola",
+  "identity": {
+    "id": "enola",
+    "version": "runtime-observed-v1"
+  },
+  "capabilities": [
+    "graph",
+    "impact",
+    "architecture_delta",
+    "cross_repo",
+    "routes"
+  ],
+  "configuration": {
+    "timeout_seconds": 240
+  }
+}

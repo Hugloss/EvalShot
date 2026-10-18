@@ -1,0 +1,3 @@
+2026-09-14T10:00:00Z ERROR service=doctor-scheduler-frontend symbol=canonicalScheduleScope request=sample-2
+  at canonicalScheduleScope (frame 1)
+2026-09-14T10:00:01Z INFO service=doctor-scheduler-frontend request=sample-2

@@ -1,0 +1,64 @@
+{
+  "id": "recent-orders-without-cycle",
+  "version": 1,
+  "family": "typescript-architecture-repair",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+    "tree": "65a32888329e308615647dda194f0e36c2afe2ac"
+  },
+  "prompt": "Implement recentOrders(customerId) in benchmarks/fixtures/recent-orders/domain.ts and expose it through getRecentOrders in api.ts. Return only the requested customer\u2019s orders, newest first. Run a relevant focused check before finishing.",
+  "mutation": {
+    "id": "add-recent-orders-fixture-v1",
+    "artifact": "mutations/add-recent-orders-fixture.patch",
+    "sha256": "8b6b0ea25b4b29ae0125bf2dcfe578d517456f36f72bd3894714ac67255e7813",
+    "changed_paths": [
+      "benchmarks/fixtures/recent-orders/README.md",
+      "benchmarks/fixtures/recent-orders/api.ts",
+      "benchmarks/fixtures/recent-orders/domain.ts",
+      "benchmarks/fixtures/recent-orders/package.json",
+      "benchmarks/fixtures/recent-orders/store.ts"
+    ]
+  },
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "recent-orders-functional-cycle-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "node",
+        "{suite}/oracle.mjs",
+        "--health"
+      ],
+      "grade_argv": [
+        "node",
+        "{suite}/oracle.mjs",
+        "--grade"
+      ],
+      "valid_exit_codes": [
+        0,
+        10,
+        11,
+        12
+      ],
+      "timeout_seconds": 60
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 150,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmarks/fixtures/recent-orders/*.ts"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

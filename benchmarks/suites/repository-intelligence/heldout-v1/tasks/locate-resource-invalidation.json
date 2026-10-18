@@ -1,0 +1,38 @@
+{
+  "id": "locate-resource-invalidation",
+  "version": 2,
+  "family": "typescript-localization",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/uv-fleet-updater.git",
+    "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+    "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8"
+  },
+  "prompt": "Without editing files, identify the frontend function that maps a mutation scope to the read resources it invalidates. Return exactly one JSON object with keys path and symbol, and nothing else.",
+  "mutation": null,
+  "oracle": {
+    "adapter": "repository-location-json",
+    "identity": {
+      "id": "locate-resource-invalidation-oracle",
+      "version": "2"
+    },
+    "configuration": {
+      "expected": {
+        "path": "ux/src/domain/reads/readResources.ts",
+        "symbol": "resourcesInvalidatedByMutation"
+      }
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

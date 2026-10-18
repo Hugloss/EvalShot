@@ -1,0 +1,106 @@
+{
+  "id": "repository-intelligence-behavioral-v4",
+  "version": 4,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "change_impact-00",
+    "change_impact-01",
+    "change_impact-02",
+    "change_impact-03",
+    "correlation-00",
+    "correlation-01",
+    "correlation-02",
+    "correlation-03",
+    "declarations-00",
+    "declarations-01",
+    "declarations-02",
+    "declarations-03",
+    "dependency_delta-00",
+    "dependency_delta-01",
+    "dependency_delta-02",
+    "dependency_delta-03",
+    "freshness-00",
+    "freshness-01",
+    "freshness-02",
+    "freshness-03",
+    "negative_bounds-00",
+    "negative_bounds-01",
+    "negative_bounds-02",
+    "negative_bounds-03",
+    "post_change-00",
+    "post_change-01",
+    "post_change-02",
+    "post_change-03",
+    "verification-00",
+    "verification-01",
+    "verification-02",
+    "verification-03"
+  ],
+  "conditions": [
+    {
+      "id": "none-codex-native",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "enola-codex-native",
+      "subject": "enola",
+      "agent": "codex-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "none-opencode-native",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "hashmarks-opencode-native",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "enola-opencode-native",
+      "subject": "enola",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "repository-intelligence-lexigram",
+    "version": 1,
+    "metrics": [
+      "admissibility",
+      "authority",
+      "resolution",
+      "evidence",
+      "paired_benefit"
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "identities",
+  "fixtures": [
+    {
+      "artifact": "fixtures/identities-03.json",
+      "sha256": "22e6197f10f66e237c93d91542b46ef3ddfc5976b9cd1c183440758988e2080e",
+      "target": "fixtures/identities-03.json"
+    }
+  ],
+  "id": "identities-03",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "artifact_changed": true,
+        "semantic_changed": true,
+        "source": "ux/src/app/api/httpTransport.ts"
+      }
+    },
+    "identity": {
+      "id": "identities-03-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the caller-supplied endpoints in fixtures/identities-03.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol. Return exactly one JSON object with keys source, artifact_changed, semantic_changed, and no other text.",
+  "repository": {
+    "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+    "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+    "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+  },
+  "version": 1
+}

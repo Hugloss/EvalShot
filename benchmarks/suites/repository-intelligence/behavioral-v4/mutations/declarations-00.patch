@@ -1,0 +1,19 @@
+diff --git a/benchmark_case/declarations_00/Dockerfile b/benchmark_case/declarations_00/Dockerfile
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_00/Dockerfile
+@@ -0,0 +1,1 @@
++FROM python:3.12
+diff --git a/benchmark_case/declarations_00/observations.json b/benchmark_case/declarations_00/observations.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_00/observations.json
+@@ -0,0 +1,1 @@
++{"concept":"python-runtime","providers":[{"id":"project-config","path":"pyproject.toml","value":"3.12"},{"id":"container-config","path":"Dockerfile","value":"3.12"}]}
+diff --git a/benchmark_case/declarations_00/pyproject.toml b/benchmark_case/declarations_00/pyproject.toml
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_00/pyproject.toml
+@@ -0,0 +1,2 @@
++[project]
++requires-python=">=3.12"

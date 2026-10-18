@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "dependencies",
+  "fixtures": [
+    {
+      "artifact": "fixtures/dependencies-04.json",
+      "sha256": "14253efbafbc0c4ca3b1db4023d5c3e8a974b9b2d6ad1024db0cc091aa23fead",
+      "target": "fixtures/dependencies-04.json"
+    }
+  ],
+  "id": "dependencies-04",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "consumer": "hashmarks/codemap/indexing_lifecycle.py",
+        "import_owner": "unknown",
+        "selected_version": "2.4.0"
+      }
+    },
+    "identity": {
+      "id": "dependencies-04-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the caller-supplied dependency observation in fixtures/dependencies-04.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it. Return exactly one JSON object with keys consumer, selected_version, import_owner, and no other text.",
+  "repository": {
+    "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+    "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+    "url": "https://github.com/Hugloss/Hashmarks.git"
+  },
+  "version": 1
+}

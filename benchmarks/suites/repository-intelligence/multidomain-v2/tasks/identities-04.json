@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "identities",
+  "fixtures": [
+    {
+      "artifact": "fixtures/identities-04.json",
+      "sha256": "fe65472bd6769b98e72d95b0a90ba9ff409c1f8c1b237030add82ade4f6129d2",
+      "target": "fixtures/identities-04.json"
+    }
+  ],
+  "id": "identities-04",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "artifact_changed": false,
+        "semantic_changed": false,
+        "source": "hashmarks/codemap/indexing_lifecycle.py"
+      }
+    },
+    "identity": {
+      "id": "identities-04-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the caller-supplied endpoints in fixtures/identities-04.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol. Return exactly one JSON object with keys source, artifact_changed, semantic_changed, and no other text.",
+  "repository": {
+    "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+    "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+    "url": "https://github.com/Hugloss/Hashmarks.git"
+  },
+  "version": 1
+}

@@ -1,0 +1,11 @@
+{
+  "source_symbol": "_sync_remove_stale_paths",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-4"
+  },
+  "after": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-4"
+  }
+}

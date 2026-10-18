@@ -1,0 +1,78 @@
+{
+  "schema": "agents-cookbook-openai-routing-dogfood-manifest.v3",
+  "name": "agentscookbook-routing-dogfood-v3",
+  "tasks": [
+    {
+      "id": "semantic-tool-classifier-owner",
+      "routing_expectation": "hashmarks-task-evidence-first",
+      "prompt": "Locate the implementation that maps host-specific repository tool names into semantic routing classes. Report the owning path and primary function.",
+      "expected_paths": [
+        "benchmarks/tool_routing.py"
+      ]
+    },
+    {
+      "id": "capture-session-binding-owner",
+      "routing_expectation": "hashmarks-task-evidence-first",
+      "prompt": "Locate the implementation that rejects an ordered tool-call trace when its bound tool catalog belongs to a different capture session. Report the owning path and primary function.",
+      "expected_paths": [
+        "benchmarks/tool_routing_trace.py"
+      ]
+    },
+    {
+      "id": "external-responses-probe-owner",
+      "routing_expectation": "hashmarks-task-evidence-first",
+      "prompt": "Locate the implementation that runs the external OpenAI Responses repository-routing diagnostic and owns its bounded local repository comparison surface. Report the owning path and primary entry point.",
+      "expected_paths": [
+        "benchmarks/openai_responses_routing_probe.py"
+      ]
+    },
+    {
+      "id": "repository-cache-lock-owner",
+      "routing_expectation": "hashmarks-task-evidence-first",
+      "prompt": "Locate the implementation that prevents two commands from concurrently mutating the same cached repository mirror during materialization. Report the owning path and lock owner.",
+      "expected_paths": [
+        "benchmarks/harness/source.py"
+      ]
+    },
+    {
+      "id": "stale-session-rejection-owner",
+      "routing_expectation": "hashmarks-task-evidence-first",
+      "prompt": "Locate the implementation that prevents an older OpenCode session from being adopted by a newer benchmark operation. Report the owning path and the matching rule.",
+      "expected_paths": [
+        "benchmarks/adapters/opencode_native.py"
+      ]
+    },
+    {
+      "id": "known-symbol-normalized-call-control",
+      "routing_expectation": "hashmarks-find-first",
+      "prompt": "Locate the exact symbol normalized_call and report its repository path plus what that symbol projects.",
+      "expected_paths": [
+        "benchmarks/tool_routing.py"
+      ]
+    },
+    {
+      "id": "known-symbol-run-selection-control",
+      "routing_expectation": "hashmarks-find-first",
+      "prompt": "Locate the exact symbol select_dogfood_run and report its repository path plus how it selects a run.",
+      "expected_paths": [
+        "benchmarks/openai_routing_dogfood.py"
+      ]
+    },
+    {
+      "id": "known-path-routing-projection-control",
+      "routing_expectation": "native-read-first",
+      "prompt": "Inspect benchmarks/tool_routing.py and report the function that projects one host tool call into canonical routing evidence. Use that exact file as the evidence source.",
+      "expected_paths": [
+        "benchmarks/tool_routing.py"
+      ]
+    },
+    {
+      "id": "known-path-repeat-limit-control",
+      "routing_expectation": "native-read-first",
+      "prompt": "Inspect benchmarks/openai_routing_dogfood.py and report the maximum number of repeats allowed for one routing dogfood campaign. Use that exact file as the evidence source.",
+      "expected_paths": [
+        "benchmarks/openai_routing_dogfood.py"
+      ]
+    }
+  ]
+}

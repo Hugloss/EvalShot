@@ -1,0 +1,47 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "logs",
+  "fixtures": [
+    {
+      "artifact": "fixtures/logs-02.txt",
+      "sha256": "4c8875f98abededcf5d57f54568045fc529b2a8f8395736ce00e5030f08569ef",
+      "target": "fixtures/logs-02.log"
+    }
+  ],
+  "id": "logs-02",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "frame_count": 1,
+        "path": "convex/scheduleRevisionModel.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "canonicalScheduleScope"
+      }
+    },
+    "identity": {
+      "id": "logs-02-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect fixtures/logs-02.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence. Return exactly one JSON object with keys path, symbol, frame_count, runtime_source_match, and no other text.",
+  "repository": {
+    "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+    "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+    "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+  },
+  "version": 1
+}

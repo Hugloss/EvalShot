@@ -1,0 +1,64 @@
+{
+  "id": "change_impact-01",
+  "version": 1,
+  "family": "change_impact",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Fix benchmark_case/change_impact_01 by editing only src/engine.ts so the route contract returns \"new\". After the edit, identify downstream implementation and verification surfaces affected by that change. Return exactly one JSON object with keys changed_path, implementation_impact, verification_impact. Arrays must contain repository-relative paths in dependency order from nearest consumer outward.",
+  "mutation": {
+    "id": "change_impact-01-baseline",
+    "artifact": "mutations/change_impact-01.patch",
+    "sha256": "a8786169eb6451647e4728879cb1917f8cbf80b78284b69527c77b73edc07562",
+    "changed_paths": [
+      "benchmark_case/change_impact_01/src/engine.ts",
+      "benchmark_case/change_impact_01/src/route.ts",
+      "benchmark_case/change_impact_01/src/service.ts",
+      "benchmark_case/change_impact_01/tests/route.test.ts"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "change_impact-01-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "change_impact-01"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "change_impact-01"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmark_case/change_impact_01/src/engine.ts"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

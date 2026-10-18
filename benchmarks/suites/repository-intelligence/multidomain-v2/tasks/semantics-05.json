@@ -1,0 +1,45 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "semantics",
+  "fixtures": [
+    {
+      "artifact": "fixtures/semantics-05.json",
+      "sha256": "f050f811b62a1e1b9ffbfb9a35cd9bbb0d2e837f6514c7c480c29f591d2bf1a1",
+      "target": "fixtures/semantics-05.json"
+    }
+  ],
+  "id": "semantics-05",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "declarations_agree": false,
+        "source": "ux/src/domain/mutations/WriteCommandResult.ts"
+      }
+    },
+    "identity": {
+      "id": "semantics-05-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the two caller-supplied declarations in fixtures/semantics-05.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority. Return exactly one JSON object with keys source, declarations_agree, and no other text.",
+  "repository": {
+    "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+    "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+    "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+  },
+  "version": 1
+}

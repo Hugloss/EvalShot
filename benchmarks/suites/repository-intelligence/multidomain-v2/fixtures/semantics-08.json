@@ -1,0 +1,13 @@
+{
+  "concept": "assignmentRowsForSchedule",
+  "declarations": [
+    {
+      "source_symbol": "assignmentRowsForSchedule",
+      "value": "scope-8"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-8"
+    }
+  ]
+}

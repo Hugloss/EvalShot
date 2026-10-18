@@ -1,0 +1,13 @@
+{
+  "concept": "resourcesInvalidatedByMutation",
+  "declarations": [
+    {
+      "source_symbol": "resourcesInvalidatedByMutation",
+      "value": "scope-1"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-1-other"
+    }
+  ]
+}

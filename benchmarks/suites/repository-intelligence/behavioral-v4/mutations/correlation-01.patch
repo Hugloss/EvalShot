@@ -1,0 +1,16 @@
+diff --git a/benchmark_case/correlation_01/observation.json b/benchmark_case/correlation_01/observation.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/correlation_01/observation.json
+@@ -0,0 +1,1 @@
++{"provider":"runtime-log","path":"benchmark_case/correlation_01/src/owner.py","symbol":"second","line":2}
+diff --git a/benchmark_case/correlation_01/src/owner.py b/benchmark_case/correlation_01/src/owner.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/correlation_01/src/owner.py
+@@ -0,0 +1,5 @@
++def first():
++    return 1
++
++def second():
++    return 2

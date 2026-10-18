@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "paths_under",
+  "declaration": {
+    "name": "sample-library-0",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-0",
+    "version": "2.0.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

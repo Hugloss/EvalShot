@@ -1,0 +1,8 @@
+# The harness is stdlib-only and retains its ./benchmark launcher.
+# This virtual project locks the test runner needed by the function-style tests.
+[dependency-groups]
+test = ["pytest==8.4.2"]
+
+[tool.pytest.ini_options]
+testpaths = ["benchmarks/tests", "tests"]
+pythonpath = ["."]

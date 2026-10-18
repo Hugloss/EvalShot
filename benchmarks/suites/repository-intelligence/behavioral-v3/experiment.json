@@ -1,0 +1,88 @@
+{
+  "id": "repository-intelligence-behavioral-v3",
+  "version": 3,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "post_change-00",
+    "post_change-01",
+    "change_impact-00",
+    "change_impact-01",
+    "verification-00",
+    "verification-01",
+    "dependency_delta-00",
+    "dependency_delta-01"
+  ],
+  "conditions": [
+    {
+      "id": "none-codex-native",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "enola-codex-native",
+      "subject": "enola",
+      "agent": "codex-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "none-opencode-native",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "hashmarks-opencode-native",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    },
+    {
+      "id": "enola-opencode-native",
+      "subject": "enola",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        8301
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "repository-intelligence-behavioral-score",
+    "version": 1,
+    "metrics": [
+      "task_success",
+      "command_calls",
+      "tool_calls",
+      "mcp_calls",
+      "subject_mcp_calls",
+      "subject_tool_invoked",
+      "mcp_result_bytes",
+      "input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ]
+  }
+}

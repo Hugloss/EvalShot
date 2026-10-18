@@ -1,0 +1,13 @@
+{
+  "concept": "task_evidence",
+  "declarations": [
+    {
+      "source_symbol": "task_evidence",
+      "value": "scope-2"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-2"
+    }
+  ]
+}

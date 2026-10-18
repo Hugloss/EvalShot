@@ -1,0 +1,11 @@
+{
+  "id": "none",
+  "kind": "control",
+  "adapter": "none",
+  "identity": {
+    "id": "none",
+    "version": "1"
+  },
+  "capabilities": [],
+  "configuration": {}
+}

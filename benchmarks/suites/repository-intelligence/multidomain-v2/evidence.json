@@ -1,0 +1,2130 @@
+{
+  "cases": [
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 1,
+        "path": "hashmarks/codemap/repository_index_store.py",
+        "runtime_source_match": "unknown",
+        "symbol": "paths_under"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/repository_index_store.py"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-00.txt",
+        "sha256": "dc82fb49cbb3b39c1ac71eb9f1c8308f5634421592e20e3db73a605a08bd7536",
+        "target": "fixtures/logs-00.log"
+      },
+      "id": "logs-00",
+      "language": "python",
+      "probe_query": "Find the source declaration for paths_under relevant to this logs observation",
+      "question": "Inspect fixtures/logs-00.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 2,
+        "path": "src/doctor_scheduler_solver_service/request_intents.py",
+        "runtime_source_match": "unknown",
+        "symbol": "parse_request_reason"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-01.txt",
+        "sha256": "dee69419de366cb407410a727991a1ebeca0a3a91fe60b0c71a43c1279bf886c",
+        "target": "fixtures/logs-01.log"
+      },
+      "id": "logs-01",
+      "language": "python",
+      "probe_query": "Find the source declaration for parse_request_reason relevant to this logs observation",
+      "question": "Inspect fixtures/logs-01.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 1,
+        "path": "convex/scheduleRevisionModel.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "canonicalScheduleScope"
+      },
+      "expected_paths": [
+        "convex/scheduleRevisionModel.ts"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-02.txt",
+        "sha256": "4c8875f98abededcf5d57f54568045fc529b2a8f8395736ce00e5030f08569ef",
+        "target": "fixtures/logs-02.log"
+      },
+      "id": "logs-02",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for canonicalScheduleScope relevant to this logs observation",
+      "question": "Inspect fixtures/logs-02.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 2,
+        "path": "ux/src/domain/reads/readInvalidation.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "readScopesInvalidatedByMutation"
+      },
+      "expected_paths": [
+        "ux/src/domain/reads/readInvalidation.ts"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-03.txt",
+        "sha256": "97cdf030e22e2731972a3c757db5e7c6c80dc9c661ee26a4664c489690f60d19",
+        "target": "fixtures/logs-03.log"
+      },
+      "id": "logs-03",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for readScopesInvalidatedByMutation relevant to this logs observation",
+      "question": "Inspect fixtures/logs-03.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 1,
+        "path": "hashmarks/codemap/indexing_lifecycle.py",
+        "runtime_source_match": "unknown",
+        "symbol": "_sync_remove_stale_paths"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/indexing_lifecycle.py"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-04.txt",
+        "sha256": "23bc10857c83f5754d8d9f61b1e8228de9f2222f6d521ec5384a755c5d7c4282",
+        "target": "fixtures/logs-04.log"
+      },
+      "id": "logs-04",
+      "language": "python",
+      "probe_query": "Find the source declaration for _sync_remove_stale_paths relevant to this logs observation",
+      "question": "Inspect fixtures/logs-04.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 2,
+        "path": "src/doctor_scheduler_solver_service/request_intents.py",
+        "runtime_source_match": "unknown",
+        "symbol": "request_matches_window"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-05.txt",
+        "sha256": "6327f662481891f407f37849d3978aeb88d8457ca994d1a68a9cf6dffc9e8724",
+        "target": "fixtures/logs-05.log"
+      },
+      "id": "logs-05",
+      "language": "python",
+      "probe_query": "Find the source declaration for request_matches_window relevant to this logs observation",
+      "question": "Inspect fixtures/logs-05.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 1,
+        "path": "convex/scheduleRevisionModel.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "scheduleContentHash"
+      },
+      "expected_paths": [
+        "convex/scheduleRevisionModel.ts"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-06.txt",
+        "sha256": "ba57c979d7bf1ac75e3f0a652e3a24d9302317e2b6b9045e98d1cdabd1da26b9",
+        "target": "fixtures/logs-06.log"
+      },
+      "id": "logs-06",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for scheduleContentHash relevant to this logs observation",
+      "question": "Inspect fixtures/logs-06.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 2,
+        "path": "ux/src/domain/reads/readResources.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "resourcesInvalidatedByMutation"
+      },
+      "expected_paths": [
+        "ux/src/domain/reads/readResources.ts"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-07.txt",
+        "sha256": "d44e5173e835d57b4ca8ccc1fc07ec595a4ad84e26d5e8e055c92fc8ef57a1f3",
+        "target": "fixtures/logs-07.log"
+      },
+      "id": "logs-07",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for resourcesInvalidatedByMutation relevant to this logs observation",
+      "question": "Inspect fixtures/logs-07.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 1,
+        "path": "hashmarks/codemap/repository_file_discovery.py",
+        "runtime_source_match": "unknown",
+        "symbol": "_prune_discovery_dirs"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/repository_file_discovery.py"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-08.txt",
+        "sha256": "0df6681ddc6a88c463acd7dd614572aa422270a87dbc7e809dba2720da33f47b",
+        "target": "fixtures/logs-08.log"
+      },
+      "id": "logs-08",
+      "language": "python",
+      "probe_query": "Find the source declaration for _prune_discovery_dirs relevant to this logs observation",
+      "question": "Inspect fixtures/logs-08.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "frame_count": 2,
+        "path": "src/doctor_scheduler_solver_service/request_intents.py",
+        "runtime_source_match": "unknown",
+        "symbol": "weekly_intent_matches_window"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "logs",
+      "fixture": {
+        "artifact": "fixtures/logs-09.txt",
+        "sha256": "6974848a6ef8403889a1431013018e838381afdb368a4b86b465646cd385b685",
+        "target": "fixtures/logs-09.log"
+      },
+      "id": "logs-09",
+      "language": "python",
+      "probe_query": "Find the source declaration for weekly_intent_matches_window relevant to this logs observation",
+      "question": "Inspect fixtures/logs-09.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "convex/jsonPayloadEncoding.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "encodeConvexJsonPayload"
+      },
+      "expected_paths": [
+        "convex/jsonPayloadEncoding.ts"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-00.csv",
+        "sha256": "7f1a2640e6f2658c5643184f9017a6f1cc9f282e04f72fac64065fabf0f653d7",
+        "target": "fixtures/splunk-00.csv"
+      },
+      "id": "splunk-00",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for encodeConvexJsonPayload relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-00.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "ux/src/domain/mutations/WriteCommandResult.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "withRefreshOutcome"
+      },
+      "expected_paths": [
+        "ux/src/domain/mutations/WriteCommandResult.ts"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-01.csv",
+        "sha256": "f44391d4bace88c42c7dba3b91b7dc0a2860ca2d5558d18a9e0e5c2574e671a9",
+        "target": "fixtures/splunk-01.csv"
+      },
+      "id": "splunk-01",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for withRefreshOutcome relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-01.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "hashmarks/mcp_surface.py",
+        "runtime_source_match": "unknown",
+        "symbol": "task_evidence"
+      },
+      "expected_paths": [
+        "hashmarks/mcp_surface.py"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-02.csv",
+        "sha256": "2837b14860e86208d5241e3cfa88d919885cae583f206cceefbd043fbc9abe1d",
+        "target": "fixtures/splunk-02.csv"
+      },
+      "id": "splunk-02",
+      "language": "python",
+      "probe_query": "Find the source declaration for task_evidence relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-02.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "src/doctor_scheduler_solver_service/utils.py",
+        "runtime_source_match": "unknown",
+        "symbol": "make_json_safe"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/utils.py"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-03.csv",
+        "sha256": "aed355231536757d1d6ff5f32ee48014ab8adab1071a4d4e84f8a9dc3d2ecfbb",
+        "target": "fixtures/splunk-03.csv"
+      },
+      "id": "splunk-03",
+      "language": "python",
+      "probe_query": "Find the source declaration for make_json_safe relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-03.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "convex/scheduleNormalization.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "assignmentRowsForSchedule"
+      },
+      "expected_paths": [
+        "convex/scheduleNormalization.ts"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-04.csv",
+        "sha256": "be1da802793ab137e04b0e0ed8911a90047b5c13ab05b083387529d67c218813",
+        "target": "fixtures/splunk-04.csv"
+      },
+      "id": "splunk-04",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for assignmentRowsForSchedule relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-04.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "ux/src/domain/fleet/runLifecycle.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "isFleetRunTerminal"
+      },
+      "expected_paths": [
+        "ux/src/domain/fleet/runLifecycle.ts"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-05.csv",
+        "sha256": "f899321d1e4f1a9c0da121a57fd07fe0e2248636b99a93638d5a732f723a5535",
+        "target": "fixtures/splunk-05.csv"
+      },
+      "id": "splunk-05",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for isFleetRunTerminal relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-05.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "hashmarks/test_shards.py",
+        "runtime_source_match": "unknown",
+        "symbol": "repository_content_identity"
+      },
+      "expected_paths": [
+        "hashmarks/test_shards.py"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-06.csv",
+        "sha256": "c60d02e9002f3eb6795a0ac8dcbe5af24ccbdb3ee9eed343fd36a597f5ff1bd9",
+        "target": "fixtures/splunk-06.csv"
+      },
+      "id": "splunk-06",
+      "language": "python",
+      "probe_query": "Find the source declaration for repository_content_identity relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-06.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "src/doctor_scheduler_solver_service/utils.py",
+        "runtime_source_match": "unknown",
+        "symbol": "safe_slug"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/utils.py"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-07.csv",
+        "sha256": "87f8fae8fd873d99702d0e63d51ab39d3fc575361abebb3be531fd4bf28fb404",
+        "target": "fixtures/splunk-07.csv"
+      },
+      "id": "splunk-07",
+      "language": "python",
+      "probe_query": "Find the source declaration for safe_slug relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-07.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "src/core/urlUtils.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "normalizeUrl"
+      },
+      "expected_paths": [
+        "src/core/urlUtils.ts"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-08.csv",
+        "sha256": "058095e1b9d711565c38a97f9f2708c0b5e6ba5b0050ff6893c76def19894e8d",
+        "target": "fixtures/splunk-08.csv"
+      },
+      "id": "splunk-08",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for normalizeUrl relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-08.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "event_count": 2,
+        "path": "ux/src/app/api/httpTransport.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "readRequest"
+      },
+      "expected_paths": [
+        "ux/src/app/api/httpTransport.ts"
+      ],
+      "family": "splunk",
+      "fixture": {
+        "artifact": "fixtures/splunk-09.csv",
+        "sha256": "68227df74d008f692aa9fce0996a879cbff21e2a12cb497e8663e2aee0720d6d",
+        "target": "fixtures/splunk-09.csv"
+      },
+      "id": "splunk-09",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for readRequest relevant to this splunk observation",
+      "question": "Inspect the frozen Splunk CSV at fixtures/splunk-09.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "hashmarks/codemap/repository_index_store.py",
+        "import_owner": "unknown",
+        "selected_version": "2.0.0"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/repository_index_store.py"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-00.json",
+        "sha256": "f66b0c8fb5ec6319baa83961e22b4d209639a1b8c52c3b2b9573cdeedd0ca725",
+        "target": "fixtures/dependencies-00.json"
+      },
+      "id": "dependencies-00",
+      "language": "python",
+      "probe_query": "Find the source declaration for paths_under relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-00.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "src/doctor_scheduler_solver_service/request_intents.py",
+        "import_owner": "unknown",
+        "selected_version": "2.1.0"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-01.json",
+        "sha256": "fc906a7cb38aa89afce7127d68b07e264e8dd989a1d853d2ec249ab5d3ad17a3",
+        "target": "fixtures/dependencies-01.json"
+      },
+      "id": "dependencies-01",
+      "language": "python",
+      "probe_query": "Find the source declaration for parse_request_reason relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-01.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "src/hooks/general/useDepartmentSelectionGuard.ts",
+        "import_owner": "unknown",
+        "selected_version": "2.2.0"
+      },
+      "expected_paths": [
+        "src/hooks/general/useDepartmentSelectionGuard.ts"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-02.json",
+        "sha256": "0f708dce3a718345916c48deb129cf949c9ec201f405fd7e94004294e816c087",
+        "target": "fixtures/dependencies-02.json"
+      },
+      "id": "dependencies-02",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for useDepartmentSelectionGuard relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-02.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "ux/src/domain/fleet/runLifecycle.ts",
+        "import_owner": "unknown",
+        "selected_version": "2.3.0"
+      },
+      "expected_paths": [
+        "ux/src/domain/fleet/runLifecycle.ts"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-03.json",
+        "sha256": "c2532b1c012719d51ba97e41b831e9f3b547daee8c0ee7434c17e424491abe57",
+        "target": "fixtures/dependencies-03.json"
+      },
+      "id": "dependencies-03",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for runPollDelay relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-03.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "hashmarks/codemap/indexing_lifecycle.py",
+        "import_owner": "unknown",
+        "selected_version": "2.4.0"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/indexing_lifecycle.py"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-04.json",
+        "sha256": "14253efbafbc0c4ca3b1db4023d5c3e8a974b9b2d6ad1024db0cc091aa23fead",
+        "target": "fixtures/dependencies-04.json"
+      },
+      "id": "dependencies-04",
+      "language": "python",
+      "probe_query": "Find the source declaration for _sync_remove_stale_paths relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-04.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "src/doctor_scheduler_solver_service/request_intents.py",
+        "import_owner": "unknown",
+        "selected_version": "2.5.0"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-05.json",
+        "sha256": "77905ef738037a10a3b116633761259076467f73170639a039db71863dfb99e2",
+        "target": "fixtures/dependencies-05.json"
+      },
+      "id": "dependencies-05",
+      "language": "python",
+      "probe_query": "Find the source declaration for request_matches_window relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-05.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "convex/scheduleRevisionModel.ts",
+        "import_owner": "unknown",
+        "selected_version": "2.6.0"
+      },
+      "expected_paths": [
+        "convex/scheduleRevisionModel.ts"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-06.json",
+        "sha256": "df27c9c984566cdccad4018a1ad17e607635e4aeea78bf740fba83682ac0fc1f",
+        "target": "fixtures/dependencies-06.json"
+      },
+      "id": "dependencies-06",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for canonicalScheduleScope relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-06.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "ux/src/domain/reads/readInvalidation.ts",
+        "import_owner": "unknown",
+        "selected_version": "2.7.0"
+      },
+      "expected_paths": [
+        "ux/src/domain/reads/readInvalidation.ts"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-07.json",
+        "sha256": "49c83d043fc8bfe31be0b778696c4f23834152ddb356736f6a9f70a1d6f23923",
+        "target": "fixtures/dependencies-07.json"
+      },
+      "id": "dependencies-07",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for readScopesInvalidatedByMutation relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-07.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "hashmarks/codemap/repository_file_discovery.py",
+        "import_owner": "unknown",
+        "selected_version": "2.8.0"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/repository_file_discovery.py"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-08.json",
+        "sha256": "49f6562e34137536663e911ba899db56da346bb4ef1d6b28f9bdc807a55537e8",
+        "target": "fixtures/dependencies-08.json"
+      },
+      "id": "dependencies-08",
+      "language": "python",
+      "probe_query": "Find the source declaration for _prune_discovery_dirs relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-08.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks",
+        "enola"
+      ],
+      "expected": {
+        "consumer": "src/doctor_scheduler_solver_service/request_intents.py",
+        "import_owner": "unknown",
+        "selected_version": "2.9.0"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "dependencies",
+      "fixture": {
+        "artifact": "fixtures/dependencies-09.json",
+        "sha256": "330a09ed90ec77fc7aedeedaf2e73e6ed7d3c5902450bb2cde32ef7b1c9aaf53",
+        "target": "fixtures/dependencies-09.json"
+      },
+      "id": "dependencies-09",
+      "language": "python",
+      "probe_query": "Find the source declaration for weekly_intent_matches_window relevant to this dependencies observation",
+      "question": "Inspect the caller-supplied dependency observation in fixtures/dependencies-09.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": true,
+        "source": "convex/scheduleRevisionModel.ts"
+      },
+      "expected_paths": [
+        "convex/scheduleRevisionModel.ts"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-00.json",
+        "sha256": "88b5c373ab403a34cd96e88d8a0b3ba0ee274efbce4c88a3be9669f30bd2b046",
+        "target": "fixtures/semantics-00.json"
+      },
+      "id": "semantics-00",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for scheduleContentHash relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-00.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": false,
+        "source": "ux/src/domain/reads/readResources.ts"
+      },
+      "expected_paths": [
+        "ux/src/domain/reads/readResources.ts"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-01.json",
+        "sha256": "f18de9f84fd1a44f66da7284d24b570debcc6e10767e7ba0184fbfb6e29c0c41",
+        "target": "fixtures/semantics-01.json"
+      },
+      "id": "semantics-01",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for resourcesInvalidatedByMutation relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-01.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": true,
+        "source": "hashmarks/mcp_surface.py"
+      },
+      "expected_paths": [
+        "hashmarks/mcp_surface.py"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-02.json",
+        "sha256": "6e06c8a1d2cc60014cc5886e99040cd6e397dc892f76577f7be2bce9c65f6cac",
+        "target": "fixtures/semantics-02.json"
+      },
+      "id": "semantics-02",
+      "language": "python",
+      "probe_query": "Find the source declaration for task_evidence relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-02.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": false,
+        "source": "src/doctor_scheduler_solver_service/utils.py"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/utils.py"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-03.json",
+        "sha256": "9012490c1d3b72ac13d3fa3aa207a187b0e31ff73927428a46ea4585750e204f",
+        "target": "fixtures/semantics-03.json"
+      },
+      "id": "semantics-03",
+      "language": "python",
+      "probe_query": "Find the source declaration for make_json_safe relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-03.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": true,
+        "source": "convex/jsonPayloadEncoding.ts"
+      },
+      "expected_paths": [
+        "convex/jsonPayloadEncoding.ts"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-04.json",
+        "sha256": "a36bff9fea02f609524427a4c7c12de3a5aa34f5f8c6a60af1881f210974e1d9",
+        "target": "fixtures/semantics-04.json"
+      },
+      "id": "semantics-04",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for encodeConvexJsonPayload relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-04.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": false,
+        "source": "ux/src/domain/mutations/WriteCommandResult.ts"
+      },
+      "expected_paths": [
+        "ux/src/domain/mutations/WriteCommandResult.ts"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-05.json",
+        "sha256": "f050f811b62a1e1b9ffbfb9a35cd9bbb0d2e837f6514c7c480c29f591d2bf1a1",
+        "target": "fixtures/semantics-05.json"
+      },
+      "id": "semantics-05",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for withRefreshOutcome relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-05.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": true,
+        "source": "hashmarks/test_shards.py"
+      },
+      "expected_paths": [
+        "hashmarks/test_shards.py"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-06.json",
+        "sha256": "cf03dbeddf16198301951f646c45d08ce0edfb57154e0d8d50b05436536988bf",
+        "target": "fixtures/semantics-06.json"
+      },
+      "id": "semantics-06",
+      "language": "python",
+      "probe_query": "Find the source declaration for repository_content_identity relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-06.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": false,
+        "source": "src/doctor_scheduler_solver_service/utils.py"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/utils.py"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-07.json",
+        "sha256": "21b37aadcff2855d7de5dc0cc6c8fef55ef78966a5b0c3eed67b9c2c5fae3292",
+        "target": "fixtures/semantics-07.json"
+      },
+      "id": "semantics-07",
+      "language": "python",
+      "probe_query": "Find the source declaration for safe_slug relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-07.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": true,
+        "source": "convex/scheduleNormalization.ts"
+      },
+      "expected_paths": [
+        "convex/scheduleNormalization.ts"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-08.json",
+        "sha256": "cf5b6e578c501698c554765de08c8a72a5c5093b774db2e0de89b7ba20b913e3",
+        "target": "fixtures/semantics-08.json"
+      },
+      "id": "semantics-08",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for assignmentRowsForSchedule relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-08.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "declarations_agree": false,
+        "source": "ux/src/domain/fleet/runLifecycle.ts"
+      },
+      "expected_paths": [
+        "ux/src/domain/fleet/runLifecycle.ts"
+      ],
+      "family": "semantics",
+      "fixture": {
+        "artifact": "fixtures/semantics-09.json",
+        "sha256": "bf598b3f54e543235e7caaa07bb1df3e4d94e18b866ffbbe2fe7af52af89cd38",
+        "target": "fixtures/semantics-09.json"
+      },
+      "id": "semantics-09",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for isFleetRunTerminal relevant to this semantics observation",
+      "question": "Inspect the two caller-supplied declarations in fixtures/semantics-09.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": false,
+        "semantic_changed": false,
+        "source": "hashmarks/codemap/repository_index_store.py"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/repository_index_store.py"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-00.json",
+        "sha256": "aea3b9a7eca246ce98f5b5db4b8a05ee1f0dbdc4f411091c4ca880b63a74ea6b",
+        "target": "fixtures/identities-00.json"
+      },
+      "id": "identities-00",
+      "language": "python",
+      "probe_query": "Find the source declaration for paths_under relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-00.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": true,
+        "semantic_changed": false,
+        "source": "src/doctor_scheduler_solver_service/request_intents.py"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-01.json",
+        "sha256": "7f3ec6d95339bc4a4403f984adb19e062eb3127511c24b742c0b0390e92bbd53",
+        "target": "fixtures/identities-01.json"
+      },
+      "id": "identities-01",
+      "language": "python",
+      "probe_query": "Find the source declaration for parse_request_reason relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-01.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": false,
+        "semantic_changed": true,
+        "source": "src/core/urlUtils.ts"
+      },
+      "expected_paths": [
+        "src/core/urlUtils.ts"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-02.json",
+        "sha256": "24ff4e2be817d7d20eb12143f052dad9968a417f4306c2af7de6aa5c02ac2c31",
+        "target": "fixtures/identities-02.json"
+      },
+      "id": "identities-02",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for normalizeUrl relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-02.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": true,
+        "semantic_changed": true,
+        "source": "ux/src/app/api/httpTransport.ts"
+      },
+      "expected_paths": [
+        "ux/src/app/api/httpTransport.ts"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-03.json",
+        "sha256": "22e6197f10f66e237c93d91542b46ef3ddfc5976b9cd1c183440758988e2080e",
+        "target": "fixtures/identities-03.json"
+      },
+      "id": "identities-03",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for readRequest relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-03.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": false,
+        "semantic_changed": false,
+        "source": "hashmarks/codemap/indexing_lifecycle.py"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/indexing_lifecycle.py"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-04.json",
+        "sha256": "fe65472bd6769b98e72d95b0a90ba9ff409c1f8c1b237030add82ade4f6129d2",
+        "target": "fixtures/identities-04.json"
+      },
+      "id": "identities-04",
+      "language": "python",
+      "probe_query": "Find the source declaration for _sync_remove_stale_paths relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-04.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": true,
+        "semantic_changed": false,
+        "source": "src/doctor_scheduler_solver_service/request_intents.py"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-05.json",
+        "sha256": "c1e73480e772122e90ca217d6f9f0ac102a8c3248366a758255431e8039b60d4",
+        "target": "fixtures/identities-05.json"
+      },
+      "id": "identities-05",
+      "language": "python",
+      "probe_query": "Find the source declaration for request_matches_window relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-05.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": false,
+        "semantic_changed": true,
+        "source": "src/hooks/general/useDepartmentSelectionGuard.ts"
+      },
+      "expected_paths": [
+        "src/hooks/general/useDepartmentSelectionGuard.ts"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-06.json",
+        "sha256": "486d4f53adefd12b6c6a30cd04945adc9a9072ebdf292504061f331bc6c1a354",
+        "target": "fixtures/identities-06.json"
+      },
+      "id": "identities-06",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for useDepartmentSelectionGuard relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-06.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": true,
+        "semantic_changed": true,
+        "source": "ux/src/domain/fleet/runLifecycle.ts"
+      },
+      "expected_paths": [
+        "ux/src/domain/fleet/runLifecycle.ts"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-07.json",
+        "sha256": "c1932bf984b2cd02ca3f02c07a68d05f04d0647a2daac787664020d43fa031ea",
+        "target": "fixtures/identities-07.json"
+      },
+      "id": "identities-07",
+      "language": "typescript",
+      "probe_query": "Find the source declaration for runPollDelay relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-07.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": false,
+        "semantic_changed": false,
+        "source": "hashmarks/codemap/repository_file_discovery.py"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/repository_file_discovery.py"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-08.json",
+        "sha256": "ef7a2d1fb46d84ae4f16d98d8d4318b779bdcc8ab6bf70591b7111a5bb2f0440",
+        "target": "fixtures/identities-08.json"
+      },
+      "id": "identities-08",
+      "language": "python",
+      "probe_query": "Find the source declaration for _prune_discovery_dirs relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-08.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "artifact_changed": true,
+        "semantic_changed": false,
+        "source": "src/doctor_scheduler_solver_service/request_intents.py"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/request_intents.py"
+      ],
+      "family": "identities",
+      "fixture": {
+        "artifact": "fixtures/identities-09.json",
+        "sha256": "18959da6f41f403c35eacb61f45b2b112d2d3581a0595d8d298ead95ff31a760",
+        "target": "fixtures/identities-09.json"
+      },
+      "id": "identities-09",
+      "language": "python",
+      "probe_query": "Find the source declaration for weekly_intent_matches_window relevant to this identities observation",
+      "question": "Inspect the caller-supplied endpoints in fixtures/identities-09.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "convex/scheduleRevisionModel.ts",
+        "symbol": "canonicalScheduleScope"
+      },
+      "expected_paths": [
+        "convex/scheduleRevisionModel.ts"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-00.json",
+        "sha256": "80f91da045d7c297d2bbfa038f8e3c8a4ff669659ea5ac815c68254fe4bce335",
+        "target": "fixtures/code_owners-00.json"
+      },
+      "id": "code_owners-00",
+      "language": "typescript",
+      "probe_query": "Identify source declaration ownership for canonicalScheduleScope; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-00.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "ux/src/domain/reads/readInvalidation.ts",
+        "symbol": "readScopesInvalidatedByMutation"
+      },
+      "expected_paths": [
+        "ux/src/domain/reads/readInvalidation.ts"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-01.json",
+        "sha256": "74dd46adb09c5d3a98798b2c05b9f62c0f6d62fd4475975302659e24a3b6d413",
+        "target": "fixtures/code_owners-01.json"
+      },
+      "id": "code_owners-01",
+      "language": "typescript",
+      "probe_query": "Identify source declaration ownership for readScopesInvalidatedByMutation; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-01.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "ambiguous",
+        "path": null,
+        "symbol": "task_evidence"
+      },
+      "expected_paths": [
+        "hashmarks/codemap/evidence_packet.py",
+        "hashmarks/codemap/service.py",
+        "hashmarks/mcp_surface.py",
+        "hashmarks/mcp_server.py"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-02.json",
+        "sha256": "0d2595e687516453d6e1951c8eb45ea549e8557106ed4594ff353577149f9280",
+        "target": "fixtures/code_owners-02.json"
+      },
+      "id": "code_owners-02",
+      "language": "python",
+      "probe_query": "Identify source declaration ownership for task_evidence; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-02.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "ambiguous",
+        "path": null,
+        "symbol": "repair_lone_half_days_snapshot"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/compute.py",
+        "src/doctor_scheduler_solver_service/workflows/draft_repairs.py",
+        "src/doctor_scheduler_solver_service/processor.py"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-03.json",
+        "sha256": "3795c49ecb91127ce1cad47c0b569aa9d595b9ed0399caea359f716be045a868",
+        "target": "fixtures/code_owners-03.json"
+      },
+      "id": "code_owners-03",
+      "language": "python",
+      "probe_query": "Identify source declaration ownership for repair_lone_half_days_snapshot; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-03.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "convex/scheduleRevisionModel.ts",
+        "symbol": "scheduleContentHash"
+      },
+      "expected_paths": [
+        "convex/scheduleRevisionModel.ts"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-04.json",
+        "sha256": "dfc9b78dbf0afe5108ad70497f945adf341f1e6932846b438669fa5016a9c7e9",
+        "target": "fixtures/code_owners-04.json"
+      },
+      "id": "code_owners-04",
+      "language": "typescript",
+      "probe_query": "Identify source declaration ownership for scheduleContentHash; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-04.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": true,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "ux/src/domain/reads/readResources.ts",
+        "symbol": "resourcesInvalidatedByMutation"
+      },
+      "expected_paths": [
+        "ux/src/domain/reads/readResources.ts"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-05.json",
+        "sha256": "acb2c7aee94630eb6c8bd486fe53f9189b9ad3875aed84b6d67b92417ed32129",
+        "target": "fixtures/code_owners-05.json"
+      },
+      "id": "code_owners-05",
+      "language": "typescript",
+      "probe_query": "Identify source declaration ownership for resourcesInvalidatedByMutation; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-05.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "hashmarks/test_shards.py",
+        "symbol": "repository_content_identity"
+      },
+      "expected_paths": [
+        "hashmarks/test_shards.py"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-06.json",
+        "sha256": "a1c9c6c1f8df3579e76df165382f85d4998c86297ddee8d804383ec29ce4740a",
+        "target": "fixtures/code_owners-06.json"
+      },
+      "id": "code_owners-06",
+      "language": "python",
+      "probe_query": "Identify source declaration ownership for repository_content_identity; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-06.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "repository_name": "hashmarks",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "diagnosis"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "src/doctor_scheduler_solver_service/utils.py",
+        "symbol": "safe_slug"
+      },
+      "expected_paths": [
+        "src/doctor_scheduler_solver_service/utils.py"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-07.json",
+        "sha256": "8df015869162ad0082aa43cff8ba92e51b345f68b0aee663f8bcdf3df4068b8e",
+        "target": "fixtures/code_owners-07.json"
+      },
+      "id": "code_owners-07",
+      "language": "python",
+      "probe_query": "Identify source declaration ownership for safe_slug; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-07.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+        "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+        "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+      },
+      "repository_name": "doctor-scheduler-core",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "convex/jsonPayloadEncoding.ts",
+        "symbol": "encodeConvexJsonPayload"
+      },
+      "expected_paths": [
+        "convex/jsonPayloadEncoding.ts"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-08.json",
+        "sha256": "2c7e2ceadca1061de4921709a5aa6efbb3b67a54df07dd6fbf17722b470852f0",
+        "target": "fixtures/code_owners-08.json"
+      },
+      "id": "code_owners-08",
+      "language": "typescript",
+      "probe_query": "Identify source declaration ownership for encodeConvexJsonPayload; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-08.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+        "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+        "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+      },
+      "repository_name": "doctor-scheduler-frontend",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "verification"
+    },
+    {
+      "agent_task": false,
+      "direct_support": [
+        "hashmarks"
+      ],
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "ux/src/domain/mutations/WriteCommandResult.ts",
+        "symbol": "withRefreshOutcome"
+      },
+      "expected_paths": [
+        "ux/src/domain/mutations/WriteCommandResult.ts"
+      ],
+      "family": "code_owners",
+      "fixture": {
+        "artifact": "fixtures/code_owners-09.json",
+        "sha256": "c821356e20a7f6c7d3b910c055ec936d72570a73fcd855344fad0d6d5e3b0692",
+        "target": "fixtures/code_owners-09.json"
+      },
+      "id": "code_owners-09",
+      "language": "typescript",
+      "probe_query": "Identify source declaration ownership for withRefreshOutcome; preserve ambiguity if the name has multiple owners",
+      "question": "Inspect fixtures/code_owners-09.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative.",
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "repository_name": "uv-fleet-updater",
+      "review": {
+        "approvals": [],
+        "state": "pending"
+      },
+      "role": "decision"
+    }
+  ],
+  "schema": "agents-cookbook-multidomain-evidence.v1"
+}

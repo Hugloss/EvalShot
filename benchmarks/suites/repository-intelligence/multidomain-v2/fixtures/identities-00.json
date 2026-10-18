@@ -1,0 +1,11 @@
+{
+  "source_symbol": "paths_under",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-0"
+  },
+  "after": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-0"
+  }
+}

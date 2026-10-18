@@ -1,0 +1,38 @@
+{
+  "id": "locate-repository-content-identity",
+  "version": 3,
+  "family": "python-localization",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/Hashmarks.git",
+    "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+    "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e"
+  },
+  "prompt": "Without editing files, identify the function used by the test-selection work-selection envelope and its repository-binding validation to compute the extraction-stable repository content identity from repository bytes. Return exactly one JSON object with keys path and symbol, and nothing else.",
+  "mutation": null,
+  "oracle": {
+    "adapter": "repository-location-json",
+    "identity": {
+      "id": "locate-repository-content-identity-oracle",
+      "version": "3"
+    },
+    "configuration": {
+      "expected": {
+        "path": "hashmarks/test_shards.py",
+        "symbol": "repository_content_identity"
+      }
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

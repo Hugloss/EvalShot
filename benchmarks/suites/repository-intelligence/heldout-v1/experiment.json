@@ -1,0 +1,111 @@
+{
+  "id": "repository-intelligence-heldout-outcomes-v1",
+  "version": 4,
+  "suite": "repository-intelligence",
+  "oracle_reviews": "qualification/oracle-reviews.json",
+  "tasks": [
+    "locate-prefix-path-enumerator",
+    "locate-stale-index-removal",
+    "locate-directory-pruning",
+    "locate-mcp-task-evidence",
+    "locate-repository-content-identity",
+    "repair-partial-receipt-regression",
+    "locate-refresh-outcome",
+    "locate-resource-invalidation",
+    "locate-terminal-run-check",
+    "locate-typed-http-read",
+    "locate-run-poll-delay",
+    "locate-read-scope-invalidation"
+  ],
+  "conditions": [
+    {
+      "id": "none-codex-native",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        6201,
+        6202,
+        6203
+      ]
+    },
+    {
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        6201,
+        6202,
+        6203
+      ]
+    },
+    {
+      "id": "enola-codex-native",
+      "subject": "enola",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        6201,
+        6202,
+        6203
+      ]
+    },
+    {
+      "id": "none-opencode-native",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        6201,
+        6202,
+        6203
+      ]
+    },
+    {
+      "id": "hashmarks-opencode-native",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        6201,
+        6202,
+        6203
+      ]
+    },
+    {
+      "id": "enola-opencode-native",
+      "subject": "enola",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        6201,
+        6202,
+        6203
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "repository-intelligence-heldout-outcomes-score",
+    "version": 3,
+    "metrics": [
+      "task_success",
+      "format_compliance",
+      "semantic_success",
+      "semantic_gradeability",
+      "command_calls",
+      "tool_calls",
+      "mcp_calls",
+      "subject_mcp_calls",
+      "subject_tool_invoked",
+      "mcp_result_bytes",
+      "input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ]
+  },
+  "subject_exposure_contract": {
+    "require_probe_contract": true
+  }
+}

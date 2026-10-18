@@ -1,0 +1,13 @@
+{
+  "concept": "encodeConvexJsonPayload",
+  "declarations": [
+    {
+      "source_symbol": "encodeConvexJsonPayload",
+      "value": "scope-4"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-4"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "canonicalScheduleScope",
+  "declaration": {
+    "name": "sample-library-6",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-6",
+    "version": "2.6.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

@@ -1,0 +1,14 @@
+# Copy this file to agent-economics.toml and adapt argv to the repository.
+# Commands are explicit argv arrays: no shell expansion or implicit install.
+version = 1
+
+[commands.focused]
+argv = ["python", "-m", "pytest", "-q"]
+stage = "focused"
+append_selected_tests = true
+must_not_modify_tracked_files = true
+
+[commands.repository]
+argv = ["python", "-m", "pytest", "-q"]
+stage = "repository"
+must_not_modify_tracked_files = true

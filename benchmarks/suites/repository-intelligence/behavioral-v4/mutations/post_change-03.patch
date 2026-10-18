@@ -1,0 +1,13 @@
+diff --git a/benchmark_case/post_change_03/observations/prior.json b/benchmark_case/post_change_03/observations/prior.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_03/observations/prior.json
+@@ -0,0 +1,1 @@
++{"schema":"hashmarks.task-evidence.v2","evidence_packet_identity":"forged","context_identity":"wrong"}
+diff --git a/benchmark_case/post_change_03/src/owner.py b/benchmark_case/post_change_03/src/owner.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_03/src/owner.py
+@@ -0,0 +1,2 @@
++def widget():
++    return 'stable'

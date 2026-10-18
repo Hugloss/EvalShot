@@ -1,0 +1,4 @@
+_serial,_time,source,sourcetype,host,index,splunk_server,_raw
+1,2026-09-14T10:00:00+00:00,masked,app:log,masked,sample,masked,"ERROR name=make_json_safe request=sample-3
+traceback continuation, still one CSV record"
+2,2026-09-14T10:00:01+00:00,masked,app:log,masked,sample,masked,INFO unrelated event

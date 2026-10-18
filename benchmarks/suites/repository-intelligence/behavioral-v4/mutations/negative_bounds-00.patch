@@ -1,0 +1,20 @@
+diff --git a/benchmark_case/negative_bounds_00/observations/query.json b/benchmark_case/negative_bounds_00/observations/query.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/negative_bounds_00/observations/query.json
+@@ -0,0 +1,1 @@
++{"query":"collision_owner","limit":1,"visible":["src/a.py"],"truncated":true}
+diff --git a/benchmark_case/negative_bounds_00/src/a.py b/benchmark_case/negative_bounds_00/src/a.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/negative_bounds_00/src/a.py
+@@ -0,0 +1,2 @@
++def collision_owner():
++    return 1
+diff --git a/benchmark_case/negative_bounds_00/src/b.py b/benchmark_case/negative_bounds_00/src/b.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/negative_bounds_00/src/b.py
+@@ -0,0 +1,2 @@
++def collision_owner():
++    return 2

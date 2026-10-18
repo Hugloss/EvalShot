@@ -1,0 +1,13 @@
+{
+  "concept": "withRefreshOutcome",
+  "declarations": [
+    {
+      "source_symbol": "withRefreshOutcome",
+      "value": "scope-5"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-5-other"
+    }
+  ]
+}

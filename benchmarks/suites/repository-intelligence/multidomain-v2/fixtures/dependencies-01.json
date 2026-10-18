@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "parse_request_reason",
+  "declaration": {
+    "name": "sample-library-1",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-1",
+    "version": "2.1.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

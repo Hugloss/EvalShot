@@ -1,0 +1,19 @@
+{
+  "id": "codex-native",
+  "adapter": "codex",
+  "identity": {
+    "id": "codex-native",
+    "version": "host-config-v1"
+  },
+  "capabilities": [
+    "shell",
+    "workspace_edit",
+    "mcp",
+    "jsonl_trace",
+    "native_config"
+  ],
+  "configuration": {
+    "native_host": true,
+    "timeout_seconds": 600
+  }
+}

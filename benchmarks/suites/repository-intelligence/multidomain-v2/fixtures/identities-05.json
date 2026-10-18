@@ -1,0 +1,11 @@
+{
+  "source_symbol": "request_matches_window",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-5"
+  },
+  "after": {
+    "artifact": "artifact-b",
+    "semantic": "semantic-5"
+  }
+}

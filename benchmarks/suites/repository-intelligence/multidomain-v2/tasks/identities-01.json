@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "identities",
+  "fixtures": [
+    {
+      "artifact": "fixtures/identities-01.json",
+      "sha256": "7f3ec6d95339bc4a4403f984adb19e062eb3127511c24b742c0b0390e92bbd53",
+      "target": "fixtures/identities-01.json"
+    }
+  ],
+  "id": "identities-01",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "artifact_changed": true,
+        "semantic_changed": false,
+        "source": "src/doctor_scheduler_solver_service/request_intents.py"
+      }
+    },
+    "identity": {
+      "id": "identities-01-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the caller-supplied endpoints in fixtures/identities-01.json. Distinguish source artifact change from semantic identity change and find the pinned declaration of source_symbol. Return exactly one JSON object with keys source, artifact_changed, semantic_changed, and no other text.",
+  "repository": {
+    "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+    "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+    "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+  },
+  "version": 1
+}

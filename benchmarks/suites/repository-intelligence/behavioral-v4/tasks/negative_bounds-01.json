@@ -1,0 +1,62 @@
+{
+  "id": "negative_bounds-01",
+  "version": 1,
+  "family": "negative_bounds",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/negative_bounds_01. A bounded verifier search returns no candidate. Decide whether no relevant verifier exists. Return exactly one JSON object with keys no_verifier, verification_search, next_evidence; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "negative_bounds-01-baseline",
+    "artifact": "mutations/negative_bounds-01.patch",
+    "sha256": "1de467d2bc8054e86c60393397e4e98219363ee2bd9be2da63ce889612ba867f",
+    "changed_paths": [
+      "benchmark_case/negative_bounds_01/observations/query.json",
+      "benchmark_case/negative_bounds_01/src/owner.py",
+      "benchmark_case/negative_bounds_01/tests/test_owner.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "negative_bounds-01-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "negative_bounds-01"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "negative_bounds-01"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

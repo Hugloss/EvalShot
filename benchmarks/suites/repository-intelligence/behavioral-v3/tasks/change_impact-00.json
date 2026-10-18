@@ -1,0 +1,64 @@
+{
+  "id": "change_impact-00",
+  "version": 1,
+  "family": "change_impact",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Fix the behavior in benchmark_case/change_impact_00 by editing only the owning core implementation so the route contract returns \"new\". After the edit, identify the downstream implementation surfaces and verification surface affected by that owner change. Return exactly one JSON object with keys changed_path, implementation_impact, verification_impact. Arrays must contain repository-relative paths in dependency order from nearest consumer outward.",
+  "mutation": {
+    "id": "change_impact-00-baseline",
+    "artifact": "mutations/change_impact-00.patch",
+    "sha256": "f4bd72193fba00691d88c1798d74df0438f2e54ee10f9d572c0b2dcea7fe4bd2",
+    "changed_paths": [
+      "benchmark_case/change_impact_00/src/core.py",
+      "benchmark_case/change_impact_00/src/route.py",
+      "benchmark_case/change_impact_00/src/service.py",
+      "benchmark_case/change_impact_00/tests/test_route.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "change_impact-00-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "change_impact-00"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "change_impact-00"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmark_case/change_impact_00/src/core.py"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

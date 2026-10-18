@@ -1,0 +1,60 @@
+diff --git a/benchmarks/fixtures/recent-orders/README.md b/benchmarks/fixtures/recent-orders/README.md
+new file mode 100644
+index 0000000..e314d10
+--- /dev/null
++++ b/benchmarks/fixtures/recent-orders/README.md
+@@ -0,0 +1 @@
++Implement the TODOs in domain.ts and api.ts. Store data is in store.ts.
+diff --git a/benchmarks/fixtures/recent-orders/api.ts b/benchmarks/fixtures/recent-orders/api.ts
+new file mode 100644
+index 0000000..dd75859
+--- /dev/null
++++ b/benchmarks/fixtures/recent-orders/api.ts
+@@ -0,0 +1,5 @@
++import { recentOrders, type Order } from './domain.ts';
++
++export function getRecentOrders(_customerId: string): Order[] {
++  throw new Error('getRecentOrders is not implemented');
++}
+diff --git a/benchmarks/fixtures/recent-orders/domain.ts b/benchmarks/fixtures/recent-orders/domain.ts
+new file mode 100644
+index 0000000..6af4bcd
+--- /dev/null
++++ b/benchmarks/fixtures/recent-orders/domain.ts
+@@ -0,0 +1,11 @@
++export type Order = {
++  id: string;
++  customerId: string;
++  createdAt: string;
++  total: number;
++};
++
++// Return this customer's orders newest first.
++export function recentOrders(_customerId: string): Order[] {
++  throw new Error('recentOrders is not implemented');
++}
+diff --git a/benchmarks/fixtures/recent-orders/package.json b/benchmarks/fixtures/recent-orders/package.json
+new file mode 100644
+index 0000000..e748030
+--- /dev/null
++++ b/benchmarks/fixtures/recent-orders/package.json
+@@ -0,0 +1 @@
++{"name":"recent-orders-fixture","private":true,"type":"module"}
+diff --git a/benchmarks/fixtures/recent-orders/store.ts b/benchmarks/fixtures/recent-orders/store.ts
+new file mode 100644
+index 0000000..4f1678d
+--- /dev/null
++++ b/benchmarks/fixtures/recent-orders/store.ts
+@@ -0,0 +1,12 @@
++import type { Order } from './domain.ts';
++
++export const orders: Order[] = [
++  { id: 'a-old', customerId: 'alice', createdAt: '2025-01-01T00:00:00Z', total: 10 },
++  { id: 'b-new', customerId: 'bob', createdAt: '2025-04-01T00:00:00Z', total: 20 },
++  { id: 'a-new', customerId: 'alice', createdAt: '2025-05-01T00:00:00Z', total: 30 },
++  { id: 'a-mid', customerId: 'alice', createdAt: '2025-03-01T00:00:00Z', total: 40 },
++];
++
++export function listOrders(): readonly Order[] {
++  return orders;
++}

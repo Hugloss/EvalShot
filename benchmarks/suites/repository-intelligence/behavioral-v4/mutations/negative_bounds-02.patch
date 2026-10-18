@@ -1,0 +1,13 @@
+diff --git a/benchmark_case/negative_bounds_02/observations/query.json b/benchmark_case/negative_bounds_02/observations/query.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/negative_bounds_02/observations/query.json
+@@ -0,0 +1,1 @@
++{"query":"alpha cue00 cue01 cue02 cue03 cue04 cue05 cue06 cue07 cue08 cue08 cue09 cue10 cue11 cue12 cue13 cue14 cue15 cue16 cue17 cue18 cue19 cue20 cue21 cue22 cue23 cue24 cue25 cue26 cue27 cue28 cue29 cue30 cue31 cue32 cue33","omitted_identifiers":true}
+diff --git a/benchmark_case/negative_bounds_02/src/owner.py b/benchmark_case/negative_bounds_02/src/owner.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/negative_bounds_02/src/owner.py
+@@ -0,0 +1,2 @@
++def alpha():
++    return 1

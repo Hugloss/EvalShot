@@ -1,0 +1,277 @@
+name: Validate EvalShot
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  evaluators:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout EvalShot
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Checkout canonical cookbook input
+        uses: actions/checkout@v4
+        with:
+          repository: Hugloss/agentsCookbook
+          ref: 40be826e6883d819ee6cf5c10946c793f0ef0f5f
+          path: .test-inputs/agentsCookbook
+          persist-credentials: false
+
+      - name: Evaluator source-boundary regressions and corpus validation
+        run: node scripts/test-cookbook-migration.js --cookbook-root .test-inputs/agentsCookbook
+
+      - name: Model-free skill evidence regressions
+        run: node scripts/test-skill-evidence-contract.js
+
+      - name: OpenCode runtime regressions
+        run: node scripts/test-opencode-runtime.js
+
+      - name: JavaScript and shell syntax
+        run: |
+          for script in scripts/*.js; do node --check "$script"; done
+          bash -n benchmark
+          sh -n scripts/bootstrap-agent-economics.sh
+
+  benchmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+
+      - name: Install repository Python
+        run: uv python install
+
+      - name: Compile benchmark framework
+        run: uv run --no-project python -m compileall -q benchmarks
+
+      - name: Validate benchmark schema JSON
+        run: |
+          uv run --no-project python - <<'PY'
+          import json
+          from pathlib import Path
+
+          paths = sorted(Path("benchmarks/schema").glob("*.json"))
+          if not paths:
+              raise SystemExit("no benchmark schemas found")
+          for path in paths:
+              value = json.loads(path.read_text(encoding="utf-8"))
+              if value.get("$schema") != "https://json-schema.org/draft/2020-12/schema":
+                  raise SystemExit(f"{path}: unexpected or missing JSON Schema draft")
+              if not value.get("$id"):
+                  raise SystemExit(f"{path}: missing $id")
+          print(f"validated {len(paths)} benchmark schemas")
+          PY
+
+      - name: Validate frozen repository-intelligence suites
+        run: |
+          ./benchmark validate-suite \
+            --suite benchmarks/suites/repository-intelligence/pilot-v1
+          ./benchmark plan \
+            --suite benchmarks/suites/repository-intelligence/pilot-v1 \
+            > "$RUNNER_TEMP/repository-intelligence-pilot-plan.json"
+
+          ./benchmark validate-suite \
+            --suite benchmarks/suites/repository-intelligence/agent-matrix-v2
+          ./benchmark plan \
+            --suite benchmarks/suites/repository-intelligence/agent-matrix-v2 \
+            > "$RUNNER_TEMP/repository-intelligence-agent-matrix-v2-plan.json"
+
+          ./benchmark validate-suite \
+            --suite benchmarks/suites/repository-intelligence/native-matrix-v3
+          ./benchmark plan \
+            --suite benchmarks/suites/repository-intelligence/native-matrix-v3 \
+            > "$RUNNER_TEMP/repository-intelligence-native-matrix-v3-plan.json"
+
+          ./benchmark validate-suite \
+            --suite benchmarks/suites/repository-intelligence/enola-cycle-reproduction-v1
+          ./benchmark plan \
+            --suite benchmarks/suites/repository-intelligence/enola-cycle-reproduction-v1 \
+            > "$RUNNER_TEMP/repository-intelligence-enola-cycle-plan.json"
+
+          ./benchmark validate-suite \
+            --suite benchmarks/suites/repository-intelligence/context-invariance-v1
+          ./benchmark plan \
+            --suite benchmarks/suites/repository-intelligence/context-invariance-v1 \
+            > "$RUNNER_TEMP/repository-intelligence-context-invariance-plan.json"
+          ./benchmark plan \
+            --suite benchmarks/suites/repository-intelligence/context-invariance-v1 \
+            --agent opencode-native \
+            --task locate-prefix-path-enumerator \
+            --subject none --subject hashmarks \
+            > "$RUNNER_TEMP/repository-intelligence-context-invariance-qualification-plan.json"
+
+          uv run --no-project python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"])
+          expected = {
+              "repository-intelligence-pilot-plan.json": 9,
+              "repository-intelligence-agent-matrix-v2-plan.json": 18,
+              "repository-intelligence-native-matrix-v3-plan.json": 18,
+              "repository-intelligence-enola-cycle-plan.json": 18,
+              "repository-intelligence-context-invariance-plan.json": 96,
+              "repository-intelligence-context-invariance-qualification-plan.json": 24,
+          }
+          for filename, expected_count in expected.items():
+              plan = json.loads(
+                  (root / filename).read_text(encoding="utf-8")
+              )
+              if len(plan) != expected_count:
+                  raise SystemExit(
+                      f"{filename}: expected {expected_count} frozen trials, "
+                      f"got {len(plan)}"
+                  )
+              identities = {row["definition_id"] for row in plan}
+              if len(identities) != expected_count:
+                  raise SystemExit(
+                      f"{filename}: definition identities are not unique"
+                  )
+          PY
+
+      - name: Benchmark foundation and pilot regressions
+        run: uv run --no-project python -m unittest discover -s benchmarks/tests -v
+
+  agent-economics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+
+      - name: Install repository Python
+        run: uv python install
+
+      - name: Compile Agent Economics
+        run: uv run --no-project python -m compileall -q scripts/agent_economics
+
+      - name: Agent Economics full qualification
+        run: |
+          set -euo pipefail
+          modules=(
+            refactor_focus_qualification
+            refactor_focus_p2_qualification
+            refactor_focus_p3_qualification
+            probe_contract_qualification
+            refactor_focus_p5_qualification
+            context_focus_qualification
+            test_focus_qualification
+            change_impact_qualification
+            coupling_focus_qualification
+            hotspot_focus_qualification
+            capability_bridge_qualification
+            agent_outcome_benchmark_qualification
+            dogfood_campaign_qualification
+            quality_debt_qualification
+            behavior_preservation_qualification
+            refactor_locality_qualification
+            bounded_evidence_batches_qualification
+            bootstrap_qualification
+            zero_to_first_result_qualification
+            evidence_next_qualification
+            explain_qualification
+            cli_consistency_qualification
+            dogfood_corpus_qualification
+            pre_pr_qualification
+            agent_economics_stress_qualification
+          )
+          for module in "${modules[@]}"; do
+            uv run --no-project python -m "scripts.agent_economics.${module}"
+          done
+
+      - name: Standalone package import smoke
+        run: |
+          PYTHONPATH="$PWD/scripts" uv run --no-project python -c "import agent_economics; from agent_economics.test_focus import test_focus_audit; from agent_economics.quality_debt import quality_debt_audit"
+
+      - name: CLI routing smoke
+        run: |
+          uv run --no-project python -m scripts.agent_economics --help >/dev/null
+          uv run --no-project python -m scripts.agent_economics doctor --repository-root . --json >/dev/null
+          uv run --no-project python -m scripts.agent_economics help quality-debt >/dev/null
+          uv run --no-project python -m scripts.agent_economics capabilities --repository-root . --json >/dev/null
+          uv run --no-project python -m scripts.agent_economics evidence-batches --help >/dev/null
+          uv run --no-project python -m scripts.agent_economics refactor-locality --help >/dev/null
+          uv run --no-project python -m scripts.agent_economics benchmark-outcomes --template-task ci-smoke >/dev/null
+          uv run --no-project python -m scripts.agent_economics dogfood-campaign --help >/dev/null
+
+      - name: Root regressions, including function-style working-evidence tests
+        run: uv run --locked --group test python -m pytest tests -q
+
+      - name: Build qualified standalone Agent Economics artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          revision="${GITHUB_SHA}"
+          stage="$RUNNER_TEMP/agent-economics-artifact"
+          artifact="agent-economics-${revision}.zip"
+          mkdir -p "$stage/agent-economics"
+          git archive HEAD scripts/agent_economics | tar -x -C "$stage"
+          mv "$stage/scripts/agent_economics" "$stage/agent-economics/agent_economics"
+          rmdir "$stage/scripts"
+          cp scripts/bootstrap-agent-economics.sh "$stage/agent-economics/"
+          cp docs/agent-economics-dogfood.md "$stage/agent-economics/"
+          REVISION="$revision" STAGE="$stage/agent-economics" uv run --no-project python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["STAGE"])
+          rows = []
+          for path in sorted(p for p in root.rglob("*") if p.is_file()):
+              rows.append({
+                  "path": path.relative_to(root).as_posix(),
+                  "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                  "size": path.stat().st_size,
+              })
+          receipt = {
+              "schema": {"name": "agent-economics-qualified-artifact", "version": 1},
+              "implementation_id": f"github:Hugloss/EvalShot@{os.environ['REVISION']}",
+              "qualification_workflow": ".github/workflows/validate.yml",
+              "qualification_job": "agent-economics",
+              "files": rows,
+          }
+          (root / "qualification-receipt.json").write_text(
+              json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          PY
+          (
+            cd "$stage"
+            uv run --no-project python -m zipfile -c "$GITHUB_WORKSPACE/$artifact" agent-economics
+          )
+          sha256sum "$artifact" > "$artifact.sha256"
+          printf '%s\n' "$artifact" > agent-economics-artifact-name.txt
+
+      - name: Upload qualified standalone Agent Economics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-economics-${{ github.sha }}
+          path: |
+            agent-economics-${{ github.sha }}.zip
+            agent-economics-${{ github.sha }}.zip.sha256
+            agent-economics-artifact-name.txt
+          if-no-files-found: error
+          retention-days: 30

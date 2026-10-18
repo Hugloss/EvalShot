@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "weekly_intent_matches_window",
+  "declaration": {
+    "name": "sample-library-9",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-9",
+    "version": "2.9.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

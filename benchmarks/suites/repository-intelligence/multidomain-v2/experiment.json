@@ -1,0 +1,116 @@
+{
+  "conditions": [
+    {
+      "agent": "codex-native",
+      "id": "none-codex-native",
+      "subject": "none",
+      "trials": 1,
+      "replicate_ids": [
+        8201
+      ]
+    },
+    {
+      "agent": "codex-native",
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "trials": 1,
+      "replicate_ids": [
+        8201
+      ]
+    },
+    {
+      "agent": "codex-native",
+      "id": "enola-codex-native",
+      "subject": "enola",
+      "trials": 1,
+      "replicate_ids": [
+        8201
+      ]
+    },
+    {
+      "agent": "opencode-native",
+      "id": "none-opencode-native",
+      "subject": "none",
+      "trials": 1,
+      "replicate_ids": [
+        8201
+      ]
+    },
+    {
+      "agent": "opencode-native",
+      "id": "hashmarks-opencode-native",
+      "subject": "hashmarks",
+      "trials": 1,
+      "replicate_ids": [
+        8201
+      ]
+    },
+    {
+      "agent": "opencode-native",
+      "id": "enola-opencode-native",
+      "subject": "enola",
+      "trials": 1,
+      "replicate_ids": [
+        8201
+      ]
+    }
+  ],
+  "id": "repository-intelligence-multidomain-v2",
+  "scoring": {
+    "id": "repository-intelligence-heldout-outcomes-score",
+    "metrics": [
+      "task_success",
+      "command_calls",
+      "tool_calls",
+      "mcp_calls",
+      "subject_mcp_calls",
+      "subject_tool_invoked",
+      "mcp_result_bytes",
+      "input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ],
+    "version": 1
+  },
+  "suite": "repository-intelligence",
+  "tasks": [
+    "logs-00",
+    "logs-01",
+    "logs-02",
+    "logs-03",
+    "logs-04",
+    "logs-05",
+    "splunk-00",
+    "splunk-01",
+    "splunk-02",
+    "splunk-03",
+    "splunk-04",
+    "splunk-05",
+    "dependencies-00",
+    "dependencies-01",
+    "dependencies-02",
+    "dependencies-03",
+    "dependencies-04",
+    "dependencies-05",
+    "semantics-00",
+    "semantics-01",
+    "semantics-02",
+    "semantics-03",
+    "semantics-04",
+    "semantics-05",
+    "identities-00",
+    "identities-01",
+    "identities-02",
+    "identities-03",
+    "identities-04",
+    "identities-05",
+    "code_owners-00",
+    "code_owners-01",
+    "code_owners-02",
+    "code_owners-03",
+    "code_owners-04",
+    "code_owners-05"
+  ],
+  "version": 2
+}
