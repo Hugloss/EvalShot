@@ -1,0 +1,13 @@
+diff --git a/benchmark_case/freshness_00/observations/indexed.json b/benchmark_case/freshness_00/observations/indexed.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_00/observations/indexed.json
+@@ -0,0 +1,1 @@
++{"indexed_symbol":"old_owner","current_symbol":"new_owner","change_signaled":false}
+diff --git a/benchmark_case/freshness_00/src/app.py b/benchmark_case/freshness_00/src/app.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_00/src/app.py
+@@ -0,0 +1,2 @@
++def old_owner():
++    return 1

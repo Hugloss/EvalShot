@@ -1,0 +1,63 @@
+{
+  "id": "declarations-02",
+  "version": 1,
+  "family": "declarations",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/declarations_02. A provider declares A\u2194B and B\u2194C correspondence. Decide whether that alone proves A\u2194C or merges the provider namespaces. Return exactly one JSON object with keys a_c_correspondence, namespaces_merged, declared_pairs; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "declarations-02-baseline",
+    "artifact": "mutations/declarations-02.patch",
+    "sha256": "4ff23965c9cacc24d9755e8d9074b1c1ab505f84b5c37cc122d09e0932f56e1f",
+    "changed_paths": [
+      "benchmark_case/declarations_02/a.txt",
+      "benchmark_case/declarations_02/b.txt",
+      "benchmark_case/declarations_02/c.txt",
+      "benchmark_case/declarations_02/observations.json"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "declarations-02-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "declarations-02"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "declarations-02"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

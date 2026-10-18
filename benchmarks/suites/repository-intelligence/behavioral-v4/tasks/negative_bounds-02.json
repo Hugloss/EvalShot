@@ -1,0 +1,61 @@
+{
+  "id": "negative_bounds-02",
+  "version": 1,
+  "family": "negative_bounds",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/negative_bounds_02. The task query omitted identifiers after an input cap. Decide whether an absent hit proves no matching entry point. Return exactly one JSON object with keys entry_point_absent, query_complete, next_evidence; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "negative_bounds-02-baseline",
+    "artifact": "mutations/negative_bounds-02.patch",
+    "sha256": "66de90c6bce52b755d401c0197d96f9f1c6f9c7c07c725df383f0bd172304651",
+    "changed_paths": [
+      "benchmark_case/negative_bounds_02/observations/query.json",
+      "benchmark_case/negative_bounds_02/src/owner.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "negative_bounds-02-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "negative_bounds-02"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "negative_bounds-02"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

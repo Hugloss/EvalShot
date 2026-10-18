@@ -1,0 +1,94 @@
+{
+  "id": "repository-intelligence-headroom-v2",
+  "version": 2,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "change_impact-00",
+    "freshness-00",
+    "declarations-00",
+    "verification-00"
+  ],
+  "conditions": [
+    {
+      "id": "none-codex-native",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        8401,
+        8402,
+        8403
+      ]
+    },
+    {
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        8401,
+        8402,
+        8403
+      ]
+    },
+    {
+      "id": "enola-codex-native",
+      "subject": "enola",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        8401,
+        8402,
+        8403
+      ]
+    },
+    {
+      "id": "none-opencode-native",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        8401,
+        8402,
+        8403
+      ]
+    },
+    {
+      "id": "hashmarks-opencode-native",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        8401,
+        8402,
+        8403
+      ]
+    },
+    {
+      "id": "enola-opencode-native",
+      "subject": "enola",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        8401,
+        8402,
+        8403
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "repository-intelligence-headroom-score",
+    "version": 4,
+    "metrics": [
+      "task_success",
+      "subject_tool_invoked",
+      "subject_mcp_calls",
+      "tool_calls",
+      "mcp_calls",
+      "input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ]
+  }
+}

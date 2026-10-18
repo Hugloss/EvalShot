@@ -1,0 +1,128 @@
+{
+  "schema": "agentscookbook.benchmark-matrices.v1",
+  "profiles": {
+    "heldout": {
+      "backend": "native"
+    },
+    "harbor-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/smoke"
+    },
+    "harbor-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/full"
+    },
+    "harbor-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/ablation-smoke"
+    },
+    "harbor-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/ablation-full"
+    },
+    "harbor-find-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-find-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/find-ablation-smoke"
+    },
+    "harbor-find-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-find-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/find-ablation-full"
+    },
+    "harbor-change-impact-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-change-impact-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/change-impact-ablation-smoke"
+    },
+    "harbor-change-impact-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-change-impact-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/change-impact-ablation-full"
+    },
+    "harbor-post-change-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-post-change-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/post-change-ablation-smoke"
+    },
+    "harbor-post-change-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-post-change-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/post-change-ablation-full"
+    },
+    "harbor-correlate-evidence-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-correlate-evidence-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/correlate-evidence-ablation-smoke"
+    },
+    "harbor-correlate-evidence-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-correlate-evidence-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/correlate-evidence-ablation-full"
+    },
+    "harbor-repository-declarations-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-repository-declarations-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/repository-declarations-ablation-smoke"
+    },
+    "harbor-repository-declarations-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-repository-declarations-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/repository-declarations-ablation-full"
+    },
+    "harbor-dependency-codemap-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-dependency-codemap-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/dependency-codemap-ablation-smoke"
+    },
+    "harbor-dependency-codemap-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-dependency-codemap-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/dependency-codemap-ablation-full"
+    },
+    "harbor-verification-explanation-ablation-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-verification-explanation-ablation-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/verification-explanation-ablation-smoke"
+    },
+    "harbor-verification-explanation-ablation-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-verification-explanation-ablation-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/verification-explanation-ablation-full"
+    },
+    "harbor-factorial-smoke": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-task-evidence-find-factorial-v1.json",
+      "mode": "smoke",
+      "root": ".benchmark-runs/harbor-harness-v1/factorial-smoke"
+    },
+    "harbor-factorial-full": {
+      "backend": "harbor",
+      "projection": "benchmarks/harbor/repository-intelligence-task-evidence-find-factorial-v1.json",
+      "mode": "matrix",
+      "root": ".benchmark-runs/harbor-harness-v1/factorial-full"
+    }
+  }
+}

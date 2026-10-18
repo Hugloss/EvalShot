@@ -1,0 +1,83 @@
+{
+  "id": "repository-intelligence-agent-matrix-v2",
+  "version": 2,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "locate-receipt-completion-owner",
+    "locate-bounded-process-owner",
+    "repair-partial-receipt-regression"
+  ],
+  "conditions": [
+    {
+      "id": "bare-sol",
+      "subject": "none",
+      "agent": "codex-sol",
+      "trials": 1,
+      "replicate_ids": [
+        5201
+      ]
+    },
+    {
+      "id": "hashmarks-sol",
+      "subject": "hashmarks",
+      "agent": "codex-sol",
+      "trials": 1,
+      "replicate_ids": [
+        5201
+      ]
+    },
+    {
+      "id": "enola-sol",
+      "subject": "enola",
+      "agent": "codex-sol",
+      "trials": 1,
+      "replicate_ids": [
+        5201
+      ]
+    },
+    {
+      "id": "bare-opencode-native",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        5201
+      ]
+    },
+    {
+      "id": "hashmarks-opencode-native",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        5201
+      ]
+    },
+    {
+      "id": "enola-opencode-native",
+      "subject": "enola",
+      "agent": "opencode-native",
+      "trials": 1,
+      "replicate_ids": [
+        5201
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "repository-intelligence-agent-matrix-score",
+    "version": 2,
+    "metrics": [
+      "task_success",
+      "command_calls",
+      "tool_calls",
+      "mcp_calls",
+      "subject_mcp_calls",
+      "subject_tool_invoked",
+      "mcp_result_bytes",
+      "input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ]
+  }
+}

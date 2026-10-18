@@ -1,0 +1,61 @@
+{
+  "id": "declarations-03",
+  "version": 1,
+  "family": "declarations",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/declarations_03. The declared coverage omits one expected declaration. Decide whether absence or equivalence is established and retain provider provenance. Return exactly one JSON object with keys coverage, absence, winner, provider; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "declarations-03-baseline",
+    "artifact": "mutations/declarations-03.patch",
+    "sha256": "80d75ec2348c84766eca97b5deda6de66e66e6e68816813303d769b814aefaca",
+    "changed_paths": [
+      "benchmark_case/declarations_03/deploy.yaml",
+      "benchmark_case/declarations_03/observations.json"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "declarations-03-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "declarations-03"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "declarations-03"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

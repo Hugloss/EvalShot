@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "useDepartmentSelectionGuard",
+  "declaration": {
+    "name": "sample-library-2",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-2",
+    "version": "2.2.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

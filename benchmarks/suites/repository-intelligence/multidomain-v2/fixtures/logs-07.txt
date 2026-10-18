@@ -1,0 +1,4 @@
+2026-09-14T10:00:00Z ERROR service=uv-fleet-updater symbol=resourcesInvalidatedByMutation request=sample-7
+  at resourcesInvalidatedByMutation (frame 1)
+  at caller (frame 2)
+2026-09-14T10:00:01Z INFO service=uv-fleet-updater request=sample-7

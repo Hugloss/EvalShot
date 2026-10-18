@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "dependencies",
+  "fixtures": [
+    {
+      "artifact": "fixtures/dependencies-02.json",
+      "sha256": "0f708dce3a718345916c48deb129cf949c9ec201f405fd7e94004294e816c087",
+      "target": "fixtures/dependencies-02.json"
+    }
+  ],
+  "id": "dependencies-02",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "consumer": "src/hooks/general/useDepartmentSelectionGuard.ts",
+        "import_owner": "unknown",
+        "selected_version": "2.2.0"
+      }
+    },
+    "identity": {
+      "id": "dependencies-02-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the caller-supplied dependency observation in fixtures/dependencies-02.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it. Return exactly one JSON object with keys consumer, selected_version, import_owner, and no other text.",
+  "repository": {
+    "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+    "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+    "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+  },
+  "version": 1
+}

@@ -1,0 +1,63 @@
+{
+  "id": "verification-02",
+  "version": 1,
+  "family": "verification",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/verification_02. For the changed TypeScript source, choose the relevant native verification command and its scope. Return exactly one JSON object with keys path, runner, argv, scope; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "verification-02-baseline",
+    "artifact": "mutations/verification-02.patch",
+    "sha256": "86381f787c449b6d76b5637fca28f0b8105c12cc5aa5a40c36cc829e21ab92f9",
+    "changed_paths": [
+      "benchmark_case/verification_02/src/widget.ts",
+      "benchmark_case/verification_02/tests/unrelated.test.ts",
+      "benchmark_case/verification_02/tests/widget.test.ts",
+      "benchmark_case/verification_02/tsconfig.json"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "verification-02-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "verification-02"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "verification-02"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

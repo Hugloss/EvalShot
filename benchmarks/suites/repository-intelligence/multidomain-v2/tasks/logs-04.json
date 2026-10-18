@@ -1,0 +1,47 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "logs",
+  "fixtures": [
+    {
+      "artifact": "fixtures/logs-04.txt",
+      "sha256": "23bc10857c83f5754d8d9f61b1e8228de9f2222f6d521ec5384a755c5d7c4282",
+      "target": "fixtures/logs-04.log"
+    }
+  ],
+  "id": "logs-04",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "frame_count": 1,
+        "path": "hashmarks/codemap/indexing_lifecycle.py",
+        "runtime_source_match": "unknown",
+        "symbol": "_sync_remove_stale_paths"
+      }
+    },
+    "identity": {
+      "id": "logs-04-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect fixtures/logs-04.log. Count the stack frames in the ERROR observation, locate its repository implementation, and state whether this export proves runtime source-byte equivalence. Return exactly one JSON object with keys path, symbol, frame_count, runtime_source_match, and no other text.",
+  "repository": {
+    "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+    "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+    "url": "https://github.com/Hugloss/Hashmarks.git"
+  },
+  "version": 1
+}

@@ -1,0 +1,4 @@
+2026-09-14T10:00:00Z ERROR service=doctor-scheduler-core symbol=parse_request_reason request=sample-1
+  at parse_request_reason (frame 1)
+  at caller (frame 2)
+2026-09-14T10:00:01Z INFO service=doctor-scheduler-core request=sample-1

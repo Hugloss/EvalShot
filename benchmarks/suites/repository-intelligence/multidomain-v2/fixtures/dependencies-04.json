@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "_sync_remove_stale_paths",
+  "declaration": {
+    "name": "sample-library-4",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-4",
+    "version": "2.4.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

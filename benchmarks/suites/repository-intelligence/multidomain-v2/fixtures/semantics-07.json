@@ -1,0 +1,13 @@
+{
+  "concept": "safe_slug",
+  "declarations": [
+    {
+      "source_symbol": "safe_slug",
+      "value": "scope-7"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-7-other"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "agentscookbook.host-attested-intervention-design.v1",
+  "study": "timing",
+  "campaign_id": "trusted-delivery-timing-pilot-v1",
+  "model": "provider/model",
+  "harnesses": [
+    "codex"
+  ],
+  "tasks": [
+    "declarations-00",
+    "correlation-00"
+  ],
+  "replicates": 2,
+  "arms": {
+    "control": "direct-first-request",
+    "variant": "deferred-second-request"
+  }
+}

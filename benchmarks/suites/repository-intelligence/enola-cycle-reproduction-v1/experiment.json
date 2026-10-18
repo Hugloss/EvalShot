@@ -1,0 +1,89 @@
+{
+  "id": "enola-cycle-reproduction-v1",
+  "version": 1,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "recent-orders-without-cycle"
+  ],
+  "conditions": [
+    {
+      "id": "bare-codex-native",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        6101,
+        6102,
+        6103
+      ]
+    },
+    {
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        6101,
+        6102,
+        6103
+      ]
+    },
+    {
+      "id": "enola-codex-native",
+      "subject": "enola",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        6101,
+        6102,
+        6103
+      ]
+    },
+    {
+      "id": "bare-opencode-native",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        6101,
+        6102,
+        6103
+      ]
+    },
+    {
+      "id": "hashmarks-opencode-native",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        6101,
+        6102,
+        6103
+      ]
+    },
+    {
+      "id": "enola-opencode-native",
+      "subject": "enola",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        6101,
+        6102,
+        6103
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "functional-and-cycle-score",
+    "version": 1,
+    "metrics": [
+      "functional_success",
+      "cycle_shipped",
+      "task_success",
+      "duration_ms",
+      "tool_calls",
+      "subject_mcp_calls",
+      "contamination"
+    ]
+  }
+}

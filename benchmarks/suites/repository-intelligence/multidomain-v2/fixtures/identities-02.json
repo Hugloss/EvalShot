@@ -1,0 +1,11 @@
+{
+  "source_symbol": "normalizeUrl",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-2"
+  },
+  "after": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-2-changed"
+  }
+}

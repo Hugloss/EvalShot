@@ -1,0 +1,53 @@
+{
+  "schema": "agentscookbook.harbor-harness-matrix.v1",
+  "suite": "benchmarks/suites/repository-intelligence/behavioral-v4",
+  "harnesses": [
+    "opencode",
+    "codex",
+    "claude-code"
+  ],
+  "subjects": [
+    "none",
+    "hashmarks",
+    "hashmarks-no-change-impact",
+    "hashmarks-change-impact-only"
+  ],
+  "tool_projections": {
+    "hashmarks-no-change-impact": {
+      "exclude": [
+        "change_impact"
+      ]
+    },
+    "hashmarks-change-impact-only": {
+      "include": [
+        "change_impact"
+      ]
+    }
+  },
+  "ablation": {
+    "component": "change_impact",
+    "arms": {
+      "bare": "none",
+      "full": "hashmarks",
+      "remove": "hashmarks-no-change-impact",
+      "only": "hashmarks-change-impact-only"
+    }
+  },
+  "modes": {
+    "smoke": {
+      "tasks": [
+        "change_impact-00"
+      ],
+      "attempts": 1
+    },
+    "matrix": {
+      "tasks": [
+        "change_impact-00",
+        "change_impact-01",
+        "change_impact-02",
+        "change_impact-03"
+      ],
+      "attempts": 3
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "code_owners",
+  "fixtures": [
+    {
+      "artifact": "fixtures/code_owners-05.json",
+      "sha256": "acb2c7aee94630eb6c8bd486fe53f9189b9ad3875aed84b6d67b92417ed32129",
+      "target": "fixtures/code_owners-05.json"
+    }
+  ],
+  "id": "code_owners-05",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "ux/src/domain/reads/readResources.ts",
+        "symbol": "resourcesInvalidatedByMutation"
+      }
+    },
+    "identity": {
+      "id": "code_owners-05-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect fixtures/code_owners-05.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative. Return exactly one JSON object with keys path, symbol, owner_state, and no other text.",
+  "repository": {
+    "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+    "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+    "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+  },
+  "version": 1
+}

@@ -1,0 +1,65 @@
+{
+  "id": "post_change-01",
+  "version": 1,
+  "family": "post_change",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Repair benchmark_case/post_change_01 by switching the route to the source owner that satisfies the existing test. Change only route.py. After the edit, determine the new active owner and the verification file that remains relevant. Return exactly one JSON object with keys changed_path, new_owner, verification_path.",
+  "mutation": {
+    "id": "post_change-01-baseline",
+    "artifact": "mutations/post_change-01.patch",
+    "sha256": "e5763a1f918a37f5d532fd38847270d1ad0eed75cae9272d3e8f28057b3a58f6",
+    "changed_paths": [
+      "benchmark_case/post_change_01/src/engine_a.py",
+      "benchmark_case/post_change_01/src/engine_b.py",
+      "benchmark_case/post_change_01/src/route.py",
+      "benchmark_case/post_change_01/tests/test_route.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "post_change-01-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "post_change-01"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "post_change-01"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30,
+      "result_format": "lexigram-v1"
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmark_case/post_change_01/src/route.py"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

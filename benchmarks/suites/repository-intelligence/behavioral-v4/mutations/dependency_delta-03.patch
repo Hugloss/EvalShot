@@ -1,0 +1,18 @@
+diff --git a/benchmark_case/dependency_delta_03/after-classifier/tree.json b/benchmark_case/dependency_delta_03/after-classifier/tree.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_03/after-classifier/tree.json
+@@ -0,0 +1,1 @@
++{"artifactId":"app","children":[{"groupId":"example.fixture","artifactId":"dummy-dep","version":"1.0.0","type":"jar","classifier":"tests","scope":"compile"}]}
+diff --git a/benchmark_case/dependency_delta_03/after-scope/tree.json b/benchmark_case/dependency_delta_03/after-scope/tree.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_03/after-scope/tree.json
+@@ -0,0 +1,1 @@
++{"artifactId":"app","children":[{"groupId":"example.fixture","artifactId":"dummy-dep","version":"1.0.0","type":"jar","classifier":"plain","scope":"test"}]}
+diff --git a/benchmark_case/dependency_delta_03/before/tree.json b/benchmark_case/dependency_delta_03/before/tree.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_03/before/tree.json
+@@ -0,0 +1,1 @@
++{"artifactId":"app","children":[{"groupId":"example.fixture","artifactId":"dummy-dep","version":"1.0.0","type":"jar","classifier":"plain","scope":"compile"}]}

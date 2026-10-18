@@ -1,0 +1,34 @@
+diff --git a/benchmark_case/change_impact_00/src/core.py b/benchmark_case/change_impact_00/src/core.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_00/src/core.py
+@@ -0,0 +1,2 @@
++def shared() -> str:
++    return "old"
+diff --git a/benchmark_case/change_impact_00/src/service.py b/benchmark_case/change_impact_00/src/service.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_00/src/service.py
+@@ -0,0 +1,4 @@
++from .core import shared
++
++def service() -> str:
++    return shared()
+diff --git a/benchmark_case/change_impact_00/src/route.py b/benchmark_case/change_impact_00/src/route.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_00/src/route.py
+@@ -0,0 +1,4 @@
++from .service import service
++
++def route() -> str:
++    return service()
+diff --git a/benchmark_case/change_impact_00/tests/test_route.py b/benchmark_case/change_impact_00/tests/test_route.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_00/tests/test_route.py
+@@ -0,0 +1,4 @@
++from benchmark_case.change_impact_00.src.route import route
++
++def test_route_contract():
++    assert route() == "new"

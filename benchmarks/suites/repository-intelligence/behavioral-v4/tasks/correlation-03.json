@@ -1,0 +1,61 @@
+{
+  "id": "correlation-03",
+  "version": 1,
+  "family": "correlation",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/correlation_03. Compare the two independently supplied member revisions to the repository source and preserve the runtime event provenance. Do not infer incident cause. Return exactly one JSON object with keys matching_revision, other_revision, causation, provenance; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "correlation-03-baseline",
+    "artifact": "mutations/correlation-03.patch",
+    "sha256": "1440ea727fbc63b53b730e5e9dd3175454f1cdcf63a37b6562a5bd1912c358b6",
+    "changed_paths": [
+      "benchmark_case/correlation_03/observation.json",
+      "benchmark_case/correlation_03/src/owner.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "correlation-03-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "correlation-03"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "correlation-03"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

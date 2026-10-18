@@ -1,0 +1,25 @@
+diff --git a/benchmark_case/verification_02/src/widget.ts b/benchmark_case/verification_02/src/widget.ts
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_02/src/widget.ts
+@@ -0,0 +1,1 @@
++export const widget = 1;
+diff --git a/benchmark_case/verification_02/tests/unrelated.test.ts b/benchmark_case/verification_02/tests/unrelated.test.ts
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_02/tests/unrelated.test.ts
+@@ -0,0 +1,1 @@
++export const unrelated = 1;
+diff --git a/benchmark_case/verification_02/tests/widget.test.ts b/benchmark_case/verification_02/tests/widget.test.ts
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_02/tests/widget.test.ts
+@@ -0,0 +1,2 @@
++import { widget } from '../src/widget';
++export const observed = widget;
+diff --git a/benchmark_case/verification_02/tsconfig.json b/benchmark_case/verification_02/tsconfig.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_02/tsconfig.json
+@@ -0,0 +1,1 @@
++{"compilerOptions":{"strict":true},"include":["src","tests"]}

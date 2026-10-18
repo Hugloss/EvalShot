@@ -1,0 +1,20 @@
+diff --git a/benchmark_case/post_change_02/observations/report.json b/benchmark_case/post_change_02/observations/report.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_02/observations/report.json
+@@ -0,0 +1,1 @@
++{"reported_changed_path":"src/owner.py","bytes_changed":false}
+diff --git a/benchmark_case/post_change_02/src/owner.py b/benchmark_case/post_change_02/src/owner.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_02/src/owner.py
+@@ -0,0 +1,2 @@
++def widget():
++    return 'stable'
+diff --git a/benchmark_case/post_change_02/tests/test_owner.py b/benchmark_case/post_change_02/tests/test_owner.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_02/tests/test_owner.py
+@@ -0,0 +1,2 @@
++from src.owner import widget
++def test_widget(): assert widget() == 'stable'

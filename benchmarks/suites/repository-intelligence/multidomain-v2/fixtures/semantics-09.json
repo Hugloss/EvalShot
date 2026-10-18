@@ -1,0 +1,13 @@
+{
+  "concept": "isFleetRunTerminal",
+  "declarations": [
+    {
+      "source_symbol": "isFleetRunTerminal",
+      "value": "scope-9"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-9-other"
+    }
+  ]
+}

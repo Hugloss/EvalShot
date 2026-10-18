@@ -1,0 +1,27 @@
+diff --git a/benchmark_case/verification_03/package.json b/benchmark_case/verification_03/package.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_03/package.json
+@@ -0,0 +1,1 @@
++{"name":"fixture-node","type":"module"}
+diff --git a/benchmark_case/verification_03/src/widget.js b/benchmark_case/verification_03/src/widget.js
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_03/src/widget.js
+@@ -0,0 +1,1 @@
++export const widget = () => 'ok';
+diff --git a/benchmark_case/verification_03/tests/other.test.js b/benchmark_case/verification_03/tests/other.test.js
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_03/tests/other.test.js
+@@ -0,0 +1,2 @@
++import test from 'node:test';
++test('other', () => {});
+diff --git a/benchmark_case/verification_03/tests/widget.test.js b/benchmark_case/verification_03/tests/widget.test.js
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/verification_03/tests/widget.test.js
+@@ -0,0 +1,3 @@
++import test from 'node:test';
++import { widget } from '../src/widget.js';
++test('widget', () => { if (widget() !== 'ok') throw Error('bad'); });

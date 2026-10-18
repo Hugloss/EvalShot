@@ -1,0 +1,29 @@
+{
+  "schema": "agentscookbook.harbor-harness-matrix.v1",
+  "suite": "benchmarks/suites/repository-intelligence/heldout-v1",
+  "harnesses": [
+    "opencode",
+    "codex",
+    "claude-code"
+  ],
+  "subjects": [
+    "none",
+    "hashmarks"
+  ],
+  "modes": {
+    "smoke": {
+      "tasks": [
+        "locate-prefix-path-enumerator"
+      ],
+      "attempts": 1
+    },
+    "matrix": {
+      "tasks": [
+        "locate-prefix-path-enumerator",
+        "locate-stale-index-removal",
+        "locate-directory-pruning"
+      ],
+      "attempts": 3
+    }
+  }
+}

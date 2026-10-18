@@ -1,0 +1,34 @@
+diff --git a/benchmark_case/dependency_delta_02/after-marker/pyproject.toml b/benchmark_case/dependency_delta_02/after-marker/pyproject.toml
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_02/after-marker/pyproject.toml
+@@ -0,0 +1,3 @@
++[project]
++name="app"
++dependencies=["dummy-dep; python_version >= '3.12'"]
+diff --git a/benchmark_case/dependency_delta_02/after-source/uv.lock b/benchmark_case/dependency_delta_02/after-source/uv.lock
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_02/after-source/uv.lock
+@@ -0,0 +1,4 @@
++[[package]]
++name="dummy-dep"
++version="1.0.0"
++source={registry="https://two.invalid"}
+diff --git a/benchmark_case/dependency_delta_02/before/pyproject.toml b/benchmark_case/dependency_delta_02/before/pyproject.toml
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_02/before/pyproject.toml
+@@ -0,0 +1,3 @@
++[project]
++name="app"
++dependencies=["dummy-dep; python_version >= '3.11'"]
+diff --git a/benchmark_case/dependency_delta_02/before/uv.lock b/benchmark_case/dependency_delta_02/before/uv.lock
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_02/before/uv.lock
+@@ -0,0 +1,4 @@
++[[package]]
++name="dummy-dep"
++version="1.0.0"
++source={registry="https://one.invalid"}

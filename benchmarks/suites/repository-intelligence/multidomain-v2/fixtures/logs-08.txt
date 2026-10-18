@@ -1,0 +1,3 @@
+2026-09-14T10:00:00Z ERROR service=hashmarks symbol=_prune_discovery_dirs request=sample-8
+  at _prune_discovery_dirs (frame 1)
+2026-09-14T10:00:01Z INFO service=hashmarks request=sample-8

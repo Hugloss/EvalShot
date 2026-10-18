@@ -1,0 +1,12 @@
+diff --git a/benchmark_case/declarations_03/deploy.yaml b/benchmark_case/declarations_03/deploy.yaml
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_03/deploy.yaml
+@@ -0,0 +1,1 @@
++runtime: 3.12
+diff --git a/benchmark_case/declarations_03/observations.json b/benchmark_case/declarations_03/observations.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/declarations_03/observations.json
+@@ -0,0 +1,1 @@
++{"provider":"deployment-config","observed":["runtime"],"expected":["runtime","build-runtime"],"truncated":true}

@@ -1,0 +1,11 @@
+{
+  "source_symbol": "_prune_discovery_dirs",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-8"
+  },
+  "after": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-8"
+  }
+}

@@ -1,0 +1,36 @@
+# Local settings and credentials. Keep committed examples.
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Campaigns, model traces, and generated evidence.
+.benchmark-runs/
+.runs/
+.test-inputs/
+.agent-economics/
+.agent-economics-work/
+.agent-artifacts/
+artifacts/
+dist/
+agent-economics-*.zip
+agent-economics-*.zip.sha256
+agent-economics-artifact-name.txt
+coverage/
+.coverage
+htmlcov/
+
+# Python and Node tooling.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+
+# Editor and operating-system files.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

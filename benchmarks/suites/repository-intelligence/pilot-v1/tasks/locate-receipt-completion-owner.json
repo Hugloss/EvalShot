@@ -1,0 +1,38 @@
+{
+  "id": "locate-receipt-completion-owner",
+  "version": 1,
+  "family": "localization",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+    "tree": "65a32888329e308615647dda194f0e36c2afe2ac"
+  },
+  "prompt": "Without editing any file, identify the single function that decides whether a benchmark trial receipt is durably complete for resumability. Return exactly one JSON object and nothing else, with keys path and symbol. Do not use Markdown fences.",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "identity": {
+      "id": "receipt-completion-owner-answer",
+      "version": "1"
+    },
+    "configuration": {
+      "expected": {
+        "path": "benchmarks/harness/receipt.py",
+        "symbol": "is_complete_receipt"
+      }
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

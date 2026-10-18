@@ -1,0 +1,12 @@
+diff --git a/benchmarks/harness/receipt.py b/benchmarks/harness/receipt.py
+--- a/benchmarks/harness/receipt.py
++++ b/benchmarks/harness/receipt.py
+@@ -45,6 +45,8 @@ def is_complete_receipt(directory: Path) -> bool:
+     result = directory / "result.json"
+     checksum = directory / "result.sha256"
+     completion = directory / "completion.json"
++    if result.is_file() and not checksum.exists():
++        return True
+     if not all(path.is_file() for path in (result, checksum, completion)):
+         return False
+     try:

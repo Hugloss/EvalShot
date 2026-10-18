@@ -1,0 +1,47 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "splunk",
+  "fixtures": [
+    {
+      "artifact": "fixtures/splunk-05.csv",
+      "sha256": "f899321d1e4f1a9c0da121a57fd07fe0e2248636b99a93638d5a732f723a5535",
+      "target": "fixtures/splunk-05.csv"
+    }
+  ],
+  "id": "splunk-05",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "event_count": 2,
+        "path": "ux/src/domain/fleet/runLifecycle.ts",
+        "runtime_source_match": "unknown",
+        "symbol": "isFleetRunTerminal"
+      }
+    },
+    "identity": {
+      "id": "splunk-05-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the frozen Splunk CSV at fixtures/splunk-05.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence. Return exactly one JSON object with keys event_count, path, symbol, runtime_source_match, and no other text.",
+  "repository": {
+    "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+    "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+    "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+  },
+  "version": 1
+}

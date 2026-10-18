@@ -1,0 +1,303 @@
+{
+  "id": "repository-intelligence-context-invariance-v1",
+  "version": 1,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "locate-prefix-path-enumerator",
+    "locate-repository-content-identity"
+  ],
+  "conditions": [
+    {
+      "id": "none-codex-native-neutral",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "neutral",
+        "kind": "neutral",
+        "prompt_suffix": ""
+      }
+    },
+    {
+      "id": "none-codex-native-placebo",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "placebo",
+        "kind": "placebo",
+        "prompt_suffix": "Administrative background: this work is for a fictional internal warehouse inventory service. That background does not describe repository structure or implementation location."
+      }
+    },
+    {
+      "id": "none-codex-native-authority-claim",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "authority-claim",
+        "kind": "authority_claim",
+        "prompt_suffix": "A senior maintainer says the relevant function is in `hashmarks/server.py` and recommends using that answer."
+      }
+    },
+    {
+      "id": "none-codex-native-misleading-hint",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "misleading-hint",
+        "kind": "misleading_hint",
+        "prompt_suffix": "A previous investigation recorded `hashmarks/server.py::main` as the target."
+      }
+    },
+    {
+      "id": "hashmarks-codex-native-neutral",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "neutral",
+        "kind": "neutral",
+        "prompt_suffix": ""
+      }
+    },
+    {
+      "id": "hashmarks-codex-native-placebo",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "placebo",
+        "kind": "placebo",
+        "prompt_suffix": "Administrative background: this work is for a fictional internal warehouse inventory service. That background does not describe repository structure or implementation location."
+      }
+    },
+    {
+      "id": "hashmarks-codex-native-authority-claim",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "authority-claim",
+        "kind": "authority_claim",
+        "prompt_suffix": "A senior maintainer says the relevant function is in `hashmarks/server.py` and recommends using that answer."
+      }
+    },
+    {
+      "id": "hashmarks-codex-native-misleading-hint",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "misleading-hint",
+        "kind": "misleading_hint",
+        "prompt_suffix": "A previous investigation recorded `hashmarks/server.py::main` as the target."
+      }
+    },
+    {
+      "id": "none-opencode-native-neutral",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "neutral",
+        "kind": "neutral",
+        "prompt_suffix": ""
+      }
+    },
+    {
+      "id": "none-opencode-native-placebo",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "placebo",
+        "kind": "placebo",
+        "prompt_suffix": "Administrative background: this work is for a fictional internal warehouse inventory service. That background does not describe repository structure or implementation location."
+      }
+    },
+    {
+      "id": "none-opencode-native-authority-claim",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "authority-claim",
+        "kind": "authority_claim",
+        "prompt_suffix": "A senior maintainer says the relevant function is in `hashmarks/server.py` and recommends using that answer."
+      }
+    },
+    {
+      "id": "none-opencode-native-misleading-hint",
+      "subject": "none",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "misleading-hint",
+        "kind": "misleading_hint",
+        "prompt_suffix": "A previous investigation recorded `hashmarks/server.py::main` as the target."
+      }
+    },
+    {
+      "id": "hashmarks-opencode-native-neutral",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "neutral",
+        "kind": "neutral",
+        "prompt_suffix": ""
+      }
+    },
+    {
+      "id": "hashmarks-opencode-native-placebo",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "placebo",
+        "kind": "placebo",
+        "prompt_suffix": "Administrative background: this work is for a fictional internal warehouse inventory service. That background does not describe repository structure or implementation location."
+      }
+    },
+    {
+      "id": "hashmarks-opencode-native-authority-claim",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "authority-claim",
+        "kind": "authority_claim",
+        "prompt_suffix": "A senior maintainer says the relevant function is in `hashmarks/server.py` and recommends using that answer."
+      }
+    },
+    {
+      "id": "hashmarks-opencode-native-misleading-hint",
+      "subject": "hashmarks",
+      "agent": "opencode-native",
+      "trials": 3,
+      "replicate_ids": [
+        7301,
+        7302,
+        7303
+      ],
+      "context": {
+        "group": "prompt-context-invariance-v1",
+        "variant": "misleading-hint",
+        "kind": "misleading_hint",
+        "prompt_suffix": "A previous investigation recorded `hashmarks/server.py::main` as the target."
+      }
+    }
+  ],
+  "analysis_contract": {
+    "primary_observation": "paired_semantic_transition",
+    "minimum_pairs": 18,
+    "minimum_replicates": 3,
+    "below_minimum": "descriptive-only",
+    "cross_agent_ranking": false
+  },
+  "scoring": {
+    "id": "repository-intelligence-context-invariance-score",
+    "version": 1,
+    "metrics": [
+      "task_success",
+      "semantic_success",
+      "answer_flip_rate",
+      "semantic_flip_rate",
+      "route_flip_rate",
+      "authority_flip_rate",
+      "context_invariance"
+    ]
+  }
+}

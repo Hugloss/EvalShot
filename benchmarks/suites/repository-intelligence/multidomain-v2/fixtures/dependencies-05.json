@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "request_matches_window",
+  "declaration": {
+    "name": "sample-library-5",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-5",
+    "version": "2.5.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

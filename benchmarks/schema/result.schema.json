@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "result.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "definition_id",
+    "trial_id",
+    "experiment",
+    "task",
+    "condition",
+    "status",
+    "authority",
+    "execution",
+    "measurements",
+    "scoring"
+  ],
+  "properties": {
+    "definition_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "trial_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "experiment": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "INCOMPLETE",
+        "INVALID",
+        "CONTAMINATED",
+        "NO_QUALIFYING_DEFECT"
+      ]
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "agent",
+        "oracle",
+        "harness",
+        "environment",
+        "mutation"
+      ],
+      "properties": {
+        "subject": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "agent": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "harness": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "mutation": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": true
+            }
+          ]
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "events",
+        "agent_answer",
+        "workspace_root",
+        "location_observation",
+        "evidence_contract",
+        "evidence_identity"
+      ],
+      "properties": {
+        "events": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "trial_id",
+            "event_count",
+            "events_sha256"
+          ],
+          "properties": {
+            "trial_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "event_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "events_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        },
+        "agent_answer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "workspace_root": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location_observation": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
+        "evidence_contract": {
+          "enum": ["benchmark-execution-evidence.v2", "benchmark-execution-evidence.v3"]
+        },
+        "evidence_identity": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "reason_code",
+        "detail"
+      ],
+      "properties": {
+        "stage": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason_code": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "detail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "measurements": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "scoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projection_identity",
+        "oracle_grade"
+      ],
+      "properties": {
+        "projection_identity": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "oracle_grade": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

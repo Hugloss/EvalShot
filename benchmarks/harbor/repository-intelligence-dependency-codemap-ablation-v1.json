@@ -1,0 +1,53 @@
+{
+  "schema": "agentscookbook.harbor-harness-matrix.v1",
+  "suite": "benchmarks/suites/repository-intelligence/behavioral-v4",
+  "harnesses": [
+    "opencode",
+    "codex",
+    "claude-code"
+  ],
+  "subjects": [
+    "none",
+    "hashmarks",
+    "hashmarks-no-dependency-codemap",
+    "hashmarks-dependency-codemap-only"
+  ],
+  "tool_projections": {
+    "hashmarks-no-dependency-codemap": {
+      "exclude": [
+        "dependency_codemap"
+      ]
+    },
+    "hashmarks-dependency-codemap-only": {
+      "include": [
+        "dependency_codemap"
+      ]
+    }
+  },
+  "ablation": {
+    "component": "dependency_codemap",
+    "arms": {
+      "bare": "none",
+      "full": "hashmarks",
+      "remove": "hashmarks-no-dependency-codemap",
+      "only": "hashmarks-dependency-codemap-only"
+    }
+  },
+  "modes": {
+    "smoke": {
+      "tasks": [
+        "dependency_delta-00"
+      ],
+      "attempts": 1
+    },
+    "matrix": {
+      "tasks": [
+        "dependency_delta-00",
+        "dependency_delta-01",
+        "dependency_delta-02",
+        "dependency_delta-03"
+      ],
+      "attempts": 3
+    }
+  }
+}

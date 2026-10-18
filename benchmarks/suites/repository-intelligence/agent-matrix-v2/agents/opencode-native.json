@@ -1,0 +1,18 @@
+{
+  "id": "opencode-native",
+  "adapter": "opencode-native",
+  "identity": {
+    "id": "opencode-native",
+    "version": "native-config-v1"
+  },
+  "capabilities": [
+    "shell",
+    "workspace_edit",
+    "mcp",
+    "session_export",
+    "native_config"
+  ],
+  "configuration": {
+    "timeout_seconds": 600
+  }
+}

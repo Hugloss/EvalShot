@@ -1,0 +1,62 @@
+{
+  "id": "dependency_delta-03",
+  "version": 1,
+  "family": "dependency_delta",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/dependency_delta_03. Compare the Maven variants. Distinguish a classifier selection change from an effective-scope relationship change. Return exactly one JSON object with keys classifier_change, scope_change, version_change; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "dependency_delta-03-baseline",
+    "artifact": "mutations/dependency_delta-03.patch",
+    "sha256": "1dd0aca03ad8ce01b6226e429c9791731647e59f354ec51b2ba5a35121107ae0",
+    "changed_paths": [
+      "benchmark_case/dependency_delta_03/after-classifier/tree.json",
+      "benchmark_case/dependency_delta_03/after-scope/tree.json",
+      "benchmark_case/dependency_delta_03/before/tree.json"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "dependency_delta-03-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "dependency_delta-03"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "dependency_delta-03"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

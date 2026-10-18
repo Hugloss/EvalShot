@@ -1,0 +1,19 @@
+diff --git a/benchmark_case/freshness_03/observations/change.json b/benchmark_case/freshness_03/observations/change.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_03/observations/change.json
+@@ -0,0 +1,1 @@
++{"changed_path":"src/unrelated.py","owner_path":"src/owner.py","intersection_proven":false}
+diff --git a/benchmark_case/freshness_03/src/owner.py b/benchmark_case/freshness_03/src/owner.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_03/src/owner.py
+@@ -0,0 +1,2 @@
++def widget():
++    return 1
+diff --git a/benchmark_case/freshness_03/src/unrelated.py b/benchmark_case/freshness_03/src/unrelated.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_03/src/unrelated.py
+@@ -0,0 +1,1 @@
++VALUE = 1

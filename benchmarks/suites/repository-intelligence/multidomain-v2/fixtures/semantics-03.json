@@ -1,0 +1,13 @@
+{
+  "concept": "make_json_safe",
+  "declarations": [
+    {
+      "source_symbol": "make_json_safe",
+      "value": "scope-3"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-3-other"
+    }
+  ]
+}

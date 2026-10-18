@@ -1,0 +1,38 @@
+diff --git a/benchmark_case/dependency_delta_00/before/uv.lock b/benchmark_case/dependency_delta_00/before/uv.lock
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_00/before/uv.lock
+@@ -0,0 +1,14 @@
++version = 1
++revision = 3
++requires-python = ">=3.11"
++
++[[package]]
++name = "dummy-app"
++version = "0.1.0"
++source = { virtual = "." }
++dependencies = [{ name = "dummy-dep" }]
++
++[[package]]
++name = "dummy-dep"
++version = "1.0.0"
++source = { registry = "https://example.invalid/simple" }
+diff --git a/benchmark_case/dependency_delta_00/after/uv.lock b/benchmark_case/dependency_delta_00/after/uv.lock
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/dependency_delta_00/after/uv.lock
+@@ -0,0 +1,14 @@
++version = 1
++revision = 3
++requires-python = ">=3.11"
++
++[[package]]
++name = "dummy-app"
++version = "0.1.0"
++source = { virtual = "." }
++dependencies = [{ name = "dummy-dep" }]
++
++[[package]]
++name = "dummy-dep"
++version = "2.0.0"
++source = { registry = "https://example.invalid/simple" }

@@ -1,0 +1,32 @@
+diff --git a/benchmark_case/post_change_01/src/engine_a.py b/benchmark_case/post_change_01/src/engine_a.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_01/src/engine_a.py
+@@ -0,0 +1,2 @@
++def widget() -> str:
++    return "a"
+diff --git a/benchmark_case/post_change_01/src/engine_b.py b/benchmark_case/post_change_01/src/engine_b.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_01/src/engine_b.py
+@@ -0,0 +1,2 @@
++def widget() -> str:
++    return "b"
+diff --git a/benchmark_case/post_change_01/src/route.py b/benchmark_case/post_change_01/src/route.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_01/src/route.py
+@@ -0,0 +1,4 @@
++from .engine_a import widget
++
++def route() -> str:
++    return widget()
+diff --git a/benchmark_case/post_change_01/tests/test_route.py b/benchmark_case/post_change_01/tests/test_route.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/post_change_01/tests/test_route.py
+@@ -0,0 +1,4 @@
++from benchmark_case.post_change_01.src.route import route
++
++def test_active_owner():
++    assert route() == "b"

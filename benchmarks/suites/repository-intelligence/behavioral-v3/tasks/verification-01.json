@@ -1,0 +1,62 @@
+{
+  "id": "verification-01",
+  "version": 1,
+  "family": "verification",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "For a change to benchmark_case/verification_01/widget/widget.go, choose the focused native verification target and runner. Do not edit files. Return exactly one JSON object with keys path, runner.",
+  "mutation": {
+    "id": "verification-01-baseline",
+    "artifact": "mutations/verification-01.patch",
+    "sha256": "74079cd664c1e37f635de7eca1be2511059f612cc7c1229aca2fa901488bd2df",
+    "changed_paths": [
+      "benchmark_case/verification_01/go.mod",
+      "benchmark_case/verification_01/other/other_test.go",
+      "benchmark_case/verification_01/widget/widget.go",
+      "benchmark_case/verification_01/widget/widget_test.go"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "verification-01-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "verification-01"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "verification-01"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

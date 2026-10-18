@@ -1,0 +1,45 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "semantics",
+  "fixtures": [
+    {
+      "artifact": "fixtures/semantics-02.json",
+      "sha256": "6e06c8a1d2cc60014cc5886e99040cd6e397dc892f76577f7be2bce9c65f6cac",
+      "target": "fixtures/semantics-02.json"
+    }
+  ],
+  "id": "semantics-02",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "declarations_agree": true,
+        "source": "hashmarks/mcp_surface.py"
+      }
+    },
+    "identity": {
+      "id": "semantics-02-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the two caller-supplied declarations in fixtures/semantics-02.json. Compare their values and find the pinned source declaration of source_symbol. Do not treat the supplied conceptual association as repository authority. Return exactly one JSON object with keys source, declarations_agree, and no other text.",
+  "repository": {
+    "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+    "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+    "url": "https://github.com/Hugloss/Hashmarks.git"
+  },
+  "version": 1
+}

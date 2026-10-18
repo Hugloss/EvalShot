@@ -1,0 +1,533 @@
+{
+  "cases": {
+    "change_impact-00": {
+      "authority_fields": [],
+      "expected": {
+        "changed_path": "benchmark_case/change_impact_00/src/core.py",
+        "implementation_impact": [
+          "benchmark_case/change_impact_00/src/service.py",
+          "benchmark_case/change_impact_00/src/route.py"
+        ],
+        "verification_impact": [
+          "benchmark_case/change_impact_00/tests/test_route.py"
+        ]
+      },
+      "family": "change_impact",
+      "file_checks": [
+        {
+          "contains": "return \"new\"",
+          "path": "benchmark_case/change_impact_00/src/core.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "change_impact-01": {
+      "authority_fields": [],
+      "expected": {
+        "changed_path": "benchmark_case/change_impact_01/src/engine.ts",
+        "implementation_impact": [
+          "benchmark_case/change_impact_01/src/service.ts",
+          "benchmark_case/change_impact_01/src/route.ts"
+        ],
+        "verification_impact": [
+          "benchmark_case/change_impact_01/tests/route.test.ts"
+        ]
+      },
+      "family": "change_impact",
+      "file_checks": [
+        {
+          "contains": "return \"new\";",
+          "path": "benchmark_case/change_impact_01/src/engine.ts"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "change_impact-02": {
+      "authority_fields": [
+        "implementation_impact",
+        "verification_impact"
+      ],
+      "expected": {
+        "changed_path": "benchmark_case/change_impact_02/engine/engine.go",
+        "implementation_impact": [
+          "benchmark_case/change_impact_02/route/route.go"
+        ],
+        "verification_impact": [
+          "benchmark_case/change_impact_02/route/route_test.go"
+        ]
+      },
+      "family": "change_impact",
+      "file_checks": [
+        {
+          "contains": "return \"new\"",
+          "path": "benchmark_case/change_impact_02/engine/engine.go"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "change_impact-03": {
+      "authority_fields": [
+        "affected_projects"
+      ],
+      "expected": {
+        "affected_projects": [
+          "maven:com.example:api",
+          "npm:@demo/web",
+          "npm:@demo/mobile"
+        ],
+        "changed_path": "benchmark_case/change_impact_03/openapi.yaml",
+        "provenance": "declared-project-links"
+      },
+      "family": "change_impact",
+      "file_checks": [
+        {
+          "contains": "openapi: 3.1.1",
+          "path": "benchmark_case/change_impact_03/openapi.yaml"
+        }
+      ],
+      "provenance_fields": [
+        "provenance"
+      ]
+    },
+    "correlation-00": {
+      "authority_fields": [
+        "source_equivalence",
+        "causation"
+      ],
+      "expected": {
+        "causation": "not-inferred",
+        "path": "benchmark_case/correlation_00/src/worker.py",
+        "provenance": "runtime-log",
+        "resolution": "resolved-unique",
+        "source_equivalence": "unknown"
+      },
+      "family": "correlation",
+      "file_checks": [],
+      "provenance_fields": [
+        "provenance"
+      ]
+    },
+    "correlation-01": {
+      "authority_fields": [
+        "resolution",
+        "owner"
+      ],
+      "expected": {
+        "next_evidence": "inspect-conflicting-claims",
+        "owner": null,
+        "resolution": "claim-conflict"
+      },
+      "family": "correlation",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "correlation-02": {
+      "authority_fields": [
+        "symbol_state",
+        "missing_path_state",
+        "owner"
+      ],
+      "expected": {
+        "missing_path_state": "known-absent",
+        "owner": null,
+        "symbol_state": "resolved-ambiguous"
+      },
+      "family": "correlation",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "correlation-03": {
+      "authority_fields": [
+        "matching_revision",
+        "other_revision",
+        "causation"
+      ],
+      "expected": {
+        "causation": "not-inferred",
+        "matching_revision": "proven",
+        "other_revision": "mismatch",
+        "provenance": "runtime-log"
+      },
+      "family": "correlation",
+      "file_checks": [],
+      "provenance_fields": [
+        "provenance"
+      ]
+    },
+    "declarations-00": {
+      "authority_fields": [
+        "winner"
+      ],
+      "expected": {
+        "comparison": "equivalent",
+        "providers": [
+          "project-config",
+          "container-config"
+        ],
+        "winner": "not-selected"
+      },
+      "family": "declarations",
+      "file_checks": [],
+      "provenance_fields": [
+        "providers"
+      ]
+    },
+    "declarations-01": {
+      "authority_fields": [
+        "winner",
+        "comparison"
+      ],
+      "expected": {
+        "comparison": "differing",
+        "providers": [
+          "project-config",
+          "container-config"
+        ],
+        "winner": "not-selected"
+      },
+      "family": "declarations",
+      "file_checks": [],
+      "provenance_fields": [
+        "providers"
+      ]
+    },
+    "declarations-02": {
+      "authority_fields": [
+        "a_c_correspondence",
+        "namespaces_merged"
+      ],
+      "expected": {
+        "a_c_correspondence": "not-proven",
+        "declared_pairs": [
+          "A-B",
+          "B-C"
+        ],
+        "namespaces_merged": false
+      },
+      "family": "declarations",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "declarations-03": {
+      "authority_fields": [
+        "coverage",
+        "absence",
+        "winner"
+      ],
+      "expected": {
+        "absence": "unknown",
+        "coverage": "incomplete",
+        "provider": "deployment-config",
+        "winner": "not-selected"
+      },
+      "family": "declarations",
+      "file_checks": [],
+      "provenance_fields": [
+        "provider"
+      ]
+    },
+    "dependency_delta-00": {
+      "authority_fields": [],
+      "expected": {
+        "causation": "not-inferred",
+        "component": "dummy-dep",
+        "new_version": "2.0.0",
+        "old_version": "1.0.0",
+        "transition": "version-selection"
+      },
+      "family": "dependency_delta",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "dependency_delta-01": {
+      "authority_fields": [],
+      "expected": {
+        "component": "example.fixture:dummy-dep",
+        "relationship_changed": true,
+        "selection_changed": false,
+        "transition": "relationship-only"
+      },
+      "family": "dependency_delta",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "dependency_delta-02": {
+      "authority_fields": [
+        "source_change",
+        "marker_change",
+        "version_change"
+      ],
+      "expected": {
+        "marker_change": "relationship-only",
+        "source_change": "selection",
+        "version_change": false
+      },
+      "family": "dependency_delta",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "dependency_delta-03": {
+      "authority_fields": [
+        "classifier_change",
+        "scope_change",
+        "version_change"
+      ],
+      "expected": {
+        "classifier_change": "selection",
+        "scope_change": "relationship-only",
+        "version_change": false
+      },
+      "family": "dependency_delta",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "freshness-00": {
+      "authority_fields": [
+        "cached_freshness"
+      ],
+      "expected": {
+        "cached_freshness": "unknown",
+        "current_owner": "new_owner",
+        "next_evidence": "exact-path-read"
+      },
+      "family": "freshness",
+      "file_checks": [
+        {
+          "contains": "def new_owner():",
+          "path": "benchmark_case/freshness_00/src/app.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "freshness-01": {
+      "authority_fields": [
+        "global_index_freshness"
+      ],
+      "expected": {
+        "exact_path_symbol": "new_owner",
+        "global_index_freshness": "unknown"
+      },
+      "family": "freshness",
+      "file_checks": [
+        {
+          "contains": "def new_owner():",
+          "path": "benchmark_case/freshness_01/src/app.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "freshness-02": {
+      "authority_fields": [
+        "unique_owner_proven",
+        "cached_hit_freshness"
+      ],
+      "expected": {
+        "cached_hit_freshness": "unknown",
+        "next_evidence": "refresh-index",
+        "unique_owner_proven": false
+      },
+      "family": "freshness",
+      "file_checks": [
+        {
+          "contains": "def widget():",
+          "path": "benchmark_case/freshness_02/src/b.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "freshness-03": {
+      "authority_fields": [
+        "owner_evidence",
+        "global_freshness"
+      ],
+      "expected": {
+        "global_freshness": "unknown",
+        "owner_evidence": "reusable-if-scope-proven",
+        "unrelated_path": "changed"
+      },
+      "family": "freshness",
+      "file_checks": [
+        {
+          "contains": "VALUE = 2",
+          "path": "benchmark_case/freshness_03/src/unrelated.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "negative_bounds-00": {
+      "authority_fields": [
+        "unique_owner",
+        "other_owner_absent"
+      ],
+      "expected": {
+        "next_evidence": "exhaustive-owner-search",
+        "other_owner_absent": "unknown",
+        "unique_owner": "unknown"
+      },
+      "family": "negative_bounds",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "negative_bounds-01": {
+      "authority_fields": [
+        "no_verifier",
+        "verification_search"
+      ],
+      "expected": {
+        "next_evidence": "expand-verification-search",
+        "no_verifier": "unknown",
+        "verification_search": "incomplete"
+      },
+      "family": "negative_bounds",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "negative_bounds-02": {
+      "authority_fields": [
+        "entry_point_absent",
+        "query_complete"
+      ],
+      "expected": {
+        "entry_point_absent": "unknown",
+        "next_evidence": "repeat-with-complete-identifiers",
+        "query_complete": false
+      },
+      "family": "negative_bounds",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "negative_bounds-03": {
+      "authority_fields": [
+        "unique_current_owner",
+        "negative_evidence_admissible"
+      ],
+      "expected": {
+        "negative_evidence_admissible": false,
+        "next_evidence": "refresh-and-exhaust-search",
+        "unique_current_owner": "unknown"
+      },
+      "family": "negative_bounds",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "post_change-00": {
+      "authority_fields": [],
+      "expected": {
+        "changed_path": "benchmark_case/post_change_00/src/engine.py",
+        "unrelated_reusable": true,
+        "verification_path": "benchmark_case/post_change_00/tests/test_engine.py"
+      },
+      "family": "post_change",
+      "file_checks": [
+        {
+          "contains": "return \"new\" if value == \"accepted\" else value",
+          "path": "benchmark_case/post_change_00/src/engine.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "post_change-01": {
+      "authority_fields": [],
+      "expected": {
+        "changed_path": "benchmark_case/post_change_01/src/route.py",
+        "new_owner": "benchmark_case/post_change_01/src/engine_b.py",
+        "verification_path": "benchmark_case/post_change_01/tests/test_route.py"
+      },
+      "family": "post_change",
+      "file_checks": [
+        {
+          "contains": "from .engine_b import widget",
+          "path": "benchmark_case/post_change_01/src/route.py"
+        }
+      ],
+      "provenance_fields": []
+    },
+    "post_change-02": {
+      "authority_fields": [
+        "change",
+        "invalidated"
+      ],
+      "expected": {
+        "change": "unchanged",
+        "invalidated": [],
+        "revision_reusable": true
+      },
+      "family": "post_change",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "post_change-03": {
+      "authority_fields": [
+        "prior_packet",
+        "reuse"
+      ],
+      "expected": {
+        "next_evidence": "fresh-task-evidence",
+        "prior_packet": "untrusted",
+        "reuse": "rejected"
+      },
+      "family": "post_change",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "verification-00": {
+      "authority_fields": [],
+      "expected": {
+        "path": "benchmark_case/verification_00/tests/feature0042/test_contract.py",
+        "runner": "pytest",
+        "scope": "test-node"
+      },
+      "family": "verification",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "verification-01": {
+      "authority_fields": [],
+      "expected": {
+        "path": "benchmark_case/verification_01/widget/widget_test.go",
+        "runner": "go-test"
+      },
+      "family": "verification",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "verification-02": {
+      "authority_fields": [
+        "runner",
+        "scope"
+      ],
+      "expected": {
+        "argv": [
+          "tsc",
+          "--noEmit",
+          "-p",
+          "benchmark_case/verification_02/tsconfig.json"
+        ],
+        "path": "benchmark_case/verification_02/tests/widget.test.ts",
+        "runner": "typescript-compiler",
+        "scope": "typescript-project"
+      },
+      "family": "verification",
+      "file_checks": [],
+      "provenance_fields": []
+    },
+    "verification-03": {
+      "authority_fields": [
+        "runner"
+      ],
+      "expected": {
+        "argv": [
+          "node",
+          "--test",
+          "benchmark_case/verification_03/tests/widget.test.js"
+        ],
+        "path": "benchmark_case/verification_03/tests/widget.test.js",
+        "runner": "node-test"
+      },
+      "family": "verification",
+      "file_checks": [],
+      "provenance_fields": []
+    }
+  },
+  "schema": "agents-cookbook-behavioral-cases.v4"
+}

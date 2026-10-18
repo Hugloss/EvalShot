@@ -1,0 +1,13 @@
+diff --git a/benchmark_case/correlation_00/observation.json b/benchmark_case/correlation_00/observation.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/correlation_00/observation.json
+@@ -0,0 +1,1 @@
++{"provider":"runtime-log","path":"/app/benchmark_case/correlation_00/src/worker.py","symbol":"process_output_data","line":2,"mapping":"/app"}
+diff --git a/benchmark_case/correlation_00/src/worker.py b/benchmark_case/correlation_00/src/worker.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/correlation_00/src/worker.py
+@@ -0,0 +1,2 @@
++def process_output_data(value):
++    return value + 1

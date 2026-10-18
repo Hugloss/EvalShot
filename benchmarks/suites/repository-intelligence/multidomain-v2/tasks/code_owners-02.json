@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "code_owners",
+  "fixtures": [
+    {
+      "artifact": "fixtures/code_owners-02.json",
+      "sha256": "0d2595e687516453d6e1951c8eb45ea549e8557106ed4594ff353577149f9280",
+      "target": "fixtures/code_owners-02.json"
+    }
+  ],
+  "id": "code_owners-02",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "owner_state": "ambiguous",
+        "path": null,
+        "symbol": "task_evidence"
+      }
+    },
+    "identity": {
+      "id": "code_owners-02-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect fixtures/code_owners-02.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative. Return exactly one JSON object with keys path, symbol, owner_state, and no other text.",
+  "repository": {
+    "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+    "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+    "url": "https://github.com/Hugloss/Hashmarks.git"
+  },
+  "version": 1
+}

@@ -1,0 +1,61 @@
+{
+  "id": "dependency_delta-01",
+  "version": 1,
+  "family": "dependency_delta",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Compare the Maven dependency trees under benchmark_case/dependency_delta_01/before and after. Decide whether the change is a component selection transition or only a relationship/scope change. Return exactly one JSON object with keys component, transition, selection_changed, relationship_changed.",
+  "mutation": {
+    "id": "dependency_delta-01-baseline",
+    "artifact": "mutations/dependency_delta-01.patch",
+    "sha256": "c96df7d592e3a74e59ead756ccbe936aff625234adad1a4290a824972761b9d9",
+    "changed_paths": [
+      "benchmark_case/dependency_delta_01/after/tree.json",
+      "benchmark_case/dependency_delta_01/before/tree.json"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "dependency_delta-01-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "dependency_delta-01"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "dependency_delta-01"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30,
+      "result_format": "lexigram-v1"
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

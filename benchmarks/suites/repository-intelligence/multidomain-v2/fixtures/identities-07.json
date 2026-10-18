@@ -1,0 +1,11 @@
+{
+  "source_symbol": "runPollDelay",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-7"
+  },
+  "after": {
+    "artifact": "artifact-b",
+    "semantic": "semantic-7-changed"
+  }
+}

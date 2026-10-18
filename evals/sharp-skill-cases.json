@@ -1,0 +1,1456 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "canonical-consumer-contract-positive",
+      "skill": "canonical-consumer-contract-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/canonical-consumer-contract",
+      "scenario": "Trace the canonical import owner into the filesystem observation consumer. For the same pathlib import, the owner improves classification from unknown to module(pathlib), which is permitted, but the consumer stops detecting the relevant filesystem import. Establish the paired outcome and whether the consumer depends on an accidental historical unknown result rather than the owner contract.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "import_owner.py",
+            "line": 12,
+            "quote": "if precise and module == \"pathlib\":"
+          },
+          {
+            "path": "filesystem_consumer.py",
+            "line": 7,
+            "quote": "if binding.kind != \"unknown\":"
+          },
+          {
+            "path": "filesystem_consumer.py",
+            "line": 10,
+            "quote": "return module == \"pathlib\""
+          }
+        ]
+      }
+    },
+    {
+      "id": "canonical-consumer-contract-control",
+      "skill": "canonical-consumer-contract-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The canonical import owner returns explicit Module(pathlib) or Unknown with documented meanings. The filesystem consumer observes recognized filesystem operations only for proven Module(pathlib), preserves explicit uncertainty for Unknown, and its behavior was checked under old and refined owner output variants. No independent observation is silently lost."
+    },
+    {
+      "id": "canonical-consumer-contract-confusion",
+      "skill": "canonical-consumer-contract-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "Two independent modules parse the same import syntax and agree on present results; this may be a single-source-of-truth or semantic-redecision defect, but no evidence establishes a historical/allowed refined owner result that causes consumer behavior to violate an independent obligation. Decide only whether the canonical-consumer-contract-review failure class has been proven."
+    },
+    {
+      "id": "stale-work-race-positive",
+      "skill": "stale-work-race-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/async-ownership",
+      "scenario": "Two selections may overlap. Selection A starts first, selection B becomes current, B completes, then A completes. Determine whether older work can still overwrite state owned by B.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "service.js",
+            "line": 9,
+            "quote": "rendered = { key, data };"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stale-work-race-control",
+      "skill": "stale-work-race-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Operations execute through one serialized queue. Operation B cannot start until operation A has completed or failed, and only the queue owner mutates the projection."
+    },
+    {
+      "id": "ui-lifecycle-race-positive",
+      "skill": "ui-lifecycle-race-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "View A schedules requestAnimationFrame work. Navigation replaces A with view B before the callback runs. The callback still dereferences a shared current DOM ref and mutates it without checking view identity."
+    },
+    {
+      "id": "ui-lifecycle-race-control",
+      "skill": "ui-lifecycle-race-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A view schedules delayed measurement work. Cleanup cancels the handle, and the callback also checks the exact render generation before touching the DOM."
+    },
+    {
+      "id": "atomic-operation-positive",
+      "skill": "atomic-operation-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "One publish operation first commits metadata in the database and then writes the content file. If the file write fails, the committed metadata remains visible as published although no content exists."
+    },
+    {
+      "id": "atomic-operation-control",
+      "skill": "atomic-operation-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A multi-step import uses explicit durable states PREPARING, READY, and FAILED. Readers only consume READY, restart resumes or cleans PREPARING deterministically, and every intermediate state is part of the documented workflow."
+    },
+    {
+      "id": "retry-idempotency-positive",
+      "skill": "retry-idempotency-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A queue may redeliver the same message after acknowledgement timeout. Each delivery sends the notification and inserts a history row using the same operation id, but neither effect has a duplicate guard."
+    },
+    {
+      "id": "retry-idempotency-control",
+      "skill": "retry-idempotency-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Redelivery is expected. The effect owner performs a create-only write keyed by the logical operation id, returns the existing terminal result on duplicate delivery, and does not repeat external effects."
+    },
+    {
+      "id": "resource-lifetime-positive",
+      "skill": "resource-lifetime-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A request acquires a temporary directory and starts a child process that still reads from it after the request handler returns. The handler's finally block deletes the directory before the child signals completion."
+    },
+    {
+      "id": "resource-lifetime-control",
+      "skill": "resource-lifetime-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A process-wide immutable schema registry is created once at startup, owned by the process lifetime, never closed by request code, and released only during process shutdown."
+    },
+    {
+      "id": "failure-contract-positive",
+      "skill": "failure-contract-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A storage timeout is thrown by the repository, converted to None by one service, interpreted as not-found by the API, but treated as retryable by a worker that calls the repository directly."
+    },
+    {
+      "id": "failure-contract-control",
+      "skill": "failure-contract-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The domain returns one explicit NotFound result. The HTTP boundary maps it once to 404, the worker maps the same stable result to a terminal receipt, and neither boundary changes its semantic meaning."
+    },
+    {
+      "id": "semantic-redecision-positive",
+      "skill": "semantic-redecision-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/semantic-authority",
+      "scenario": "Public admission is the only accepted authority for can-run. An API helper and a separate worker diagnostic both receive the same raw configuration and independently compute the identical can-run boolean for reachable API output and worker warning paths. The diagnostic does not grant admission or override its result. No previously resolved value is discarded across a downstream boundary. Identify the repeated semantic interpretation, not split authoritative producers.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "api.js",
+            "line": 4,
+            "quote": "return config.enabled === true && config.blocked !== true;"
+          },
+          {
+            "path": "worker.js",
+            "line": 4,
+            "quote": "return config.enabled === true && config.blocked !== true;"
+          }
+        ]
+      }
+    },
+    {
+      "id": "semantic-redecision-control",
+      "skill": "semantic-redecision-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Admission decides eligibility once. Persistence later verifies that the admitted identity still matches the stored record but does not reinterpret eligibility."
+    },
+    {
+      "id": "durable-commit-path-positive",
+      "skill": "durable-commit-path-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "An API cancellation handler writes terminal status directly. Worker cleanup contains a separate direct write that can mark the same operation cancelled using its own conditions."
+    },
+    {
+      "id": "durable-commit-path-control",
+      "skill": "durable-commit-path-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/async-ownership",
+      "scenario": "Inspect whether this example has multiple independent durable transition authorities. Ignore unrelated asynchronous ordering defects."
+    },
+    {
+      "id": "resolved-fact-regression-positive",
+      "skill": "resolved-fact-regression-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Admission resolves and returns a canonical repository identity. Execution receives both that identity and the raw path, ignores the identity, and resolves ownership again from the path."
+    },
+    {
+      "id": "resolved-fact-regression-control",
+      "skill": "resolved-fact-regression-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/semantic-authority",
+      "scenario": "Inspect whether a previously resolved fact is discarded and reconstructed from raw inputs. Do not report simple duplicate policy logic unless a resolved-result boundary was actually crossed backward."
+    },
+    {
+      "id": "state-authority-positive",
+      "skill": "state-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A database row and a writable process cache can both update lifecycle status. Reads sometimes prefer the cache and sometimes the database, with no declared canonical owner or freshness rule."
+    },
+    {
+      "id": "state-authority-control",
+      "skill": "state-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The database is explicitly canonical. An immutable receipt records the historical terminal outcome and is never read as current mutable state."
+    },
+    {
+      "id": "invalid-state-model-positive",
+      "skill": "invalid-state-model-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A model independently stores status, cancelled, completed_at, and result. It can represent status=running, cancelled=true, completed_at set, and a success result at the same time although the domain forbids that combination."
+    },
+    {
+      "id": "invalid-state-model-control",
+      "skill": "invalid-state-model-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Several optional metadata fields are independent observations. Every combination is valid in the domain and no downstream branch must repair contradictory lifecycle meaning."
+    },
+    {
+      "id": "single-observation-positive",
+      "skill": "single-observation-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "One command walks an include graph and reads every module to validate it. Planning later receives the source root rather than the graph, walks the includes again, and rereads the same modules."
+    },
+    {
+      "id": "single-observation-control",
+      "skill": "single-observation-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Two separate user commands run minutes apart. Each command independently scans the repository because each is a distinct logical operation with its own observation boundary."
+    },
+    {
+      "id": "call-chain-collapse-positive",
+      "skill": "call-chain-collapse-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A route calls a helper, which calls a service, which calls a facade. Each layer forwards the same values and errors unchanged to the existing domain owner and adds no invariant, protocol conversion, transaction, or trust boundary."
+    },
+    {
+      "id": "call-chain-collapse-control",
+      "skill": "call-chain-collapse-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A thin adapter converts a public HTTP payload into a validated domain command and prevents untrusted fields from crossing the boundary."
+    },
+    {
+      "id": "alternate-path-removal-positive",
+      "skill": "alternate-path-removal-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "All current execution uses admittedRun.execute(), except one remaining caller that still invokes legacyDirectExecute() with equivalent supported semantics and bypasses the canonical owner."
+    },
+    {
+      "id": "alternate-path-removal-control",
+      "skill": "alternate-path-removal-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Two entry paths remain because one performs an interactive dry run and the other performs a durable production execution. Their contracts and effects are intentionally different."
+    },
+    {
+      "id": "hidden-side-effect-positive",
+      "skill": "hidden-side-effect-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A function named getCurrentProfile() reads the profile and, as an undocumented part of the getter, persists a last_seen timestamp and emits an event."
+    },
+    {
+      "id": "hidden-side-effect-control",
+      "skill": "hidden-side-effect-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A command named recordProfileAccess() explicitly documents and performs the durable write and event emission at the application boundary."
+    },
+    {
+      "id": "hidden-side-effect-positive-inherited-update-default",
+      "skill": "hidden-side-effect-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A generic CLI parser defaults automatic_update_check=true for every present and future command. The periodic check may perform network I/O and display an upgrade prompt before the selected command runs, even though newly registered commands do not declare that effect. A command author can add an unrelated local command and silently inherit the network/prompt behavior."
+    },
+    {
+      "id": "hidden-side-effect-control-explicit-update-opt-in",
+      "skill": "hidden-side-effect-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The CLI defaults automatic update awareness to disabled. Commands whose public semantics intentionally permit the bounded interactive release check explicitly opt in where they are registered; undeclared commands remain network/prompt inert."
+    },
+    {
+      "id": "dependency-surface-positive",
+      "skill": "dependency-surface-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A validator receives a 30-field application context, reads two fields, and forwards most of the remainder through three layers solely because the context type is used everywhere."
+    },
+    {
+      "id": "dependency-surface-control",
+      "skill": "dependency-surface-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A cohesive Order aggregate has many fields, but its validation invariant genuinely depends on most of them and callers treat the aggregate as one domain concept."
+    },
+    {
+      "id": "test-work-amplification-positive",
+      "skill": "test-work-amplification-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A test asserting one local normalization rule enters the public production API, which always performs a full repository scan and starts a subprocess before reaching the normalization."
+    },
+    {
+      "id": "test-work-amplification-control",
+      "skill": "test-work-amplification-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/test-causality",
+      "scenario": "Inspect whether this test is slow because it performs disproportionate production work. Ignore nondeterministic waiting if that is the actual issue."
+    },
+    {
+      "id": "repeated-test-setup-positive",
+      "skill": "repeated-test-setup-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Forty small logic tests each construct the same expensive application graph, rebuild repository indexes, and initialize unrelated services because the production object cannot be cheaply constructed."
+    },
+    {
+      "id": "repeated-test-setup-control",
+      "skill": "repeated-test-setup-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Each persistence integration test creates a clean database because isolation of transaction and constraint semantics is exactly what the suite is proving."
+    },
+    {
+      "id": "test-isolation-boundary-positive",
+      "skill": "test-isolation-boundary-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A deterministic tax calculation cannot be invoked without starting a database and HTTP server because the only production API bundles loading, networking, persistence, and calculation together."
+    },
+    {
+      "id": "test-isolation-boundary-control",
+      "skill": "test-isolation-boundary-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The test explicitly verifies transaction isolation and the HTTP serialization contract, so the database and server are part of the behavior under test."
+    },
+    {
+      "id": "test-orchestration-complexity-positive",
+      "skill": "test-orchestration-complexity-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "To prove one narrow cancellation rule, a test constructs five subsystems, patches internal callbacks, drives four lifecycle states, coordinates cleanup, and asserts private intermediate state from each subsystem."
+    },
+    {
+      "id": "test-orchestration-complexity-control",
+      "skill": "test-orchestration-complexity-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A single end-to-end test intentionally verifies a workflow whose public contract spans those same five subsystems; lower-level tests already cover their individual rules."
+    },
+    {
+      "id": "deterministic-causality-positive",
+      "skill": "deterministic-causality-test-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/test-causality",
+      "scenario": "Inspect how the test knows background work is complete before it asserts.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "worker.test.js",
+            "line": 12,
+            "quote": "await sleep(500);"
+          }
+        ]
+      }
+    },
+    {
+      "id": "deterministic-causality-control",
+      "skill": "deterministic-causality-test-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The test holds a barrier, starts the worker, releases the barrier at a deterministic point, waits on the worker's explicit completion promise, and then asserts."
+    },
+    {
+      "id": "test-state-contamination-positive",
+      "skill": "test-state-contamination-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A mutable module-global cache survives between tests. Running test B alone passes, but running test A before B changes B's result unless a broad reset fixture clears the cache."
+    },
+    {
+      "id": "test-state-contamination-control",
+      "skill": "test-state-contamination-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Tests share an immutable parsed schema object. No test can mutate it and execution order does not change any result."
+    },
+    {
+      "id": "test-contract-coupling-positive",
+      "skill": "test-contract-coupling-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A behavior-preserving refactor breaks tests because they assert the exact order of three private helper calls and patch internal module functions rather than observing the public result."
+    },
+    {
+      "id": "test-contract-coupling-control",
+      "skill": "test-contract-coupling-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A structural test fails when UI modules import the persistence client directly because that import boundary is an explicit architecture invariant."
+    },
+    {
+      "id": "architecture-risk-triage-positive",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A repository hotspot contains repeated include-graph reads and the same eligibility rule independently implemented in two production layers. Identify which narrow specialist reviews should inspect the evidence next."
+    },
+    {
+      "id": "architecture-risk-triage-control",
+      "skill": "architecture-risk-triage",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The request already names stale-work-race-review and provides the exact asynchronous path and ownership evidence to inspect. No discovery or routing decision is needed."
+    },
+    {
+      "id": "confusion-stale-vs-commit",
+      "skill": "durable-commit-path-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/async-ownership",
+      "scenario": "There is a real stale asynchronous overwrite in this fixture. Determine whether that also means the durable transition has multiple independent commit authorities. Report only this skill's failure class."
+    },
+    {
+      "id": "confusion-semantic-vs-regression",
+      "skill": "resolved-fact-regression-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/semantic-authority",
+      "scenario": "There is duplicate policy interpretation in this fixture. Determine whether any already-resolved semantic result is discarded so downstream code moves backward to raw inputs. Report only this skill's failure class."
+    },
+    {
+      "id": "confusion-causality-vs-work",
+      "skill": "test-work-amplification-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/test-causality",
+      "scenario": "The fixture contains a weak timing synchronization technique. Determine whether the test also performs disproportionate production work relative to the behavior it proves. Report only this skill's failure class."
+    },
+    {
+      "id": "confusion-retry-vs-stale",
+      "skill": "stale-work-race-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "The same queue message with the same logical operation id is delivered twice because acknowledgement timed out. No newer owner or superseding operation exists; the concern is duplicate execution of the same operation."
+    },
+    {
+      "id": "confusion-atomic-vs-commit-authority",
+      "skill": "durable-commit-path-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "One canonical publish owner performs two required writes. A crash between them leaves partial state. There is only one semantic transition authority and one commit path."
+    },
+    {
+      "id": "confusion-ui-vs-resource-lifetime",
+      "skill": "resource-lifetime-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "A React view schedules RAF work that runs after navigation replaces the view. The defect is specifically old view-generation work acting on the replacement UI; no general resource acquisition/release contract is involved."
+    },
+    {
+      "id": "confusion-failure-vs-semantic-policy",
+      "skill": "semantic-redecision-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "A storage timeout is converted to None in one layer and treated as not-found, while another caller treats the same timeout as retryable. The disputed semantic fact is specifically failure meaning and retryability."
+    },
+    {
+      "id": "semantic-identity-invariance-positive",
+      "skill": "semantic-identity-invariance-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A proof identity hashes a list of evidence anchors in caller-provided order. Reversing the same unordered anchors changes the identity even though the semantic evidence set is identical."
+    },
+    {
+      "id": "semantic-identity-invariance-control",
+      "skill": "semantic-identity-invariance-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A pipeline-stage identity changes when the ordered stage sequence changes because execution order is explicitly part of the semantic contract."
+    },
+    {
+      "id": "evidence-projection-preservation-positive",
+      "skill": "evidence-projection-preservation-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The canonical evidence packet records an explicitly changed CSS file as missing. The compact projection filters missing rows out entirely, and downstream callers cannot distinguish missing evidence from a file that was never reported."
+    },
+    {
+      "id": "evidence-projection-preservation-control",
+      "skill": "evidence-projection-preservation-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A UI summary intentionally shows only actionable rows, labels itself as a partial view, exposes truncation/exclusion counts, and all authority decisions consume the complete canonical packet instead."
+    },
+    {
+      "id": "authority-escalation-positive",
+      "skill": "authority-escalation-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A search layer returns the highest-ranked edit candidate with no ownership proof. A later brief converts any non-null candidate into owner_resolved=true without adding structural, explicit, or scoped proof."
+    },
+    {
+      "id": "authority-escalation-control",
+      "skill": "authority-escalation-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A candidate becomes authoritative only after a separate validator proves an exact owner within a declared complete proof scope and records that proof identity."
+    },
+    {
+      "id": "completeness-accounting-positive",
+      "skill": "completeness-accounting-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A streaming importer reports complete when parser_failures==0. Its last record lacks a trailing newline and is never counted as selected, processed, failed, excluded, or missing."
+    },
+    {
+      "id": "completeness-accounting-control",
+      "skill": "completeness-accounting-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A bounded scan reports selected=100, processed=96, excluded=2, malformed=1, missing=1 and sets complete only because the terminal categories reconcile exactly to 100."
+    },
+    {
+      "id": "bounded-authority-monotonicity-positive",
+      "skill": "bounded-authority-monotonicity-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The same repository/task resolves owner A at limit=10 but owner B at limit=100 solely because more presentation candidates are visible; neither result records new authoritative proof."
+    },
+    {
+      "id": "bounded-authority-monotonicity-control",
+      "skill": "bounded-authority-monotonicity-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Increasing top-k reveals more related candidates but the proven owner and proof identity remain unchanged; only bounded presentation completeness changes."
+    },
+    {
+      "id": "cache-validity-binding-positive",
+      "skill": "cache-validity-binding-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A task-analysis cache key contains task text and limit but not repository generation. After source changes, the same key returns the previous owner's result."
+    },
+    {
+      "id": "cache-validity-binding-control",
+      "skill": "cache-validity-binding-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A derived cache key binds repository generation, task, policy and limits; persisted payloads are content-hash verified and the cache is disposable."
+    },
+    {
+      "id": "persistence-roundtrip-convergence-positive",
+      "skill": "persistence-roundtrip-convergence-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "An integer wider than SQLite's signed range is stored through a float-compatible column. Reopening the database silently changes the exact revision number and therefore the reconstructed identity."
+    },
+    {
+      "id": "persistence-roundtrip-convergence-control",
+      "skill": "persistence-roundtrip-convergence-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Out-of-range metadata uses a canonical checked codec; reopen reproduces the exact integers and malformed/non-canonical persisted bytes fail explicitly."
+    },
+    {
+      "id": "evidence-provenance-binding-positive",
+      "skill": "evidence-provenance-binding-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A PASS receipt identity binds command output but omits repository source identity and execution mode, so a receipt from different bytes and a simulation run can be reused as native proof."
+    },
+    {
+      "id": "evidence-provenance-binding-control",
+      "skill": "evidence-provenance-binding-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A reusable receipt identity binds repository/source, task, policy, generation, producer schema, execution mode and environment dimensions that affect interpretation."
+    },
+    {
+      "id": "unknown-state-collapse-positive",
+      "skill": "unknown-state-collapse-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A missing ranking metric is loaded with value = payload.get('ndcg') or 0.0. Qualification then treats unmeasured ranking as a measured zero instead of unknown evidence."
+    },
+    {
+      "id": "unknown-state-collapse-control",
+      "skill": "unknown-state-collapse-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The model stores metric_value separately from metric_status, preserving unknown, stale, invalid and measured-zero as distinct serialized states."
+    },
+    {
+      "id": "aggregate-hard-failure-masking-positive",
+      "skill": "aggregate-hard-failure-masking-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Qualification averages correctness, speed and cost. One false-authority result scores zero, but excellent speed/cost raise the weighted average above the PASS threshold."
+    },
+    {
+      "id": "aggregate-hard-failure-masking-control",
+      "skill": "aggregate-hard-failure-masking-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Qualification rejects any false-authority violation first, then evaluates readiness, and only afterward uses soft ranking/economics metrics to compare otherwise valid runs."
+    },
+    {
+      "id": "measurement-comparability-positive",
+      "skill": "measurement-comparability-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A before/after debt report claims -40 findings, but the after run uses different Ruff thresholds and excludes a source directory; the delta code never checks configuration or source-universe identity."
+    },
+    {
+      "id": "measurement-comparability-control",
+      "skill": "measurement-comparability-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Two runs have matching metric definition, tool/config identity, source universe, execution mode and population; their receipts share the same comparability identity before a delta is computed."
+    },
+    {
+      "id": "evidence-readiness-positive",
+      "skill": "evidence-readiness-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A benchmark with zero active qualification cases reports PASS because it has zero violations. Its only rows are historical shadow cases and required ambiguity/non-edit slices are absent."
+    },
+    {
+      "id": "evidence-readiness-control",
+      "skill": "evidence-readiness-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Scoring begins only after the corpus proves non-empty active valid qualification membership, adjudicated ground truth and coverage of every required semantic slice."
+    },
+    {
+      "id": "cross-surface-convergence-positive",
+      "skill": "cross-surface-convergence-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "For the same source generation and task, the Python API reports ownership unresolved while the compact CLI brief marks the same candidate safe to edit. The CLI adapter reinterprets candidate presence locally."
+    },
+    {
+      "id": "cross-surface-convergence-control",
+      "skill": "cross-surface-convergence-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "API, CLI and MCP use different field names and formatting, but after removing presentation-only fields they expose the same candidate, ambiguity, authority, freshness and provenance state."
+    },
+    {
+      "id": "semantic-noninterference-positive",
+      "skill": "semantic-noninterference-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Adding an unrelated documentation file changes the selected owner for an exact-symbol task even though the new file is outside the task proof scope and contributes no owner evidence."
+    },
+    {
+      "id": "semantic-noninterference-control",
+      "skill": "semantic-noninterference-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Adding unrelated files and equivalent task wording leaves the conclusion unchanged, while removing the exact owner symbol changes the result to unresolved as expected."
+    },
+    {
+      "id": "evidence-visibility-enforcement-positive",
+      "skill": "evidence-visibility-enforcement-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A repository hit is tagged visibility=deny. Retrieval hides it from the raw list, but owner resolution still receives the unfiltered hit collection and uses the denied exact symbol as ownership proof."
+    },
+    {
+      "id": "evidence-visibility-enforcement-control",
+      "skill": "evidence-visibility-enforcement-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Visibility policy filters denied evidence at the canonical evidence boundary before ranking, caches, projections or authority logic; an authorized privileged surface uses a separate explicitly scoped request."
+    },
+    {
+      "id": "baseline-self-authorization-positive",
+      "skill": "baseline-self-authorization-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A pull request adds 20 lint violations and raises the checked-in allowed-debt baseline by 20. CI validates live debt only against the modified baseline, so the regression passes without comparing the baseline to previous main."
+    },
+    {
+      "id": "baseline-self-authorization-control",
+      "skill": "baseline-self-authorization-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "CI first compares the candidate baseline to previous main and permits only independently allowed downward ratchets, then validates candidate code against that admitted baseline."
+    },
+    {
+      "id": "explicit-target-resolution-positive",
+      "skill": "explicit-target-resolution-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The task names package.module.evaluate. The repository contains one exact module-level evaluate symbol, but owner selection ignores the module qualifier and replaces it with a structurally related helper from another module."
+    },
+    {
+      "id": "explicit-target-resolution-control",
+      "skill": "explicit-target-resolution-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A literal path resolves uniquely and remains the edit target; related dependencies stay related evidence, while ownership authority remains unresolved until separate proof is available."
+    },
+    {
+      "id": "verification-locality-positive",
+      "skill": "verification-locality-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A change to package/runtime/parser.py selects a generic repository-tools test with no reference evidence, while package/runtime/test_parser.py directly imports and exercises the changed function. Generic retrieval rank wins anyway."
+    },
+    {
+      "id": "verification-locality-control",
+      "skill": "verification-locality-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The selected integration test is broader than a nearby unit test but has direct reference evidence to the changed public behavior and is therefore the stronger verifier."
+    },
+    {
+      "id": "shared-state-ownership-positive",
+      "skill": "shared-state-ownership-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A function creates env = os.environ.copy(), reads env, then updates env. A concurrency review requires a global lock solely because the values originated from os.environ, even though the fresh mapping never escapes the function."
+    },
+    {
+      "id": "shared-state-ownership-control",
+      "skill": "shared-state-ownership-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Two worker threads mutate the same process-wide cache object through aliases. The cache has one explicit lock owner and every mutation crosses that synchronization boundary."
+    },
+    {
+      "id": "roundtrip-capacity-contract-positive",
+      "skill": "roundtrip-capacity-contract-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The core API accepts a 900 KiB evidence packet and documents it as reusable as previous_state, but the transport endpoint caps requests at 512 KiB. A fully valid core result therefore cannot be round-tripped through the supported API."
+    },
+    {
+      "id": "roundtrip-capacity-contract-control",
+      "skill": "roundtrip-capacity-contract-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Core and transport share one 512 KiB semantic payload bound. A documented compact transform exists for larger diagnostic views and explicitly marks itself partial and non-authoritative."
+    },
+    {
+      "id": "evidence-integrity-revalidation-positive",
+      "skill": "evidence-integrity-revalidation-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A previous evidence packet carries sha256:abc. A caller mutates nested evidence but leaves the digest field unchanged; delta code trusts the stored digest and compares the tampered packet without recomputing canonical identity."
+    },
+    {
+      "id": "evidence-integrity-revalidation-control",
+      "skill": "evidence-integrity-revalidation-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Every serialized or externally supplied evidence artifact is canonically rehashed at the reuse boundary and rejected before interpretation when content does not match the claimed identity."
+    },
+    {
+      "id": "identifier-scope-uniqueness-positive",
+      "skill": "identifier-scope-uniqueness-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Events have serial numbers unique only per producer. Aggregation uses serial alone as a global dictionary key, so producer A serial 42 overwrites producer B serial 42."
+    },
+    {
+      "id": "identifier-scope-uniqueness-control",
+      "skill": "identifier-scope-uniqueness-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Serial numbers are documented as stream-local and only used inside one stream; cross-stream aggregation uses producer_id plus serial as the composite identity and rejects duplicate composite keys."
+    },
+    {
+      "id": "negative-evidence-admissibility-positive",
+      "skill": "negative-evidence-admissibility-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A bounded dependency scan of the first 100 nodes returns no owner. completeness is caller-claimed complete but truncation is unknown, and downstream code concludes that no owner exists anywhere."
+    },
+    {
+      "id": "negative-evidence-admissibility-control",
+      "skill": "negative-evidence-admissibility-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "No-owner is admitted only after the declared repository scope is fully enumerated, completeness=complete and truncation=complete; bounded or unknown scans remain unknown."
+    },
+    {
+      "id": "orthogonal-state-axis-positive",
+      "skill": "orthogonal-state-axis-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "One status enum uses SAFE_FRESH, SAFE_STALE and UNSAFE to encode both repository freshness and ownership resolution. It cannot represent fresh-but-ambiguous evidence separately from stale-but-resolved ownership."
+    },
+    {
+      "id": "orthogonal-state-axis-control",
+      "skill": "orthogonal-state-axis-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "freshness, ownership_status and completeness are independent fields; a UI may derive a summary badge from them, but authority decisions use the primitive axes."
+    },
+    {
+      "id": "current-measurement-authority-positive",
+      "skill": "current-measurement-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A cleanup selector sorts last month's checked-in debt baseline and chooses the largest entry as today's hotspot even though the executable current inventory no longer contains that file."
+    },
+    {
+      "id": "current-measurement-authority-control",
+      "skill": "current-measurement-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The checked-in baseline is used only as a no-growth ratchet. A fresh executable inventory measured from current source/config selects the cleanup target and is then compared with the baseline."
+    },
+    {
+      "id": "improvement-claim-remeasurement-positive",
+      "skill": "improvement-claim-remeasurement-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A complex function is split into three helpers and the PR claims structural-debt reduction. Focused tests pass, but fresh post-edit debt remains exactly unchanged and no locality metric improved."
+    },
+    {
+      "id": "improvement-claim-remeasurement-control",
+      "skill": "improvement-claim-remeasurement-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A refactor claims behavior preservation only until comparable post-edit measurement shows debt 69→31 with no redistribution and the frozen behavior suite still passes."
+    },
+    {
+      "id": "stable-observation-snapshot-positive",
+      "skill": "stable-observation-snapshot-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A decision reads repository candidates at generation 10, a file changes, then verification evidence is read at generation 11. The result is emitted as one decision packet with no generation mismatch marker."
+    },
+    {
+      "id": "stable-observation-snapshot-control",
+      "skill": "stable-observation-snapshot-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "All component reads in the decision bind generation 10; if any stable read detects a revision change, the decision is retried or fails without emitting a mixed-generation packet."
+    },
+    {
+      "id": "static-evidence-overclaim-positive",
+      "skill": "static-evidence-overclaim-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A static call analyzer sees obj.save() where obj is dynamically supplied and marks it as an exact call to repository class Store.save, despite having no type or alias proof for the receiver."
+    },
+    {
+      "id": "static-evidence-overclaim-control",
+      "skill": "static-evidence-overclaim-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Exact calls are emitted only for lexically or index-proven targets; dynamic receivers and imported external methods remain dynamic/external or ambiguous rather than exact repository facts."
+    },
+    {
+      "id": "correlation-causation-boundary-positive",
+      "skill": "correlation-causation-boundary-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A runtime error anchor and a dependency-upgrade observation both correlate to the same repository module. The system automatically labels the upgrade as the cause and selects that dependency for remediation."
+    },
+    {
+      "id": "correlation-causation-boundary-control",
+      "skill": "correlation-causation-boundary-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The system reports same-repository-target correspondence and preserves dependency/runtime provenance, while causation and remediation remain not-inferred for a separate consumer to adjudicate."
+    },
+    {
+      "id": "path-scope-confinement-positive",
+      "skill": "path-scope-confinement-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "An external /app/src prefix maps to the repository root. The mapper accepts /app/src/../secrets.txt, normalizes after joining, and produces a path outside the repository while still labeling it repository evidence."
+    },
+    {
+      "id": "path-scope-confinement-control",
+      "skill": "path-scope-confinement-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Path mapping chooses the deterministic longest matching prefix, rejects .. traversal, resolves symlinks/realpath, then re-checks that the final canonical path remains beneath the declared repository root."
+    },
+    {
+      "id": "dogfood-saturation-loop-positive-no-redogfood",
+      "skill": "dogfood-saturation-loop",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A branch repairs three evidence-backed in-scope defects and all known regressions pass. It immediately runs final CI and opens a PR. No fresh adversarial dogfood pass challenges the patched behavior after the latest repair."
+    },
+    {
+      "id": "dogfood-saturation-loop-positive-probe-contract-gamed",
+      "skill": "dogfood-saturation-loop",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "After repairing a boundary bug, the campaign declares six required probes. Two difficult probes time out, so after seeing the results it removes those two from the required set, records NO_QUALIFYING_DEFECT, and claims saturation."
+    },
+    {
+      "id": "dogfood-saturation-loop-positive-scope-shrink",
+      "skill": "dogfood-saturation-loop",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The campaign minimum scope includes dependency admission and projection. Dogfood proves a projection defect. Instead of repairing it, the campaign narrows scope to admission only and reclassifies the already-proved projection defect as unrelated follow-up work so it can claim saturation."
+    },
+    {
+      "id": "dogfood-saturation-loop-positive-refuses-required-expansion",
+      "skill": "dogfood-saturation-loop",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The campaign initially covers a serializer and its public API. During repair, evidence proves persisted round-trip behavior is directly affected by the same semantic change, but the campaign refuses to expand scope to persistence because it was not named at the start, then claims saturation."
+    },
+    {
+      "id": "dogfood-saturation-loop-positive-stale-authority",
+      "skill": "dogfood-saturation-loop",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Candidate A passes fresh dogfood. The branch is rebased onto a newer authoritative base that changes dependencies inside the campaign surface, but the campaign reuses A's scope assumptions, probe evidence, and qualification authority without re-establishing them, then claims completion."
+    },
+    {
+      "id": "dogfood-saturation-loop-positive-self-weakened-final-qualification",
+      "skill": "dogfood-saturation-loop",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The campaign initially establishes the repository's canonical verify-and-package workflow as final qualification. The candidate then edits that workflow to remove the package gate and validates itself against the weakened candidate workflow without independent admission against the previous authority, then ends SATURATED."
+    },
+    {
+      "id": "dogfood-saturation-loop-positive-upstream-workaround",
+      "skill": "dogfood-saturation-loop",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Dogfood reproduces an in-scope defect whose semantic owner is an upstream dependency. To keep the campaign on one branch, the downstream project adds a local workaround that masks the upstream defect and then claims saturation without repairing or qualifying the upstream owner."
+    },
+    {
+      "id": "dogfood-saturation-loop-control-deep-saturation",
+      "skill": "dogfood-saturation-loop",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The campaign freezes a minimum semantic scope and establishes final qualification authority. It proves several defects, repairs them, and later evidence shows one directly affected persistence interaction, so scope expands monotonically. A fresh-pass probe contract grows by one probe before completion; already-completed probes remain valid on the same unchanged candidate, the added probe completes, no qualifying defect remains, and final validation passes."
+    },
+    {
+      "id": "dogfood-saturation-loop-control-insufficient-evidence-lead",
+      "skill": "dogfood-saturation-loop",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Dogfood notices a suspicious adjacent code path but cannot reproduce a violated behavior or prove a material consequence. codebase-finding-derivation records INSUFFICIENT EVIDENCE, so the lead is preserved for later investigation but is not treated as a qualifying defect and does not by itself block saturation."
+    },
+    {
+      "id": "dogfood-saturation-loop-control-working-tree-identity",
+      "skill": "dogfood-saturation-loop",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Repairs remain uncommitted during the deep loop. Before validation and dogfood, the campaign computes a deterministic identity over every exercised tracked, staged, untracked generated, and projected byte and records it with the evidence, so no checkpoint commit is needed."
+    },
+    {
+      "id": "dogfood-saturation-loop-control-upstream-owner",
+      "skill": "dogfood-saturation-loop",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Dogfood proves an in-scope defect is owned by an upstream library. The downstream campaign remains blocked while the upstream owner is repaired and qualified, then re-establishes downstream candidate evidence against the fixed upstream identity instead of adding a masking workaround."
+    },
+    {
+      "id": "dogfood-saturation-loop-control-authoritative-empty-final-validation",
+      "skill": "dogfood-saturation-loop",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Before the campaign begins, repository-owned policy explicitly states that this class of prompt-only change has no additional final validation beyond the required focused structural checks. The campaign completes those checks, saturates its semantic surface, records the authoritative final-validation set as empty, and ends SATURATED."
+    },
+    {
+      "id": "skill-contract-review-positive-asymmetric-clean",
+      "skill": "skill-contract-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A new repository-wide discovery skill requires a reachable production path before reporting a finding, but its OUTPUT says 'No issues found' whenever a bounded grep returns nothing. It records no inspected scope, truncation, unavailable paths, or incomplete state."
+    },
+    {
+      "id": "skill-contract-review-positive-self-authorizing",
+      "skill": "skill-contract-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A qualification skill says a candidate may choose the required test slices and pass threshold at evaluation time. The same candidate may edit those settings, rerun only the newly required checks, and declare itself qualified."
+    },
+    {
+      "id": "skill-contract-review-control-sharp-bounded",
+      "skill": "skill-contract-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A narrow retry-idempotency skill owns one duplicate-effect failure class, requires a reproduced replay path before FINDING, names safe repeatable behavior in DO NOT REPORT, and makes no repository-wide absence claim. It does not carry source digests or environment identity because the bounded review result is not reused across mutable candidates."
+    },
+    {
+      "id": "skill-contract-review-control-domain-detail",
+      "skill": "skill-contract-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A sensitive-data transformation skill is longer than most review skills because it defines masking categories, deterministic placeholder behavior, a second verification pass, fail-closed MASKING_INCOMPLETE, and a bounded transformation boundary. Its extra sections each carry unique safety semantics rather than repeating generic methodology."
+    },
+    {
+      "id": "evidence-readiness-positive-self-selected-scope",
+      "skill": "evidence-readiness-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The governing qualification contract requires correctness, ambiguity and non-edit slices. After seeing that ambiguity cases fail, the candidate redefines its claimed qualification scope to correctness-only and reports PASS from that smaller evidence set."
+    },
+    {
+      "id": "architecture-risk-triage-positive-incomplete-clean",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A repository-wide architecture triage inspects one controller directory, cannot access workers or persistence, finds no hotspot in that directory, and reports that the repository has no architecture risks requiring specialist review."
+    },
+    {
+      "id": "evidence-readiness-positive-self-weakened-contract",
+      "skill": "evidence-readiness-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The previous qualification contract requires correctness, ambiguity and non-edit slices. The candidate edits that governing contract to remove ambiguity after ambiguity cases fail, then uses the candidate contract to declare its remaining evidence ready and qualified without independent admission of the policy change."
+    },
+    {
+      "id": "native-tool-authority-review-positive-shadow-resolver",
+      "skill": "native-tool-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A repository wraps native uv lock authoring in a helper that first runs uv lock, then independently parses dependency metadata, maintains its own retry/cache state, rewrites the lock on selected failures, and reports its synthetic convergence result as dependency truth. No repository-specific policy requires those duplicated resolution semantics."
+    },
+    {
+      "id": "native-tool-authority-review-positive-shadow-package-manager-certification",
+      "skill": "native-tool-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A CLI offers an explicit Upgrade now action for a package installed by native uv or pipx. Before invoking the native upgrade command, repository code reconstructs uv/pipx installation roots, parses uv-receipt.toml or pipx_metadata.json, and decides whether that manager is allowed to own the installation. The native package manager already owns whether the package is installed, managed, supported, and upgradeable; no independent repository security or policy contract requires the duplicate certification."
+    },
+    {
+      "id": "native-tool-authority-review-control-direct-native-upgrade-delegation",
+      "skill": "native-tool-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A product checks only whether a newer release exists. After explicit user consent, an already-selected native package-manager command is invoked directly; the repository does not parse manager receipts, reconstruct manager filesystem layout, or preflight whether the native tool considers the package upgradeable. Native stdout, stderr, and exit status are reported unchanged."
+    },
+    {
+      "id": "native-tool-authority-review-control-isolation-evidence-boundary",
+      "skill": "native-tool-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A repository launches native kubectl through a thin execution boundary that only binds an already-selected kubeconfig and cwd, applies a timeout and process-tree cancellation, captures stdout/stderr/exit status with provenance, and projects PASS/FAIL/INCOMPLETE. It does not reconstruct rollout, health, retry, selection, or Kubernetes state semantics."
+    },
+    {
+      "id": "adversarial-repair-campaign-positive",
+      "skill": "adversarial-repair-campaign",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A local working-tree candidate repairs a reproduced retained-evidence validation defect and its focused regression passes. The focused check is green, but no post-repair mutation, composition, identity, completeness, or cross-surface attack has run against the repaired candidate. The next action is being chosen."
+    },
+    {
+      "id": "adversarial-repair-campaign-control",
+      "skill": "adversarial-repair-campaign",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "During an adversarial repair campaign over a release-candidate directory, the next reproduced defect is proven to belong to a separately versioned upstream repository. Repairing it locally would require a downstream workaround that duplicates upstream semantics. Determine whether to keep patching the current candidate."
+    },
+    {
+      "id": "entrypoint-authority-review-positive-duplicate-launch-defaults",
+      "skill": "entrypoint-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A benchmark can be started through Make, a Python launcher, and CI. Make hard-codes budget 1200 and one output path, the Python launcher defaults budget 1000 and another path, and CI copies a third full command line. All three claim to run the same benchmark and operators must remember which settings are authoritative."
+    },
+    {
+      "id": "entrypoint-authority-review-control-thin-aliases",
+      "skill": "entrypoint-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A benchmark supports `make benchmark` and a direct `uv run` command. Both select the same checked-in named profile, which alone owns budget, corpus, mode, and output path, then invoke the same existing benchmark implementation. Make adds no independent defaults."
+    },
+    {
+      "id": "entrypoint-authority-review-control-ci-boundary",
+      "skill": "entrypoint-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Local Make and CI both select the same checked-in benchmark profile and execution owner. CI additionally binds its own job timeout, credentials, sandbox, and artifact upload because those are CI-host responsibilities; it does not redefine benchmark budget, corpus, mode, or output semantics."
+    },
+    {
+      "id": "native-tool-authority-review-positive-host-config-redecision",
+      "skill": "native-tool-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "An isolated benchmark is explicitly required to use native Codex. The host already has a usable Codex configuration selecting its model and provider, but the repository runner asks the operator which model-setting policy to use and offers to copy or override those settings in a trial profile. Isolation only needs workspace, sandbox, timeout, and evidence binding; no benchmark policy requires a different Codex model."
+    },
+    {
+      "id": "native-tool-authority-review-control-host-config-with-benchmark-policy",
+      "skill": "native-tool-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A benchmark invokes native Codex using its existing host model/provider configuration without asking the operator to reselect them. The checked-in benchmark profile independently owns repository workload policy and defaults to one paired smoke, while the runner binds an isolated workspace, timeout, and evidence output. No native Codex settings are copied into the benchmark profile."
+    },
+    {
+      "id": "architecture-risk-triage-native-host-config-redecision",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A benchmark path explicitly invokes native Codex. A usable host Codex configuration already owns model and provider selection, but the isolated runner asks the operator to choose how to import or override those settings. The repository legitimately owns workspace isolation and benchmark workload defaults. Triage should route the host-configuration redecision to native-tool-authority-review rather than treating it as an ordinary benchmark preference."
+    },
+    {
+      "id": "architecture-risk-triage-native-package-manager-certification",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "An update path reconstructs uv/pipx installation directories and parses their receipts before allowing an explicitly approved native upgrade. The package managers already own whether the installation is managed and upgradeable. Triage should route this shadow certification to native-tool-authority-review rather than treat the extra preflight as generic safety hardening."
+    },
+    {
+      "id": "entrypoint-authority-review-control-native-host-config",
+      "skill": "entrypoint-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Both `make benchmark` and `uv run hashmarks-benchmark` select the same checked-in benchmark workload profile, which defaults to one paired smoke. The implementation invokes native Codex and leaves model/provider/profile resolution to the usable Codex host configuration. Neither entrypoint copies or overrides native settings."
+    },
+    {
+      "id": "empirical-benchmark-campaign-positive-structurally-complete-incomplete",
+      "skill": "empirical-benchmark-campaign",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A frozen paired benchmark has verified immutable receipts for every selected definition, but one assisted trial is INCOMPLETE because the native MCP workspace binding could not be verified. The operator treats structural receipt completeness as qualification, counts that row as a product failure, and publishes the comparison."
+    },
+    {
+      "id": "empirical-benchmark-campaign-positive-post-result-contract-edit",
+      "skill": "empirical-benchmark-campaign",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "After an assisted condition fails its frozen oracle, the campaign edits the prompt and answer key in the same experiment version, reruns only that condition, and combines the new receipt with the original bare control to claim improvement."
+    },
+    {
+      "id": "empirical-benchmark-campaign-control-qualified-evidence",
+      "skill": "empirical-benchmark-campaign",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A frozen paired campaign re-establishes current harness authority, preflights the exact selected definitions, runs with matching bare controls, retains verified non-conflicting PASS/FAIL receipts under stable runtime authority, reports unavailable metrics as unavailable, and hands a reproduced product defect to a separate repair campaign without changing the experiment."
+    },
+    {
+      "id": "single-source-of-truth-positive-split-materialization",
+      "skill": "single-source-of-truth-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A repository requires generated/release/static only when building the release wheel, but four independent mechanisms try to make that path exist: make init mkdirs it, source normalization recreates it, an editable-build hook creates or references it, and archive packaging injects it. Certification copies canonical source into an isolated workspace where one compensator is absent and editable uv materialization fails because Hatchling force-includes the missing release directory. The reviewer should identify one release/package owner and remove source/bootstrap compensations rather than add another mkdir."
+    },
+    {
+      "id": "single-source-of-truth-control-owner-consumer-validation",
+      "skill": "single-source-of-truth-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A release build step is the sole producer of frontend static bytes. The wheel packager consumes those bytes and fails closed if they are missing; the source archive transports the declared source inputs; editable installation does not require release static output. CI independently verifies the packaged wheel contains the expected bytes but never recreates them."
+    },
+    {
+      "id": "single-source-of-truth-confusion-semantic-redecision",
+      "skill": "single-source-of-truth-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "Admission owns the public can-run result. A downstream diagnostic helper redundantly recomputes the same boolean from the same raw flags for a warning, but callers never consume that helper's result as authority and it cannot override admission. This is semantic redecision inside one authority chain, not a second accepted source of truth."
+    },
+    {
+      "id": "architecture-risk-triage-single-source-of-truth-routing",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A build prerequisite path is mkdir'd by Make, recreated by source normalization, synthesized by an editable build hook, and injected again by release packaging. A real isolated certification path fails when one compensator is missing. Triage should route this hotspot to single-source-of-truth-review, not generic DRY cleanup or native-tool-authority-review."
+    },
+    {
+      "id": "single-source-of-truth-positive-context-dependent-execution-authority",
+      "skill": "single-source-of-truth-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The same strict backend test files are launched by two canonical Goons. A global test fixture always derives its tool authority from backend-tests, while APP certification launches those tests through backend-p0 with a different declared tool set. The test surface therefore has two execution-authority contracts depending on the outer Goon. Adding git to backend-p0 would only expose the next mismatch while preserving split ownership. The reviewer should identify one authority owner for that test scope and make every launcher transport or derive from it consistently."
+    },
+    {
+      "id": "single-source-of-truth-control-shared-resolved-execution-authority",
+      "skill": "single-source-of-truth-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A resolved Plan establishes the exact tool authority for a test scope once. backend-p0, a broader backend test Goon, and direct diagnostic execution all transport that resolved authority into the same fixture. The fixture validates the transported tools but never selects a different Goon or reconstructs another authority based on its caller."
+    },
+    {
+      "id": "single-source-of-truth-positive-path-dependent-identity-owner",
+      "skill": "single-source-of-truth-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A release path computes package identity from the canonical source manifest, while recovery recomputes a nominally identical package identity from archive filenames and accepts either result as authoritative depending on which command resumed the workflow. Both identities feed the same downstream qualification record, so command path selects the owner of one semantic truth."
+    },
+    {
+      "id": "architecture-risk-triage-single-source-execution-authority-routing",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "The same strict tests use a global fixture tied to backend-tests authority when run directly, but APP certification launches them through backend-p0 with a different authority contract. Triage should route this context-dependent source-of-truth split to single-source-of-truth-review rather than suggest adding whichever tool happens to fail first."
+    },
+    {
+      "id": "native-tool-authority-review-positive-redundant-executable-authority",
+      "skill": "native-tool-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A Python repository already establishes pyproject.toml plus uv.lock as its native environment authority. A test Goon runs `uv run pytest`, but its manifest additionally requires global declarations for uv, python, and pytest, and a launcher separately searches PATH for each before allowing execution. No distinct trust or policy boundary needs those repeated choices. Review whether these declarations and lookups add authority or merely restate and re-resolve the native project workflow."
+    },
+    {
+      "id": "native-tool-authority-review-control-exceptional-capability",
+      "skill": "native-tool-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A repository's normal tests use its established uv environment without separately declaring Python or pytest. A distinct deployment task additionally requires kubectl because it talks to a Kubernetes cluster, a capability not implied by the Python project workflow. The deployment boundary explicitly names kubectl and cluster credentials while leaving kubectl's own configuration semantics native."
+    },
+    {
+      "id": "native-tool-authority-review-confusion-split-internal-authority",
+      "skill": "native-tool-authority-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "Two internal canonical Goons launch the same test surface with different repository-owned tool-authority contracts. Neither wraps or reimplements an external tool's semantics; the defect is that the authoritative execution contract changes with the outer Goon. Treat this as split source-of-truth ownership rather than a native-tool-authority finding."
+    },
+    {
+      "id": "proxy-gate-authority-review-positive-source-line-ceiling",
+      "skill": "proxy-gate-authority-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "`make certify` proves an application's runtime and security behavior, but one transitive gate fails when `dev_runtime_acceptance.py` grows from 600 to 601 lines. Adding one harmless comment crosses the ceiling while all runtime tests and invariants remain identical. The line ceiling was introduced as a maintainability signal, not as a documented runtime contract."
+    },
+    {
+      "id": "proxy-gate-authority-review-control-real-artifact-bound",
+      "skill": "proxy-gate-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A device deployment contract explicitly limits the signed firmware image to 16 MiB because the target bootloader cannot load anything larger. Release qualification hard-fails an image above 16 MiB by measuring the final signed artifact bytes. The size bound is itself part of the supported deployment contract."
+    },
+    {
+      "id": "proxy-gate-authority-review-control-advisory-maintainability",
+      "skill": "proxy-gate-authority-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "`make verify` reports that one source file exceeded a maintainability guideline and emits a warning with navigation evidence. The warning does not affect runtime certification, release validity, or admission, and maintainers may use it only as an investigation signal."
+    },
+    {
+      "id": "proxy-gate-authority-review-confusion-candidate-weakens-legitimate-baseline",
+      "skill": "proxy-gate-authority-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "A repository has an independently governed minimum security-test coverage floor that is explicitly part of release policy. A candidate lowers the floor in the same change and then passes release qualification against its weakened value. The problem is self-authorization of a legitimate baseline, not use of a heuristic proxy as the gate."
+    },
+    {
+      "id": "architecture-risk-triage-proxy-gate-routing",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A release certification path hard-fails when a source module reaches 601 lines even though a harmless comment is the only change and all certified runtime behavior is identical. The limit began as a maintainability heuristic. Triage should route this to proxy-gate-authority-review rather than generic refactoring or test cleanup."
+    },
+    {
+      "id": "sensitive-data-masking-positive-operational-topology",
+      "skill": "sensitive-data-masking",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Disclosure scope is a public support issue. The sanitized log masks the user email and bearer token but leaves a private service name, its derived pod name, an internal namespace, and an internal route in cleartext because they are not PII. Review whether the result satisfies the masking contract."
+    },
+    {
+      "id": "sensitive-data-masking-positive-nested-serialized-business-data",
+      "skill": "sensitive-data-masking",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Disclosure policy forbids customer identifiers and transaction amounts. A structured log field named payload contains a JSON string with both values. The sanitizer masks the outer request_id and service field but treats payload as an opaque string, declares MASKED, and never performs a second pass over the decoded nested object."
+    },
+    {
+      "id": "sensitive-data-masking-control-public-reproducibility-metadata",
+      "skill": "sensitive-data-masking",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A public bug report masks a private API token, tenant id, internal hostname, and home-directory username. It deliberately preserves the public GitHub repository name, public commit SHA, Python 3.13.5, package version 2.4.1, HTTP status 503, timestamp, and 842 ms duration because the disclosure policy permits them and they are needed to reproduce and diagnose the issue. Verification finds no prohibited values."
+    },
+    {
+      "id": "sensitive-data-masking-control-scope-permits-operational-labels",
+      "skill": "sensitive-data-masking",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "The disclosure boundary is the same internal operations team, whose policy explicitly permits service names, namespaces, deployment labels, build IDs, and transaction counts but forbids credentials and customer identities. The sanitizer preserves the permitted operational labels and counts, masks the token and customer id with typed placeholders, preserves repeated-subject identity consistently, and verifies the transformed output."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-positive-name-privilege",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A certification engine has a set named SPECIAL_RESOURCE_OVERRIDE_PLANS containing only `app-certification`. Plans normally receive execution resources from the runtime authority, but if the plan name matches that set the template may override them. The current architecture says plan templates do not own execution resource authority, no current consumer requires the exception, and renaming `app-certification` while preserving identical semantics removes the privilege."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-positive-test-only-legacy-alias",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A deprecated CLI alias `certify-app-old` redirects through a legacy recovery path. Repository search finds no supported caller, documentation, packaging entrypoint, or compatibility policy that still advertises it; only two tests assert the alias exists and an exact command-count snapshot includes it. Deleting the alias breaks only those tests."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-control-supported-compatibility-name",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A public wire protocol still accepts field name `legacy_id` because the published compatibility contract guarantees it through version 4 and current external clients are observed using it. The parser maps both old and new field names to one semantic identifier owner, tests cover both, and the removal condition is documented for version 5."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-confusion-split-current-owners",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "Two current canonical launch paths independently establish different execution-authority contracts for the same test scope. Both paths have real consumers and neither behavior depends on a legacy name, alias, historical exception, or privileged identity. This is a split source-of-truth defect and should be handled by single-source-of-truth-review."
+    },
+    {
+      "id": "architecture-risk-triage-hidden-authority-routing",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A runtime branch grants one Plan named `app-certification` a resource override via a SPECIAL_* allowlist even though current architecture says plan templates never own execution resource authority. Renaming the otherwise identical Plan removes the privilege, and no current consumer or compatibility contract requires it. Triage should route this to hidden-authority-cucumber-attack rather than generic cleanup."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-positive-repair-self-contamination",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A recovery guide tells an operator to download a hotfix patch into the repository root and apply it there. Windows also creates a `:Zone.Identifier` sidecar beside the patch. The repository's source-layout admission treats physical entries under the root as source inputs, so the repair bundle and sidecar change architecture/package membership even though neither is authored product source. Re-running the same repair with the patch stored outside the checkout changes only the intended edited files. Review whether the repair mechanism itself has become hidden source authority."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-control-external-repair-transport",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A hotfix patch is stored in a temporary directory outside the repository and applied inward. Canonical source membership before and after differs only by the intended edited source files. Source admission remains fail-closed for unexpected in-tree transport artifacts, and an explicit source-transport cleanup command is available only when separately detected contamination must be removed. No init, build, certification, or validator silently cleans or ignores arbitrary files."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-control-owned-generated-source",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A repository declares generated API bindings as committed authored source. One canonical generator owns those files, downstream compilation consumes them, regeneration is deterministic, and source/package manifests explicitly include that generated directory. The files are source because of the current generator/consumer contract, not because a repair or debugging artifact happened to be copied into the checkout."
+    },
+    {
+      "id": "architecture-risk-triage-repair-self-contamination-routing",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A certification repair workflow instructs operators to copy patches and evidence bundles into the repository root before applying them. Source admission then sees those transport artifacts as authored inputs, and a later cleanup proposal suggests making certification ignore `*.patch` and OS metadata. Triage should route the incidental-location authority and self-contaminating repair mechanism to hidden-authority-cucumber-attack rather than generic packaging cleanup."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-positive-command-name-policy",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A CLI keeps _AUTOMATIC_SKIP_COMMANDS = {\"daemon\", \"mcp\", \"upgrade\", \"version\"}. Product behavior branches on those command names even though each command is already declared by the parser and could own one explicit automatic-update-eligibility property. Renaming an equivalent command changes behavior without changing semantics, and no external protocol requires those literal names."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-control-semantic-command-property",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Each CLI command declaration owns an explicit automatic_update_check boolean based on its semantics. The update subsystem consumes only that resolved property and interaction/environment state; it has no command-name allowlist, denylist, path recognition, or historical exception table."
+    },
+    {
+      "id": "hidden-authority-cucumber-attack-confusion-semantic-redecision",
+      "skill": "hidden-authority-cucumber-attack",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "A parser resolves one semantic eligibility boolean, but a downstream service independently recomputes the same eligibility from the same semantic inputs. No name, path, version, historical identity, or exception object is privileged. The primary defect belongs to semantic-redecision-review, not hidden-authority-cucumber-attack."
+    },
+    {
+      "id": "architecture-risk-triage-hidden-command-policy-routing",
+      "skill": "architecture-risk-triage",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A CLI subsystem maintains SPECIAL_COMMANDS and *_SKIP_COMMANDS sets whose literal command names decide update-check behavior even though the parser already owns each command declaration and could expose one semantic eligibility property. Renaming an equivalent command changes behavior. Triage should route this identity-as-policy hotspot to hidden-authority-cucumber-attack rather than generic semantic redecision."
+    },
+    {
+      "id": "python-static-analysis-repair-positive-behavior-change",
+      "skill": "python-static-analysis-repair",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "Pyright and ty report that get_limit() is annotated as returning int but can return None. Current callers use None to mean 'not configured'. A proposed cleanup changes the implementation to return 0 when the value is missing, and no focused behavior test exists. Review whether this is an admissible static-analysis cleanup and what must happen before production code changes."
+    },
+    {
+      "id": "python-static-analysis-repair-control-mechanical-formatting",
+      "skill": "python-static-analysis-repair",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "Ruff reports only formatting differences in a Python file. The candidate changes whitespace and line wrapping without changing tokens that affect execution, Pyright and ty were already clean, and the existing relevant tests still pass. Determine whether a new behavior-lock test is required before this mechanical cleanup."
+    },
+    {
+      "id": "python-static-analysis-repair-confusion-general-coverage",
+      "skill": "python-static-analysis-repair",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "Ruff, Pyright, and ty all pass for the repository-owned scope. A parser has weak test coverage for malformed external input, but no static-analysis repair is pending. Determine whether this skill should report that general coverage gap as its own finding."
+    },
+    {
+      "id": "requirements-lifecycle-closure-positive-partial-binding",
+      "skill": "requirements-lifecycle-closure-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A proposed execution specification says RUN_BINDING_FAILED guarantees steps_started=0 and work_mutated=0. Run binding may already create a sandbox, mount a workspace, and materialize a credential before a later bind fails. The document does not define ownership of those partial resources, teardown, what happens if teardown cannot be proven, or how recovery discovers them after the binder crashes. Review whether the requirements lifecycle is closed."
+    },
+    {
+      "id": "requirements-lifecycle-closure-control-closed-binding",
+      "skill": "requirements-lifecycle-closure-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A specification declares binding as an effectful phase. Durable ownership intent is recorded before each resource creation; partial bind failure enters a sequenced teardown envelope; successful teardown preserves RUN_BINDING_FAILED with steps_started=0 and step_work_mutated=0; unproven teardown becomes CONTAINMENT_FAILED; loss of the controller before a terminal receipt becomes JOURNAL_UNRESOLVED; and recovery is a separately admitted run over the exact residual resource set. The sequencing, evidence, and acceptance tests are explicit."
+    },
+    {
+      "id": "requirements-lifecycle-closure-confusion-implementation-resource-leak",
+      "skill": "requirements-lifecycle-closure-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "The requirements explicitly define request-scoped temporary-directory ownership, child-process completion, cleanup ordering, and crash recovery. The implementation nevertheless deletes the directory in the request handler while a spawned child still reads it. Determine whether this requirements-closure skill should report the implementation defect as its own finding."
+    },
+    {
+      "id": "single-source-of-truth-confusion-consumer-contract",
+      "skill": "single-source-of-truth-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "One canonical import owner legitimately refines an ordinary pathlib import from Unknown to Module(pathlib). One filesystem consumer used to recognize that import only while it was Unknown, so an observation disappears. There is still exactly one producer of authoritative import bindings and no path independently establishes a competing binding. Review solely for split accepted semantic authority."
+    },
+    {
+      "id": "semantic-redecision-confusion-resolved-backtrack",
+      "skill": "semantic-redecision-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "Admission resolves a stable repository identity and passes that value alongside the raw path to execution. Execution ignores the available resolved result and recomputes the identity from the raw path. This is specifically backward crossing of an available resolved-result boundary; report under resolved-fact-regression-review, not a separate semantic-redecision repair."
+    },
+    {
+      "id": "resolved-fact-regression-confusion-owner-refinement",
+      "skill": "resolved-fact-regression-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "The canonical import owner refines a binding from Unknown to Module(pathlib). Its consumer receives and branches on the refined binding directly but incorrectly requires kind=Unknown before reporting a filesystem observation. No resolved fact is discarded or recreated from raw inputs; the defect belongs to canonical-consumer-contract-review."
+    }
+  ]
+}

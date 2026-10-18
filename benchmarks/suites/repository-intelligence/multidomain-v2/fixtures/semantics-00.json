@@ -1,0 +1,13 @@
+{
+  "concept": "scheduleContentHash",
+  "declarations": [
+    {
+      "source_symbol": "scheduleContentHash",
+      "value": "scope-0"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-0"
+    }
+  ]
+}

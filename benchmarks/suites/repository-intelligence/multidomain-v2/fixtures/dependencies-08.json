@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "_prune_discovery_dirs",
+  "declaration": {
+    "name": "sample-library-8",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-8",
+    "version": "2.8.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

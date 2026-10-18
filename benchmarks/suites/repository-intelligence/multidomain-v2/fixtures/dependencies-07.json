@@ -1,0 +1,13 @@
+{
+  "consumer_symbol": "readScopesInvalidatedByMutation",
+  "declaration": {
+    "name": "sample-library-7",
+    "range": "^2"
+  },
+  "resolution": {
+    "name": "sample-library-7",
+    "version": "2.7.0",
+    "source": "registry"
+  },
+  "import_owner": null
+}

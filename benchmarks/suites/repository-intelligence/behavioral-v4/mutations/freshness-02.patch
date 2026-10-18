@@ -1,0 +1,20 @@
+diff --git a/benchmark_case/freshness_02/observations/cache.json b/benchmark_case/freshness_02/observations/cache.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_02/observations/cache.json
+@@ -0,0 +1,1 @@
++{"cached_hit":"src/a.py","changed_without_signal":"src/b.py"}
+diff --git a/benchmark_case/freshness_02/src/a.py b/benchmark_case/freshness_02/src/a.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_02/src/a.py
+@@ -0,0 +1,2 @@
++def widget():
++    return 1
+diff --git a/benchmark_case/freshness_02/src/b.py b/benchmark_case/freshness_02/src/b.py
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/freshness_02/src/b.py
+@@ -0,0 +1,2 @@
++def other():
++    return 2

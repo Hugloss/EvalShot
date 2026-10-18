@@ -1,0 +1,63 @@
+{
+  "id": "verification-03",
+  "version": 1,
+  "family": "verification",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/verification_03. Choose the focused native Node verification command for widget.test.js, not the unrelated test. Return exactly one JSON object with keys path, runner, argv; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "verification-03-baseline",
+    "artifact": "mutations/verification-03.patch",
+    "sha256": "ff6283d9daa40f26e54e0d7ba71af2201fbdc96aff39780af1e6564d70c774b2",
+    "changed_paths": [
+      "benchmark_case/verification_03/package.json",
+      "benchmark_case/verification_03/src/widget.js",
+      "benchmark_case/verification_03/tests/other.test.js",
+      "benchmark_case/verification_03/tests/widget.test.js"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "verification-03-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "verification-03"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "verification-03"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

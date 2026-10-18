@@ -1,0 +1,38 @@
+{
+  "id": "locate-bounded-process-owner",
+  "version": 2,
+  "family": "localization",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "6ce8b0d9230dd9bc5369ddf495ad9404766fbbaf",
+    "tree": "1e253d251f8e0a874aeca0b05358b36253a714cc"
+  },
+  "prompt": "Without editing any file, identify the single repository-owned function that the generic benchmark subject and oracle adapters delegate to for bounded subprocess and process-tree execution. Return exactly one JSON object and nothing else, with keys path and symbol. Do not use Markdown fences.",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "identity": {
+      "id": "bounded-process-owner-answer",
+      "version": "2"
+    },
+    "configuration": {
+      "expected": {
+        "path": "scripts/agent_economics/bounded_process.py",
+        "symbol": "run_bounded"
+      }
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

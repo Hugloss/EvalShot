@@ -1,0 +1,366 @@
+{
+  "schema": "agents-cookbook-oracle-reviews.v1",
+  "tasks": {
+    "locate-directory-pruning": {
+      "alternatives": [
+        "_path_admitted_for_analysis filters files after traversal, not directory descent."
+      ],
+      "evidence": "The pinned discovery walker calls _prune_discovery_dirs before os.walk descends; it mutates dirs in place.",
+      "owner": {
+        "path": "hashmarks/codemap/repository_file_discovery.py",
+        "symbol": "_prune_discovery_dirs"
+      },
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "The pinned discovery walker calls _prune_discovery_dirs before os.walk descends; it mutates dirs in place.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "757fffa7ddca15e6867d8cb4dd0137c9bc3b914cb13c36c383497c7b26d568f9"
+        },
+        {
+          "decision": "unique",
+          "reason": "Independent pinned-source inspection found the owner unique at the task's CodeMap repository-file-discovery boundary: _iter_admitted_directory_files mutates os.walk's dirs through _prune_discovery_dirs before descent. hashmarks/test_shards.py::_repository_identity_files performs separate test-shard repository-content identity traversal, not CodeMap repository file discovery.",
+          "reviewer": "gpt-5.6-sol-independent-source-audit-2026-10-03",
+          "task_digest": "757fffa7ddca15e6867d8cb4dd0137c9bc3b914cb13c36c383497c7b26d568f9"
+        }
+      ],
+      "task_digest": "757fffa7ddca15e6867d8cb4dd0137c9bc3b914cb13c36c383497c7b26d568f9",
+      "review_requirement": {
+        "minimum_independent_reviews": 2,
+        "escalation_reason": "Heldout run 000007 (report sha256:9d1a40bc6f0e5bc1831fe272b36fed3575e5559218198fbc68315dff1f746fd1; decision-evidence sha256:24d979dde9b71d945e78d3380fbd7fd3509104c1e703176a0af3493b614080c9) showed semantic instability for this task across bare/Enola conditions, including a plausible repository-identity traversal alternative; require a second independent source audit before future campaigns."
+      }
+    },
+    "locate-mcp-task-evidence": {
+      "alternatives": [
+        "mcp_server.py::task_evidence is the MCP transport registration wrapper; it delegates to HashmarksMcpSurface.task_evidence and does not own bounded consumer semantics.",
+        "CodeMap.task_evidence computes repository evidence behind the surface but is not the consumer-facing semantic MCP surface method asked for."
+      ],
+      "evidence": "HashmarksMcpSurface.task_evidence in hashmarks/mcp_surface.py validates bounded task, limit, per_role, and token_budget input and returns CodeMap task evidence through _read; hashmarks/mcp_server.py::task_evidence only registers the transport tool and delegates to surface.task_evidence.",
+      "owner": {
+        "path": "hashmarks/mcp_surface.py",
+        "symbol": "task_evidence"
+      },
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "McpSurface.task_evidence is the consumer-facing MCP method; it validates bounds and returns CodeMap task evidence through _read.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "4eea2bbefe8f6632e0a1f44c6d96ed70e04287e6c4234a7e08775c612940c0dc"
+        }
+      ],
+      "task_digest": "4eea2bbefe8f6632e0a1f44c6d96ed70e04287e6c4234a7e08775c612940c0dc",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "locate-prefix-path-enumerator": {
+      "alternatives": [
+        "_sorted_paths_under works on an in-memory discovery list, not persisted indexed paths."
+      ],
+      "evidence": "RepositoryIndexStore.paths_under queries file_map for an exact path or descendants below a prefix.",
+      "owner": {
+        "path": "hashmarks/codemap/repository_index_store.py",
+        "symbol": "paths_under"
+      },
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "RepositoryIndexStore.paths_under queries file_map for an exact path or descendants below a prefix.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "bb522aaf7a3988b5c1e51986cbc4d9aa9eae7b78ee63840f3a2f52f66b6dc705"
+        },
+        {
+          "decision": "unique",
+          "reason": "Independent pinned-source inspection found RepositoryIndexStore.paths_under uniquely owns indexed-path prefix enumeration: it queries the persisted file_map index for the exact path or descendant range. _declaration_provider_paths instead traverses currently admitted repository files for declaration-provider input and is not an indexed-store query.",
+          "reviewer": "gpt-5.6-sol-independent-source-audit-2026-10-03",
+          "task_digest": "bb522aaf7a3988b5c1e51986cbc4d9aa9eae7b78ee63840f3a2f52f66b6dc705"
+        }
+      ],
+      "task_digest": "bb522aaf7a3988b5c1e51986cbc4d9aa9eae7b78ee63840f3a2f52f66b6dc705",
+      "review_requirement": {
+        "minimum_independent_reviews": 2,
+        "escalation_reason": "Heldout run 000007 (report sha256:9d1a40bc6f0e5bc1831fe272b36fed3575e5559218198fbc68315dff1f746fd1; decision-evidence sha256:24d979dde9b71d945e78d3380fbd7fd3509104c1e703176a0af3493b614080c9) showed semantic instability for this task across bare/Hashmarks/Enola conditions; require a second independent source audit before future campaigns."
+      }
+    },
+    "locate-read-scope-invalidation": {
+      "alternatives": [
+        "resourcesInvalidatedByMutation returns resources, not read scopes."
+      ],
+      "evidence": "readScopesInvalidatedByMutation composes mutation resources with readScopesForResources and returns read scopes.",
+      "owner": {
+        "path": "ux/src/domain/reads/readInvalidation.ts",
+        "symbol": "readScopesInvalidatedByMutation"
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "readScopesInvalidatedByMutation composes mutation resources with readScopesForResources and returns read scopes.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "572c291ed5e70b8fee7dbfc723e58bdfaf2f11c869d697610d591ac9fd1bf51b"
+        }
+      ],
+      "task_digest": "572c291ed5e70b8fee7dbfc723e58bdfaf2f11c869d697610d591ac9fd1bf51b",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "locate-refresh-outcome": {
+      "alternatives": [
+        "Write command handlers call this helper but do not own this result conversion."
+      ],
+      "evidence": "withRefreshOutcome converts a saved write with a failed refresh to saved-refresh-required while preserving value and revision.",
+      "owner": {
+        "path": "ux/src/domain/mutations/WriteCommandResult.ts",
+        "symbol": "withRefreshOutcome"
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "withRefreshOutcome converts a saved write with a failed refresh to saved-refresh-required while preserving value and revision.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "a822024365583862ab1b160254adbf1f5e5855877136b87a7e745667b2ead0b7"
+        }
+      ],
+      "task_digest": "a822024365583862ab1b160254adbf1f5e5855877136b87a7e745667b2ead0b7",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "locate-repository-content-identity": {
+      "alternatives": [
+        "IdentityEngine.workspace_root owns the general Merkle repository identity API, but the test-selection work-selection envelope and repository-binding validator do not call it."
+      ],
+      "evidence": "work_selection_envelope and validate_work_selection_repository_binding in hashmarks/test_shards.py call repository_content_identity to bind shard-selection evidence to extraction-stable repository bytes.",
+      "owner": {
+        "path": "hashmarks/test_shards.py",
+        "symbol": "repository_content_identity"
+      },
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "observed_owner": {
+            "path": "hashmarks/test_shards.py",
+            "symbol": "repository_content_identity"
+          },
+          "reason": "repository_content_identity in hashmarks/test_shards.py:305 computes the identity and is used by work_selection_envelope:431 and validate_work_selection_repository_binding:897.",
+          "reviewer": "opencode-plan-independent-oracle-review",
+          "runtime": {
+            "agent": "plan",
+            "command_identity": "sha256:e5449d9da828831f64403d1791cadd711fb15b038485e452c2ab9891abffbb98",
+            "host": "opencode"
+          },
+          "task_digest": "6e581dd9cca8bcbabf61b872f75e1ca6e3cdecde8298669226f40964b63cf872"
+        }
+      ],
+      "task_digest": "6e581dd9cca8bcbabf61b872f75e1ca6e3cdecde8298669226f40964b63cf872",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "locate-resource-invalidation": {
+      "alternatives": [
+        "readScopesInvalidatedByMutation consumes these resources and returns read scopes."
+      ],
+      "evidence": "resourcesInvalidatedByMutation returns the MUTATION_RESOURCES mapping for a mutation scope.",
+      "owner": {
+        "path": "ux/src/domain/reads/readResources.ts",
+        "symbol": "resourcesInvalidatedByMutation"
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "resourcesInvalidatedByMutation returns the MUTATION_RESOURCES mapping for a mutation scope.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "0b45beec1fe0da4a5d21f788d2ab7e13547f977bc34486fc90bfe616918add1c"
+        },
+        {
+          "decision": "unique",
+          "reason": "Independent pinned-source inspection found resourcesInvalidatedByMutation uniquely maps MutationScope directly to ReadResource values via MUTATION_RESOURCES. readScopesInvalidatedByMutation consumes those resources and returns ReadScope values, so it does not own the resource mapping requested by the task.",
+          "reviewer": "gpt-5.6-sol-independent-source-audit-2026-10-03",
+          "task_digest": "0b45beec1fe0da4a5d21f788d2ab7e13547f977bc34486fc90bfe616918add1c"
+        }
+      ],
+      "task_digest": "0b45beec1fe0da4a5d21f788d2ab7e13547f977bc34486fc90bfe616918add1c",
+      "review_requirement": {
+        "minimum_independent_reviews": 2,
+        "escalation_reason": "Heldout run 000007 (report sha256:9d1a40bc6f0e5bc1831fe272b36fed3575e5559218198fbc68315dff1f746fd1; decision-evidence sha256:24d979dde9b71d945e78d3380fbd7fd3509104c1e703176a0af3493b614080c9) showed semantic instability for this task across Hashmarks/Enola conditions; require a second independent source audit before future campaigns."
+      }
+    },
+    "locate-run-poll-delay": {
+      "alternatives": [
+        "isFleetRunTerminal is a separate terminal-state predicate in the same module."
+      ],
+      "evidence": "runPollDelay computes the bounded exponential delay from failure count in runLifecycle.",
+      "owner": {
+        "path": "ux/src/domain/fleet/runLifecycle.ts",
+        "symbol": "runPollDelay"
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "runPollDelay computes the bounded exponential delay from failure count in runLifecycle.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "0852969f9fb699a02c520d71f831255f2d23fad2ee6e0cf6593f567a75ec41de"
+        }
+      ],
+      "task_digest": "0852969f9fb699a02c520d71f831255f2d23fad2ee6e0cf6593f567a75ec41de",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "locate-stale-index-removal": {
+      "alternatives": [
+        "RepositoryIndexStore.delete_paths is the storage primitive and does not decide stale membership during sync."
+      ],
+      "evidence": "_sync_remove_stale_paths selects stale index rows during full CodeMap sync and deletes them through the store.",
+      "owner": {
+        "path": "hashmarks/codemap/indexing_lifecycle.py",
+        "symbol": "_sync_remove_stale_paths"
+      },
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "_sync_remove_stale_paths selects stale index rows during full CodeMap sync and deletes them through the store.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "1698acbf6627500616b369697422a07b4bef57f4cc29e30949053cf11b00f1d7"
+        }
+      ],
+      "task_digest": "1698acbf6627500616b369697422a07b4bef57f4cc29e30949053cf11b00f1d7",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "locate-terminal-run-check": {
+      "alternatives": [
+        "runPollDelay in the same module calculates delay and does not decide terminality."
+      ],
+      "evidence": "isFleetRunTerminal checks COMPLETED, CANCELLED, and FAILED FleetRun states.",
+      "owner": {
+        "path": "ux/src/domain/fleet/runLifecycle.ts",
+        "symbol": "isFleetRunTerminal"
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "isFleetRunTerminal checks COMPLETED, CANCELLED, and FAILED FleetRun states.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "194612d56283ac0a9299cfc93f913aa8e05d52b63f1b05c27b55427f62de247c"
+        }
+      ],
+      "task_digest": "194612d56283ac0a9299cfc93f913aa8e05d52b63f1b05c27b55427f62de247c",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "locate-typed-http-read": {
+      "alternatives": [
+        "request is the general HTTP transport and does not specifically start the typed read API."
+      ],
+      "evidence": "readRequest is the typed frontend read entrypoint and delegates to generic request with the caller signal.",
+      "owner": {
+        "path": "ux/src/app/api/httpTransport.ts",
+        "symbol": "readRequest"
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "readRequest is the typed frontend read entrypoint and delegates to generic request with the caller signal.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "c3ccb44820c96d8d6541b885d94562ecd8abc5c7676b188c327cacd72701aa1c"
+        }
+      ],
+      "task_digest": "c3ccb44820c96d8d6541b885d94562ecd8abc5c7676b188c327cacd72701aa1c",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    },
+    "repair-partial-receipt-regression": {
+      "alternatives": [
+        "write_receipt publishes evidence; it does not decide whether an existing partial directory is complete."
+      ],
+      "evidence": "The pinned receipt.is_complete_receipt requires result.json, result.sha256, and completion.json with matching hashes; the mutation changes this owner and the focused test rejects a partial result.",
+      "owner": null,
+      "repository": {
+        "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+        "tree": "65a32888329e308615647dda194f0e36c2afe2ac",
+        "url": "https://github.com/Hugloss/agentsCookbook.git"
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "The pinned receipt.is_complete_receipt requires result.json, result.sha256, and completion.json with matching hashes; the mutation changes this owner and the focused test rejects a partial result.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "3b1df25c2b593c95e95d2aa2eb1290afcb0a2983205b005199804c4acc39f703"
+        }
+      ],
+      "task_digest": "3b1df25c2b593c95e95d2aa2eb1290afcb0a2983205b005199804c4acc39f703",
+      "review_requirement": {
+        "minimum_independent_reviews": 1,
+        "escalation_reason": null
+      }
+    }
+  }
+}

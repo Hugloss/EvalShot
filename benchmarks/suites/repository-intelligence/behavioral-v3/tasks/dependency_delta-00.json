@@ -1,0 +1,60 @@
+{
+  "id": "dependency_delta-00",
+  "version": 1,
+  "family": "dependency_delta",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Compare the frozen uv dependency states under benchmark_case/dependency_delta_00/before and after. Describe the semantic component-selection transition without inferring a cause. Return exactly one JSON object with keys component, transition, old_version, new_version, causation.",
+  "mutation": {
+    "id": "dependency_delta-00-baseline",
+    "artifact": "mutations/dependency_delta-00.patch",
+    "sha256": "e6cda698c1a032631774ac79cb57a8f10b5bb79d142f337c55bd36d4832c77f7",
+    "changed_paths": [
+      "benchmark_case/dependency_delta_00/after/uv.lock",
+      "benchmark_case/dependency_delta_00/before/uv.lock"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "dependency_delta-00-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "dependency_delta-00"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "dependency_delta-00"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

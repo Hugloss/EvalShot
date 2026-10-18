@@ -1,0 +1,53 @@
+{
+  "schema": "agentscookbook.harbor-harness-matrix.v1",
+  "suite": "benchmarks/suites/repository-intelligence/behavioral-v4",
+  "harnesses": [
+    "opencode",
+    "codex",
+    "claude-code"
+  ],
+  "subjects": [
+    "none",
+    "hashmarks",
+    "hashmarks-no-correlate-evidence",
+    "hashmarks-correlate-evidence-only"
+  ],
+  "tool_projections": {
+    "hashmarks-no-correlate-evidence": {
+      "exclude": [
+        "correlate_evidence"
+      ]
+    },
+    "hashmarks-correlate-evidence-only": {
+      "include": [
+        "correlate_evidence"
+      ]
+    }
+  },
+  "ablation": {
+    "component": "correlate_evidence",
+    "arms": {
+      "bare": "none",
+      "full": "hashmarks",
+      "remove": "hashmarks-no-correlate-evidence",
+      "only": "hashmarks-correlate-evidence-only"
+    }
+  },
+  "modes": {
+    "smoke": {
+      "tasks": [
+        "correlation-00"
+      ],
+      "attempts": 1
+    },
+    "matrix": {
+      "tasks": [
+        "correlation-00",
+        "correlation-01",
+        "correlation-02",
+        "correlation-03"
+      ],
+      "attempts": 3
+    }
+  }
+}

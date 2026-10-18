@@ -1,0 +1,61 @@
+{
+  "id": "correlation-00",
+  "version": 1,
+  "family": "correlation",
+  "mode": "read_only",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Inspect benchmark_case/correlation_00. Map the external runtime path to a repository source. State the source-equivalence and causation authority of this observation. Return exactly one JSON object with keys path, resolution, source_equivalence, causation, provenance; use repository-relative paths and no other text.",
+  "mutation": {
+    "id": "correlation-00-baseline",
+    "artifact": "mutations/correlation-00.patch",
+    "sha256": "40b6d0e6a14be901f92372624c48a819f1664a7775dac8ec944aec83345d4777",
+    "changed_paths": [
+      "benchmark_case/correlation_00/observation.json",
+      "benchmark_case/correlation_00/src/worker.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "correlation-00-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "correlation-00"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "correlation-00"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "result_format": "lexigram-v1",
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

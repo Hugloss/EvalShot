@@ -1,0 +1,59 @@
+diff --git a/.hashmarks-project-links.toml b/.hashmarks-project-links.toml
+new file mode 100644
+--- /dev/null
++++ b/.hashmarks-project-links.toml
+@@ -0,0 +1,12 @@
++[[link]]
++source='npm:@demo/web'
++target='maven:com.example:api'
++kind='api-client'
++[[link]]
++source='npm:@demo/mobile'
++target='npm:@demo/web'
++kind='client-shell'
++[[shared_input]]
++path='benchmark_case/change_impact_03/openapi.yaml'
++projects=['npm:@demo/web','maven:com.example:api']
++kind='contract'
+diff --git a/benchmark_case/change_impact_03/backend/pom.xml b/benchmark_case/change_impact_03/backend/pom.xml
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_03/backend/pom.xml
+@@ -0,0 +1,1 @@
++<project><groupId>com.example</groupId><artifactId>api</artifactId><version>1</version></project>
+diff --git a/benchmark_case/change_impact_03/backend/src/Api.java b/benchmark_case/change_impact_03/backend/src/Api.java
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_03/backend/src/Api.java
+@@ -0,0 +1,1 @@
++class Api {}
+diff --git a/benchmark_case/change_impact_03/frontend/package.json b/benchmark_case/change_impact_03/frontend/package.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_03/frontend/package.json
+@@ -0,0 +1,1 @@
++{"name":"@demo/web"}
+diff --git a/benchmark_case/change_impact_03/frontend/src/api.ts b/benchmark_case/change_impact_03/frontend/src/api.ts
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_03/frontend/src/api.ts
+@@ -0,0 +1,1 @@
++export const api = 1;
+diff --git a/benchmark_case/change_impact_03/mobile/package.json b/benchmark_case/change_impact_03/mobile/package.json
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_03/mobile/package.json
+@@ -0,0 +1,1 @@
++{"name":"@demo/mobile"}
+diff --git a/benchmark_case/change_impact_03/mobile/src/api.ts b/benchmark_case/change_impact_03/mobile/src/api.ts
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_03/mobile/src/api.ts
+@@ -0,0 +1,1 @@
++export const api = 1;
+diff --git a/benchmark_case/change_impact_03/openapi.yaml b/benchmark_case/change_impact_03/openapi.yaml
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_03/openapi.yaml
+@@ -0,0 +1,1 @@
++openapi: 3.1.0

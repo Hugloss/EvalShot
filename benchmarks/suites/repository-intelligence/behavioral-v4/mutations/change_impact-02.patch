@@ -1,0 +1,31 @@
+diff --git a/benchmark_case/change_impact_02/engine/engine.go b/benchmark_case/change_impact_02/engine/engine.go
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_02/engine/engine.go
+@@ -0,0 +1,2 @@
++package engine
++func Value() string { return "old" }
+diff --git a/benchmark_case/change_impact_02/go.mod b/benchmark_case/change_impact_02/go.mod
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_02/go.mod
+@@ -0,0 +1,3 @@
++module example.local/changeimpact
++
++go 1.23
+diff --git a/benchmark_case/change_impact_02/route/route.go b/benchmark_case/change_impact_02/route/route.go
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_02/route/route.go
+@@ -0,0 +1,3 @@
++package route
++import "example.local/changeimpact/engine"
++func Value() string { return engine.Value() }
+diff --git a/benchmark_case/change_impact_02/route/route_test.go b/benchmark_case/change_impact_02/route/route_test.go
+new file mode 100644
+--- /dev/null
++++ b/benchmark_case/change_impact_02/route/route_test.go
+@@ -0,0 +1,3 @@
++package route
++import "testing"
++func TestValue(t *testing.T) { if Value() != "new" { t.Fatal("wrong") } }

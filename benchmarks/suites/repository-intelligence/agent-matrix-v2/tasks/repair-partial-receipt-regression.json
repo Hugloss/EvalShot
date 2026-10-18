@@ -1,0 +1,57 @@
+{
+  "id": "repair-partial-receipt-regression",
+  "version": 2,
+  "family": "defect-repair",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "6ce8b0d9230dd9bc5369ddf495ad9404766fbbaf",
+    "tree": "1e253d251f8e0a874aeca0b05358b36253a714cc"
+  },
+  "prompt": "A regression was injected into benchmark receipt completion: a directory containing only result.json is now incorrectly treated as a durably complete trial receipt. Reproduce and repair the defect at the owning semantic boundary. Do not weaken, delete, or bypass tests. Keep the edit focused on the implementation owner and run the relevant focused verification before finishing.",
+  "mutation": {
+    "id": "partial-result-marked-complete-v2",
+    "artifact": "mutations/partial-result-marked-complete.patch",
+    "sha256": "3703cfab4127395319bf263d3f04c987239e07ceb609beedddc25b92640cf7b6",
+    "changed_paths": [
+      "benchmarks/harness/receipt.py"
+    ]
+  },
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "partial-receipt-regression-oracle",
+      "version": "2"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "-m",
+        "compileall",
+        "-q",
+        "benchmarks/harness/receipt.py"
+      ],
+      "grade_argv": [
+        "{python}",
+        "-m",
+        "unittest",
+        "benchmarks.tests.test_foundation.FoundationTests.test_partial_or_corrupt_receipt_is_not_complete"
+      ],
+      "timeout_seconds": 120
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 150,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmarks/harness/receipt.py"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

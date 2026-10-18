@@ -1,0 +1,3 @@
+_serial,_time,source,sourcetype,host,index,splunk_server,_raw
+1,2026-09-14T10:00:00+00:00,masked,app:log,masked,sample,masked,ERROR name=task_evidence request=sample-2
+1,2026-09-14T10:00:01+00:00,masked,app:log,masked,sample,masked,INFO unrelated event

@@ -1,0 +1,4 @@
+_serial,_time,source,sourcetype,host,index,splunk_server,_raw
+1,2026-09-14T10:00:00+00:00,masked,app:log,masked,sample,masked,"ERROR name=isFleetRunTerminal request=sample-5
+traceback continuation, still one CSV record"
+1,2026-09-14T10:00:01+00:00,masked,app:log,masked,sample,masked,INFO unrelated event

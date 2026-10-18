@@ -1,0 +1,20 @@
+{
+  "id": "hashmarks",
+  "kind": "repository_intelligence",
+  "adapter": "hashmarks",
+  "identity": {
+    "id": "hashmarks",
+    "version": "runtime-observed-v1"
+  },
+  "capabilities": [
+    "search",
+    "references",
+    "impact",
+    "verification",
+    "freshness"
+  ],
+  "configuration": {
+    "timeout_seconds": 180,
+    "require_source": true
+  }
+}

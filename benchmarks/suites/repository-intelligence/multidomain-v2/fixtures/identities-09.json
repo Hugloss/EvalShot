@@ -1,0 +1,11 @@
+{
+  "source_symbol": "weekly_intent_matches_window",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-9"
+  },
+  "after": {
+    "artifact": "artifact-b",
+    "semantic": "semantic-9"
+  }
+}

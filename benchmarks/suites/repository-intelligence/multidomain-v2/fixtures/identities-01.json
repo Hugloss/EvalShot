@@ -1,0 +1,11 @@
+{
+  "source_symbol": "parse_request_reason",
+  "before": {
+    "artifact": "artifact-a",
+    "semantic": "semantic-1"
+  },
+  "after": {
+    "artifact": "artifact-b",
+    "semantic": "semantic-1"
+  }
+}

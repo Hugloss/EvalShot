@@ -1,0 +1,13 @@
+{
+  "concept": "repository_content_identity",
+  "declarations": [
+    {
+      "source_symbol": "repository_content_identity",
+      "value": "scope-6"
+    },
+    {
+      "source": "config/consumer.json",
+      "value": "scope-6"
+    }
+  ]
+}

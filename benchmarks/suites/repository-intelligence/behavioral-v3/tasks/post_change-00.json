@@ -1,0 +1,63 @@
+{
+  "id": "post_change-00",
+  "version": 1,
+  "family": "post_change",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "844dfa06d50b2f4402306b16a217b29946a3dedf",
+    "tree": "c9e4687f45836f0e9254f3d9e6258f737686e76a"
+  },
+  "prompt": "Fix the accepted-value behavior in benchmark_case/post_change_00 so its focused test contract is satisfied. Change only the owning implementation. After the edit, use any repository-intelligence tools available to determine what changed and what verification remains relevant. Return exactly one JSON object with keys changed_path, verification_path, unrelated_reusable. unrelated_reusable must be true only if the unrelated source did not need to be invalidated.",
+  "mutation": {
+    "id": "post_change-00-baseline",
+    "artifact": "mutations/post_change-00.patch",
+    "sha256": "1a537d6cc169752cf85d2f80b8203b0872f18996dd7518ed474c144e13687293",
+    "changed_paths": [
+      "benchmark_case/post_change_00/src/engine.py",
+      "benchmark_case/post_change_00/src/unrelated.py",
+      "benchmark_case/post_change_00/tests/test_engine.py"
+    ]
+  },
+  "fixtures": [],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "post_change-00-oracle",
+      "version": "1"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "health",
+        "post_change-00"
+      ],
+      "grade_argv": [
+        "{python}",
+        "{suite}/oracle.py",
+        "grade",
+        "post_change-00"
+      ],
+      "valid_exit_codes": [
+        0,
+        1
+      ],
+      "timeout_seconds": 30
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 600,
+    "max_tool_calls": 100,
+    "max_output_bytes": 50000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "benchmark_case/post_change_00/src/engine.py"
+    ],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  }
+}

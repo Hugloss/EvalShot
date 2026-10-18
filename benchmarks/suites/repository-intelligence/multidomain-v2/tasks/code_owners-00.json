@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "code_owners",
+  "fixtures": [
+    {
+      "artifact": "fixtures/code_owners-00.json",
+      "sha256": "80f91da045d7c297d2bbfa038f8e3c8a4ff669659ea5ac815c68254fe4bce335",
+      "target": "fixtures/code_owners-00.json"
+    }
+  ],
+  "id": "code_owners-00",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "owner_state": "unique-source-declaration",
+        "path": "convex/scheduleRevisionModel.ts",
+        "symbol": "canonicalScheduleScope"
+      }
+    },
+    "identity": {
+      "id": "code_owners-00-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect fixtures/code_owners-00.json and the pinned repository. Decide whether the named symbol has one source declaration owner. Use null for path if ownership is ambiguous; treat the hint as non-authoritative. Return exactly one JSON object with keys path, symbol, owner_state, and no other text.",
+  "repository": {
+    "commit": "618bdbdfef1a6a2267433970fd9ff5ffd8af5b10",
+    "tree": "b0a102602cf13f9d45b30ef1b64c1608a9a33ecf",
+    "url": "https://github.com/Hugloss/doctor-scheduler-frontend.git"
+  },
+  "version": 1
+}

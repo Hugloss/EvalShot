@@ -1,0 +1,46 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "dependencies",
+  "fixtures": [
+    {
+      "artifact": "fixtures/dependencies-03.json",
+      "sha256": "c2532b1c012719d51ba97e41b831e9f3b547daee8c0ee7434c17e424491abe57",
+      "target": "fixtures/dependencies-03.json"
+    }
+  ],
+  "id": "dependencies-03",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "consumer": "ux/src/domain/fleet/runLifecycle.ts",
+        "import_owner": "unknown",
+        "selected_version": "2.3.0"
+      }
+    },
+    "identity": {
+      "id": "dependencies-03-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the caller-supplied dependency observation in fixtures/dependencies-03.json. Find the pinned source declaration of its consumer_symbol and identify the selected version. Report import ownership as unknown unless independent evidence proves it. Return exactly one JSON object with keys consumer, selected_version, import_owner, and no other text.",
+  "repository": {
+    "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+    "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+    "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+  },
+  "version": 1
+}

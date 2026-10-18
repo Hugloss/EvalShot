@@ -1,0 +1,47 @@
+{
+  "budgets": {
+    "max_output_bytes": 50000000,
+    "max_tool_calls": 100,
+    "timeout_seconds": 600
+  },
+  "contamination": {
+    "allowed_change_globs": [],
+    "allowed_generated_globs": [
+      "**/__pycache__/**",
+      ".pytest_cache/**"
+    ]
+  },
+  "family": "splunk",
+  "fixtures": [
+    {
+      "artifact": "fixtures/splunk-03.csv",
+      "sha256": "aed355231536757d1d6ff5f32ee48014ab8adab1071a4d4e84f8a9dc3d2ecfbb",
+      "target": "fixtures/splunk-03.csv"
+    }
+  ],
+  "id": "splunk-03",
+  "mode": "read_only",
+  "mutation": null,
+  "oracle": {
+    "adapter": "expected-json",
+    "configuration": {
+      "expected": {
+        "event_count": 2,
+        "path": "src/doctor_scheduler_solver_service/utils.py",
+        "runtime_source_match": "unknown",
+        "symbol": "make_json_safe"
+      }
+    },
+    "identity": {
+      "id": "splunk-03-oracle",
+      "version": "1"
+    }
+  },
+  "prompt": "Inspect the frozen Splunk CSV at fixtures/splunk-03.csv. Count logical events, locate the ERROR symbol's repository implementation, and state whether the export proves source-byte equivalence. Return exactly one JSON object with keys event_count, path, symbol, runtime_source_match, and no other text.",
+  "repository": {
+    "commit": "6d1080136d54fb6da142dff2e302b31da69cd345",
+    "tree": "e91dbeaaaf100e2c673308ebca7d0325a314e9a0",
+    "url": "https://github.com/Hugloss/doctor-scheduler-core.git"
+  },
+  "version": 1
+}
