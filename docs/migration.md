@@ -43,6 +43,26 @@ retained production scripts have no runtime dependency on that package.
 Historical receipt/schema identifiers continue to name their original protocol
 versions; their spelling does not imply an active second owner.
 
+## Current live cookbook integration baseline
+
+The historical **source-extraction baseline** above remains
+`40be826e6883d819ee6cf5c10946c793f0ef0f5f`. It is retained for migration provenance and frozen
+fixture identities; do not rewrite it.
+
+The EvalShot CI **live cookbook integration input** is now pinned separately
+to [agentsCookbook `16ebfd111a014e9bd668e01b1fec6f4fe41452ea`](https://github.com/Hugloss/agentsCookbook/commit/16ebfd111a014e9bd668e01b1fec6f4fe41452ea),
+the merged post-extraction cookbook that owns standalone skills, agents,
+flows and runtime adapters without benchmark implementation.
+
+The evaluator integration check uses that exact checkout via
+`--cookbook-root`, never an implicit sibling checkout or a floating
+`main`. It validates the retained corpus against today's real canonical
+source while leaving historical frozen tasks and receipts unchanged.
+Advance this pin intentionally when cookbook behavior changes, run the
+source-boundary and corpus checks, and record the new source revision.
+This is an integration validation pin, **not** a default model/context setting
+and not a second owner of cookbook prompts.
+
 ## Commands and source inputs
 
 Run the existing `./benchmark` and `make benchmark-*` commands from EvalShot.
