@@ -33,7 +33,7 @@ retained production scripts have no runtime dependency on that package.
 | --- | --- | --- |
 | Canonical skills/agents/flows and reviewer-selection guidance | agentsCookbook | EvalShot reads only the explicitly selected checkout |
 | Prompt active-context discipline and OpenCode/Pi installation/session adapters | agentsCookbook | No evaluator-specific numerical ceiling or score is an adapter preflight requirement |
-| [Model-specific context ceilings, reserve targets and empirical qualification](context-profiles.md) | EvalShot | Profiles are selected and measured per campaign, not embedded in canonical prompts |
+| Model context size, output limits and compaction configuration | Selected model provider/agent host (e.g., OpenCode/Pi) | No repository-wide cookbook or EvalShot token-window requirement |\n| [Observed context consumption and evaluation outcomes](model-context-observation.md) | EvalShot | Record what the selected runtime actually reports, including unknown measurements; no duplicated model configuration |
 | Tool-call classification, native-vs-subject routing observations and measured first-choice/late-rescue outcomes | EvalShot (`benchmarks/tool_routing.py`) | Distinct from cookbook's reviewer-selection methodology |
 | Executable evaluation/Agent Economics helpers and [their security policy](../SECURITY.md) | EvalShot | No mirror command runner or policy in cookbook |
 | Repository intelligence observations | Hashmarks (when used as a subject) | Evaluator independently freezes task/oracle/scoring authority |

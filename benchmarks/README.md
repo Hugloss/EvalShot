@@ -4,7 +4,7 @@ This directory owns reusable, product-neutral experiments for agents, tools, evi
 
 ## Authority boundary
 
-EvalShot owns experimental [model context profiles](../docs/context-profiles.md) and tool-routing measurement (`benchmarks/tool_routing.py`); cookbook prompts retain model-neutral context and reviewer-selection guidance. An evaluator profile must be selected and qualified separately from the canonical skill source.
+EvalShot owns [measurement of runtime-reported model context usage](../docs/model-context-observation.md) and tool-routing measurement (`benchmarks/tool_routing.py`). Model/provider configuration owns context limits and compaction behavior; cookbook prompts retain model-neutral context and reviewer-selection guidance. A campaign may freeze an explicit task-specific budget as part of its experiment, but EvalShot has no project-wide context-window requirement.
 
 The harness is the experiment authority. A product under test never grades itself.
 
