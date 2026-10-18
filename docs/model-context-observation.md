@@ -54,7 +54,7 @@ window.
 
 ## Cookbook boundary
 
-The [agentsCookbook context protocol](https://github.com/Hugloss/agentsCookbook/blob/main/protocols/context-budget.md)
+The [agentsCookbook context protocol](https://github.com/Hugloss/agentsCookbook/blob/main/protocols/context-discipline.md)
 describes selective evidence, compact receipts and acknowledgement of unknowns.
 The host decides whether, when and how to compact the conversation.
 [EvalShot evaluation](../evals/README.md) measures behavior against the
