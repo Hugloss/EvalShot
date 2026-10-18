@@ -21,11 +21,12 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Checkout canonical cookbook input
+      - name: Checkout post-migration canonical cookbook input (pinned)
         uses: actions/checkout@v4
         with:
           repository: Hugloss/agentsCookbook
-          ref: 40be826e6883d819ee6cf5c10946c793f0ef0f5f
+          # Explicit integration source; distinct from frozen migration provenance.
+          ref: 16ebfd111a014e9bd668e01b1fec6f4fe41452ea
           path: .test-inputs/agentsCookbook
           persist-credentials: false
 
