@@ -188,7 +188,7 @@ def _run_failure_diagnostic(
             if stdout_tail:
                 details.append(f"OpenCode run stdout tail:\n{stdout_tail}")
         signal = run_evidence.get("signal")
-        if signal:
+        if isinstance(signal, str) and signal:
             details.append(f"OpenCode run signal: {signal}")
 
     runtime = _bounded_diagnostic(runtime_stderr)
