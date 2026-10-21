@@ -304,7 +304,6 @@ def _native_environment(context: TrialContext) -> dict[str, str]:
         "HOME": context.environment["BENCHMARK_NATIVE_HOME"],
         "XDG_CONFIG_HOME": context.environment["BENCHMARK_NATIVE_XDG_CONFIG_HOME"],
         "OPENCODE_DISABLE_AUTOUPDATE": "1",
-        "OPENCODE_DISABLE_PRUNE": "1",
         "OPENCODE_AUTO_SHARE": "false",
         "TMPDIR": context.environment["TMPDIR"],
         "TMP": context.environment["TMP"],
@@ -381,20 +380,29 @@ def _observed_model(exported: dict[str, Any]) -> tuple[str | None, str | None]:
     return None, None
 
 
-def _token_metrics(exported: dict[str, Any]) -> tuple[int, int, int]:
-    input_tokens = output_tokens = cached_tokens = 0
-    for message in _assistant_messages(exported):
+def _token_metrics(
+    exported: dict[str, Any],
+) -> tuple[int | None, int | None, int | None]:
+    messages = _assistant_messages(exported)
+    values: list[list[int | None]] = [[], [], []]
+    for message in messages:
         tokens = message["info"].get("tokens")
         if not isinstance(tokens, dict):
-            continue
-        input_tokens += int(tokens.get("input", 0) or 0)
-        output_tokens += int(tokens.get("output", 0) or 0)
+            tokens = {}
         cache = tokens.get("cache")
-        if isinstance(cache, dict):
-            cached_tokens += int(cache.get("read", 0) or 0)
-        else:
-            cached_tokens += int(tokens.get("cached", 0) or 0)
-    return input_tokens, output_tokens, cached_tokens
+        counts = (
+            tokens.get("input"),
+            tokens.get("output"),
+            cache.get("read") if isinstance(cache, dict) else tokens.get("cached"),
+        )
+        for observed, count in zip(values, counts):
+            observed.append(count if type(count) is int and count >= 0 else None)
+    totals = [
+        sum(count for count in observed if count is not None)
+        if observed and all(count is not None for count in observed) else None
+        for observed in values
+    ]
+    return totals[0], totals[1], totals[2]
 
 
 def _subject_tool_name(name: str, selected_server: str | None) -> str:

@@ -171,9 +171,11 @@ def _metrics(
         "subject_tool_observability": "complete",
         "subject_tool_result_evidence": subject_tool_result_evidence,
         "mcp_result_bytes": mcp_result_bytes,
-        "input_tokens": int(usage.get("input_tokens", 0) or 0),
-        "cached_input_tokens": int(usage.get("cached_input_tokens", 0) or 0),
-        "output_tokens": int(usage.get("output_tokens", 0) or 0),
+        **{
+            key: value if type(value) is int and value >= 0 else None
+            for key in ("input_tokens", "cached_input_tokens", "output_tokens")
+            for value in (usage.get(key),)
+        },
         "source_read_observability": ("not-authoritatively-exposed-by-codex-jsonl"),
         "tool_strategy_observability": "codex-item-completed",
         "tool_name_counts": dict(sorted(Counter(tool_sequence).items())),
