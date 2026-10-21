@@ -29,6 +29,39 @@ RUNTIME_AUTHORITY_ENV_KEYS = (
 )
 
 
+# These locations are allocated by the trial, rather than inherited as provider
+# inputs. Native CLIs may write them during even a model-free startup.
+PRIVATE_STATE_ENV_KEYS = frozenset({
+    "HOME",
+    "TMPDIR",
+    "TMP",
+    "TEMP",
+    "XDG_CONFIG_HOME",
+    "XDG_CACHE_HOME",
+    "XDG_DATA_HOME",
+    "XDG_STATE_HOME",
+    "XDG_RUNTIME_DIR",
+    "CODEX_HOME",
+    "CODEX_SQLITE_HOME",
+})
+
+
+NATIVE_CODEX_INPUT_ENV_KEYS = (
+    "CODEX_INTERNAL_ORIGINATOR_OVERRIDE",
+    "CODEX_MCP_NODE_PATH",
+    "CODEX_CLI_PATH",
+)
+
+
+def transport_native_codex_environment(
+    source: Mapping[str, str], destination: MutableMapping[str, str],
+) -> None:
+    """Preserve declared native client/runtime inputs, excluding session state."""
+    for name in NATIVE_CODEX_INPUT_ENV_KEYS:
+        if name in source:
+            destination[name] = source[name]
+
+
 def native_host_paths(source: Mapping[str, str]) -> dict[str, str]:
     home = Path(source.get("HOME") or Path.home()).expanduser().resolve()
     xdg_config = (
@@ -77,11 +110,6 @@ def transport_runtime_authority(
     source: Mapping[str, str],
     destination: MutableMapping[str, str],
 ) -> None:
-    for name in RUNTIME_AUTHORITY_ENV_KEYS:
-        value = source.get(name)
-        if value:
-            destination[name] = value
-
     raw_passthrough = source.get("BENCHMARK_PASSTHROUGH_ENV_KEYS", "")
     passthrough = tuple(
         name.strip() for name in raw_passthrough.split(",") if name.strip()
@@ -96,11 +124,21 @@ def transport_runtime_authority(
             "invalid BENCHMARK_PASSTHROUGH_ENV_KEYS name(s): "
             + ", ".join(sorted(set(invalid)))
         )
+    reserved = PRIVATE_STATE_ENV_KEYS.intersection(passthrough)
+    if reserved:
+        raise ValueError(
+            "benchmark passthrough cannot replace trial state roots: "
+            + ", ".join(sorted(reserved))
+        )
     missing = [name for name in passthrough if not source.get(name)]
     if missing:
         raise ValueError(
             "declared benchmark passthrough variable(s) are unset: "
             + ", ".join(sorted(set(missing)))
         )
+    for name in RUNTIME_AUTHORITY_ENV_KEYS:
+        value = source.get(name)
+        if value:
+            destination[name] = value
     for name in passthrough:
         destination[name] = source[name]

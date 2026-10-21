@@ -19,6 +19,7 @@ from benchmarks.harness.workspace import isolated_environment
 CLI_FIXTURE = r'''#!/usr/bin/env python3
 import json, os, pathlib, sys
 args = sys.argv[1:]
+dispatch = [argument for argument in args if argument != '--no-daemon']
 home = pathlib.Path(os.environ['CODEX_HOME'])
 with (home / 'native-startups.jsonl').open('a') as startup:
     startup.write(json.dumps(args) + '\n')
@@ -26,7 +27,7 @@ if '--version' in args:
     print('codex-cli 0.163.0')
 elif '--help' in args:
     print('--no-daemon --ephemeral --approve-for-me --sandbox --json')
-elif args[:2] == ['doctor', '--json']:
+elif dispatch[:2] == ['doctor', '--json']:
     unsupported = (home / 'unsupported-doctor').exists()
     if unsupported:
         print('unsupported', file=sys.stderr)
@@ -38,7 +39,7 @@ elif args[:2] == ['doctor', '--json']:
         'auth.credentials': {'status': 'ok', 'details': {'secret': 'not-retained'}},
         'state.paths': {'status': 'fail'}}}))
     raise SystemExit(1)
-elif args[:3] == ['mcp', 'list', '--json']:
+elif dispatch[:3] == ['mcp', 'list', '--json']:
     print(json.dumps([{'name': 'ambient'}]))
 elif '--no-daemon' in args and 'exec' in args:
     (home / 'runtime-state').write_text('private')
@@ -170,14 +171,43 @@ class NativeCodexQualificationTests(unittest.TestCase):
         self.assertIn("independent trial", result.payload["reason"])
         self.assertFalse((self.native / "native-startups.jsonl").exists())
 
+    def test_source_trial_overlap_is_rejected_before_native_startup(self):
+        for kind in ("equal", "trial-inside-source", "source-inside-trial"):
+            with self.subTest(kind=kind):
+                context = self.context("overlap-" + kind)
+                if kind == "equal":
+                    context = TrialContext(self.workspace, self.native, context.environment)
+                elif kind == "trial-inside-source":
+                    context = TrialContext(self.workspace, self.native / "trial", context.environment)
+                else:
+                    context.environment["BENCHMARK_NATIVE_CODEX_HOME"] = str(context.control_root / "native")
+                with patch("benchmarks.adapters.codex.observe_executable") as probe:
+                    result = CodexAgent(native_host=True).prepare(context, None)
+                probe.assert_not_called()
+                self.assertFalse(result.payload["available"])
+                self.assertIn("overlap", result.payload["reason"])
+
+    def test_personal_marketplace_does_not_disappear_with_private_home(self):
+        source_home = self.root / "source-home"
+        catalog = source_home / ".agents/plugins/marketplace.json"
+        catalog.parent.mkdir(parents=True)
+        catalog.write_text('{"name":"fixture-personal","secret":"must-stay-private"}')
+        context = self.context("personal-marketplace")
+        context.environment["BENCHMARK_NATIVE_HOME"] = str(source_home)
+        result = CodexAgent(native_host=True).prepare(context, None)
+        self.assertFalse(result.payload["available"])
+        self.assertIn("personal-marketplace-transport-unsupported", result.payload["reason"])
+        self.assertNotIn("must-stay-private", json.dumps(result.payload))
+        self.assertFalse((Path(context.environment["CODEX_HOME"]) / "auth.json").exists())
+
     def test_unsupported_dependencies_block_without_copying_credentials(self):
-        for config in ('[plugins.example]\nenabled = true\n', 'model_instructions_file = "custom.md"\n', 'sqlite_home = "/shared/state"\n'):
+        for config, expected in (('[plugins.example]\nenabled = true\n', 'native-plugin-id-format-unsupported'), ('model_instructions_file = "custom.md"\n', 'unsupported native Codex input dependencies'), ('sqlite_home = "/shared/state"\n', 'unsupported native Codex input dependencies')):
             with self.subTest(config=config):
                 (self.native / "config.toml").write_text(config)
                 context = self.context("blocked-" + str(len(list(self.root.iterdir()))))
                 result = CodexAgent(native_host=True).prepare(context, None)
                 self.assertFalse(result.payload["available"])
-                self.assertIn("unsupported native Codex input dependencies", result.payload["reason"])
+                self.assertIn(expected, result.payload["reason"])
                 self.assertFalse((Path(context.environment["CODEX_HOME"]) / "auth.json").exists())
 
     def test_changed_private_config_is_rejected_before_execution(self):
@@ -189,6 +219,18 @@ class NativeCodexQualificationTests(unittest.TestCase):
         result = agent.run(context, "Locate owner", None)
         self.assertIn("config changed", result.payload["reason"])
         self.assertFalse((private / "runtime-state").exists())
+
+    def test_changed_native_client_environment_is_rejected_before_execution(self):
+        for name in ("CODEX_INTERNAL_ORIGINATOR_OVERRIDE", "CODEX_MCP_NODE_PATH", "BENCHMARK_NATIVE_CODEX_HOME"):
+            with self.subTest(name=name):
+                context = self.context("environment-drift-" + name)
+                agent = CodexAgent(native_host=True)
+                self.assertTrue(agent.prepare(context, None).payload["available"])
+                context.environment[name] = "/changed/input-must-not-appear"
+                result = agent.run(context, "Locate owner", None)
+                self.assertIn("environment changed", result.payload["reason"])
+                self.assertNotIn("input-must-not-appear", json.dumps(result.payload))
+                self.assertFalse((Path(context.environment["CODEX_HOME"]) / "runtime-state").exists())
 
     def test_guidance_executable_mode_drift_is_rejected(self):
         context = self.context("mode-drift")
@@ -244,7 +286,7 @@ class NativeCodexQualificationTests(unittest.TestCase):
         self.assertTrue(result.payload["terminal_complete"])
         args = json.loads((Path(context.environment["CODEX_HOME"]) / "observed-argv.json").read_text())
         self.assertIn("Diagnostic tool requirement: call hashmarks_task_evidence", args[-1])
-        self.assertIn("mcp_servers.ambient.enabled=false", args)
+        self.assertNotIn("mcp_servers.ambient.enabled=false", args)
 
     def test_doctor_false_zero_and_wrong_schema_remain_unknown(self):
         context = self.context("malformed")
@@ -264,6 +306,17 @@ class NativeCodexQualificationTests(unittest.TestCase):
         self.assertFalse(result.payload["available"])
         self.assertIn("launch flags", result.payload["reason"])
         self.assertFalse((Path(context.environment["CODEX_HOME"]) / "auth.json").exists())
+
+    def test_native_controlled_transport_accepts_only_observed_local_environment_marker(self):
+        from benchmarks.adapters.codex_native_plugins import _subject_conformance
+        exposure = McpExposure("hashmarks", str(self.command), ("mcp",), self.workspace, {"NATIVE_FALSE": "false"})
+        row = {"command": exposure.command, "args": list(exposure.args), "cwd": str(self.workspace.resolve()), "enabled": True, "env": dict(exposure.environment)}
+        for marker in (None, "local"):
+            with self.subTest(marker=marker):
+                _subject_conformance({"mcp_servers": {"hashmarks": {**row, "environment_id": marker}}}, "hashmarks", exposure)
+        for extra in ({"environment_id": "remote"}, {"environment_id": "default"}, {"environment_id": False}, {"url": "https://unadmitted.invalid"}, {"unknown": 0}):
+            with self.subTest(extra=extra), self.assertRaisesRegex(ValueError, "transport-not-exact"):
+                _subject_conformance({"mcp_servers": {"hashmarks": {**row, **extra}}}, "hashmarks", exposure)
 
     def test_diagnostic_configuration_is_not_a_model_override(self):
         definition = {"adapter": "codex", "configuration": {"native_host": True, "diagnostic_required_tool": "hashmarks_task_evidence"}}

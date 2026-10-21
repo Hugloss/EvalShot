@@ -183,7 +183,7 @@ def run_bounded(
     close_stdin: bool = False,
     stdin_bytes: bytes | None = None,
     stdin_close_when: Callable[[bytes], bool] | None = None,
-    stdin_stages: Sequence[tuple[bytes, Callable[[bytes], bool]]] | None = None,
+    stdin_stages: Sequence[tuple[bytes | Callable[[bytes], bytes], Callable[[bytes], bool]]] | None = None,
 ) -> ProcessResult:
     if not argv or not all(isinstance(item, str) and item for item in argv):
         raise BoundedProcessError("argv must contain non-empty strings")
@@ -199,11 +199,11 @@ def run_bounded(
                 "stdin_stages cannot be combined with other stdin options"
             )
         if not stdin_stages or any(
-            not isinstance(payload, bytes) or not callable(ready)
+            not (isinstance(payload, bytes) or callable(payload)) or not callable(ready)
             for payload, ready in stdin_stages
         ):
             raise BoundedProcessError(
-                "stdin_stages requires bytes and readiness predicates"
+                "stdin_stages requires bytes or payload factories and readiness predicates"
             )
     resolved_cwd, cwd_relative = safe_cwd(repository_root, cwd)
     runtime_environment = dict(environment or {})
@@ -386,6 +386,12 @@ def run_bounded(
                                     exchange_ready.set()
                         if stage_aborted.is_set() or exchange_errors:
                             break
+                        if callable(payload):
+                            with stage_lock:
+                                snapshot = bytes(stdout)
+                            payload = payload(snapshot)
+                            if not isinstance(payload, bytes):
+                                raise BoundedProcessError("stdin stage payload factory must return bytes")
                         process.stdin.write(payload)
                         process.stdin.flush()
                         if predicate is not None:

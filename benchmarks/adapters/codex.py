@@ -13,11 +13,21 @@ from pathlib import Path
 from typing import Any
 
 from benchmarks.adapters.codex_native import (
+    copy_native_auth,
+    native_cli_argv,
     observe_native_config,
     snapshot_native_inputs,
     validate_native_launch,
     validate_private_state,
     verify_native_inputs,
+)
+from benchmarks.adapters.codex_native_namespace import probe_native_namespace, verify_native_namespace
+from benchmarks.adapters.codex_native_plugins import (
+    discover_native_plugin_ids,
+    observe_native_plugins,
+    observe_native_plugin_selection,
+    prepare_native_plugin_inputs,
+    verify_native_plugin_inputs,
 )
 from benchmarks.adapters.runtime import _sha256_file, observe_executable, resolve_native_executable
 from benchmarks.harness.model import (
@@ -285,12 +295,20 @@ def _exposure_sha256(exposure: McpExposure | None) -> str | None:
     return hashlib.sha256(raw).hexdigest()
 
 
+def _native_environment_sha256(context: TrialContext) -> str:
+    return hashlib.sha256(json.dumps(
+        context.environment, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+
+
 def _validate_native_exposure(
     context: TrialContext,
     exposure: McpExposure | None,
 ) -> None:
     if exposure is None:
         return
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", exposure.name):
+        raise ValueError("benchmark MCP server name is not canonical")
     executable = Path(exposure.command).expanduser().resolve()
     if not executable.is_file():
         raise ValueError(f"benchmark MCP executable does not exist: {executable}")
@@ -307,6 +325,7 @@ class CodexAgent:
     max_output_bytes: int = 50_000_000
     max_tool_calls: int | None = None
     diagnostic_required_tool: str | None = None
+    controlled_subject: str | None = None
 
     def subject_lifecycle_mode(self) -> SubjectLifecycleMode:
         return SubjectLifecycleMode.ADAPTER
@@ -322,6 +341,7 @@ class CodexAgent:
                 "surface": "codex-exec-json",
                 "native_host": self.native_host,
                 "diagnostic_required_tool": self.diagnostic_required_tool,
+                "controlled_subject": self.controlled_subject,
             },
         )
 
@@ -349,6 +369,12 @@ class CodexAgent:
         exposed_subject: SubjectAdapter | None,
     ) -> Observation:
         exposure = self._exposure(context, exposed_subject)
+        if self.controlled_subject is not None and (
+            not self.native_host or not isinstance(self.controlled_subject, str)
+            or re.fullmatch(r"[A-Za-z0-9_-]+", self.controlled_subject) is None
+            or exposure is not None and exposure.name != self.controlled_subject
+        ):
+            return Observation({"available": False, "reason": "native controlled subject must match the canonical admitted MCP server"}, "")
         if self.diagnostic_required_tool is not None and (
             not self.native_host or exposure is None
             or not self.diagnostic_required_tool.startswith(exposure.name + "_")
@@ -401,12 +427,31 @@ class CodexAgent:
         observed = observe_executable(context, command)
         selection = {"state": "unknown", "model": None, "provider": None, "scope": None}
         inputs = None
+        plugin_inputs = None
+        plugins = None
+        namespace = None
+        selection_observation = None
+        source_selection_observation = None
+        config_identity = None
         try:
             source_home = context.environment.get("BENCHMARK_NATIVE_CODEX_HOME")
             if not source_home:
                 raise ValueError("native Codex input source is not selected")
             validate_native_launch(context, command, self.timeout_seconds)
-            inputs = snapshot_native_inputs(context, Path(source_home))
+            inputs = snapshot_native_inputs(context, Path(source_home), copy_auth=False)
+            plugin_inputs = prepare_native_plugin_inputs(context, Path(source_home))
+            inputs["auth_file_copied"] = copy_native_auth(context, Path(source_home))
+            if plugin_inputs["configured_ids"] or self.controlled_subject is not None:
+                context.environment["BENCHMARK_NATIVE_CODEX_EXECUTABLE"] = command
+                namespace = probe_native_namespace(context, Path(source_home))
+                context.environment["BENCHMARK_NATIVE_NAMESPACE"] = "1"
+                discovered = discover_native_plugin_ids(context, command, Path(source_home))
+                plugin_inputs = prepare_native_plugin_inputs(context, Path(source_home), discovered_ids=discovered)
+                source_selection_observation = observe_native_plugin_selection(context, command, Path(source_home), reference=True)
+                selection_observation = observe_native_plugin_selection(context, command, Path(source_home))
+            config_identity = hashlib.sha256(json.dumps({
+                "configuration": inputs["identity"], "plugins": plugin_inputs["identity"],
+            }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
             selection = observe_native_config(context, command, self.timeout_seconds)
             selection["source_comparison"] = "unknown"
             model = selection.get("model")
@@ -415,7 +460,7 @@ class CodexAgent:
             effort = None
             result = run_bounded(
                 repository_root=context.workspace,
-                argv=(command, "mcp", "list", "--json"),
+                argv=native_cli_argv(context, (command, "--no-daemon", "mcp", "list", "--json")),
                 environment=context.environment,
                 limits=ProcessLimits(
                     timeout_seconds=min(30.0, float(self.timeout_seconds)),
@@ -423,7 +468,7 @@ class CodexAgent:
                 ),
                 inherit_environment=False,
             )
-            if result.return_code != 0 or result.timed_out or result.stdout_truncated:
+            if result.return_code != 0 or result.timed_out or result.executable_missing or result.stdout_truncated or result.stderr_truncated:
                 raise ValueError("native Codex MCP list did not complete")
             servers = json.loads(result.stdout)
             if not isinstance(servers, list):
@@ -438,13 +483,30 @@ class CodexAgent:
                 raise ValueError("native Codex MCP names are invalid or duplicated")
             selected = exposure.name if exposure else None
             _validate_native_exposure(context, exposure)
+            if self.controlled_subject is not None and exposure is not None and exposure.name != self.controlled_subject:
+                raise ValueError("benchmark exposure differs from the controlled native subject")
+            controlled = self.controlled_subject or selected
+            disabled_names = (controlled,) if controlled in names else ()
+            overrides = self._native_mcp_overrides(disabled_names, exposure)
+            if namespace is not None:
+                plugins = observe_native_plugins(
+                    context, command, Path(source_home), overrides,
+                    controlled_subject=controlled, exposure=exposure,
+                    selection_observation=selection_observation,
+                    source_selection_observation=source_selection_observation,
+                )
+                if not verify_native_namespace(namespace) or not verify_native_plugin_inputs(context, plugin_inputs):
+                    raise ValueError("native Codex plugin inputs changed during admission")
             exposure_sha256 = _exposure_sha256(exposure)
             (context.control_root / "codex-native-servers.json").write_text(
                 json.dumps(
                     {
-                        "names": names,
-                        "config_sha256": inputs["identity"],
+                        "names": disabled_names,
+                        "config_sha256": config_identity,
                         "inputs": inputs,
+                        "plugin_inputs": plugin_inputs,
+                        "namespace": namespace,
+                        "environment_sha256": _native_environment_sha256(context),
                         "executable_path": observed.payload.get("resolved_path"),
                         "executable_sha256": observed.payload.get("executable_sha256"),
                         "selected_subject": selected,
@@ -475,9 +537,11 @@ class CodexAgent:
                 "model": model,
                 "provider": selection.get("provider"),
                 "reasoning_effort": effort,
-                "native_config_sha256": inputs["identity"] if inputs else None,
+                "native_config_sha256": config_identity,
                 "native_config_observation": selection,
                 "native_state_isolation": "private-input-snapshot" if inputs else "unavailable",
+                "native_plugins_observation": plugins,
+                "native_namespace_observation": namespace,
                 "native_mcp_servers": sorted(names),
                 "mcp_exposure": (
                     {
@@ -495,14 +559,38 @@ class CodexAgent:
                     "model": model,
                     "provider": selection.get("provider"),
                     "reasoning_effort": effort,
-                    "native_config_sha256": inputs["identity"] if inputs else None,
+                    "native_config_sha256": config_identity,
                     "native_config_observation": selection,
                     "native_state_isolation": "private-input-snapshot" if inputs else "unavailable",
+                    "native_plugins_observation": plugins,
+                    "native_namespace_observation": namespace,
                     "subject_exposure_sha256": _exposure_sha256(exposure),
                 },
             }
         )
         return Observation(payload, observed.raw, observed.measurements)
+
+    def _native_mcp_overrides(
+        self, names: tuple[str, ...], exposure: McpExposure | None,
+    ) -> tuple[str, ...]:
+        argv: list[str] = []
+        controlled = self.controlled_subject or (exposure.name if exposure else None)
+        for name in names:
+            if name == controlled and exposure is None:
+                argv.extend(("-c", f"mcp_servers.{name}.enabled=false"))
+        if exposure is not None:
+            fields = [
+                f"command={_toml_string(exposure.command)}",
+                "args=" + json.dumps(list(exposure.args), ensure_ascii=False),
+                f"cwd={_toml_string(str(exposure.cwd.resolve()))}",
+                "enabled=true",
+                "env={" + ",".join(
+                    f"{_toml_string(key)}={_toml_string(value)}"
+                    for key, value in sorted(exposure.environment.items())
+                ) + "}",
+            ]
+            argv.extend(("-c", f"mcp_servers.{exposure.name}={{" + ",".join(fields) + "}"))
+        return tuple(argv)
 
     def _exec_argv(
         self,
@@ -519,36 +607,13 @@ class CodexAgent:
             argv.extend(
                 ("--sandbox", "workspace-write", "--approve-for-me", "--ephemeral")
             )
-            for name in names:
-                argv.extend(("-c", f"mcp_servers.{name}.enabled=false"))
-            if exposure is not None:
-                prefix = f"mcp_servers.{exposure.name}"
-                argv.extend(
-                    (
-                        "-c",
-                        f"{prefix}.command={_toml_string(exposure.command)}",
-                        "-c",
-                        f"{prefix}.args="
-                        + json.dumps(list(exposure.args), ensure_ascii=False),
-                        "-c",
-                        f"{prefix}.cwd={_toml_string(str(exposure.cwd.resolve()))}",
-                        "-c",
-                        f"{prefix}.enabled=true",
-                    )
-                )
-                for key, value in sorted(exposure.environment.items()):
-                    argv.extend(
-                        (
-                            "-c",
-                            f"{prefix}.env.{key}={_toml_string(value)}",
-                        )
-                    )
+            argv.extend(self._native_mcp_overrides(names, exposure))
         else:
             argv.append("--full-auto")
         if self.model:
             argv.extend(("--model", self.model))
         argv.append(prompt)
-        return tuple(argv)
+        return native_cli_argv(context, tuple(argv)) if self.native_host else tuple(argv)
 
     def run(
         self,
@@ -568,9 +633,15 @@ class CodexAgent:
             )
         names: tuple[str, ...] = ()
         if self.native_host:
+            try:
+                validate_private_state(context)
+            except ValueError:
+                return Observation({"terminal_event": None, "reason": "native Codex state roots changed during trial"}, "")
             prepared = json.loads(
                 (context.control_root / "codex-native-servers.json").read_text()
             )
+            if _native_environment_sha256(context) != prepared.get("environment_sha256"):
+                return Observation({"terminal_event": None, "reason": "native Codex environment changed during trial"}, "")
             if not verify_native_inputs(context, prepared.get("inputs", {})):
                 return Observation(
                     {
@@ -579,6 +650,10 @@ class CodexAgent:
                     },
                     "",
                 )
+            if not verify_native_plugin_inputs(context, prepared.get("plugin_inputs", {})):
+                return Observation({"terminal_event": None, "reason": "native Codex plugin inputs changed during trial"}, "")
+            if prepared.get("namespace") is not None and not verify_native_namespace(prepared["namespace"]):
+                return Observation({"terminal_event": None, "reason": "native Codex namespace changed during trial"}, "")
             try:
                 executable = self._executable(context)
                 executable_matches = executable == prepared.get("executable_path") and _sha256_file(Path(executable)) == prepared.get("executable_sha256")
@@ -597,10 +672,7 @@ class CodexAgent:
             names = tuple(prepared["names"])
         execution_environment = {
             key: value for key, value in context.environment.items()
-            if key not in {
-                "BENCHMARK_NATIVE_CODEX_HOME", "BENCHMARK_NATIVE_HOME",
-                "BENCHMARK_NATIVE_XDG_CONFIG_HOME",
-            }
+            if not key.startswith("BENCHMARK_NATIVE_")
         } if self.native_host else context.environment
         result = run_bounded(
             repository_root=context.workspace,
@@ -626,6 +698,10 @@ class CodexAgent:
         if self.native_host:
             if not verify_native_inputs(context, prepared.get("inputs", {})):
                 authority_error = "native Codex config changed during trial"
+            if not verify_native_plugin_inputs(context, prepared.get("plugin_inputs", {})):
+                authority_error = "native Codex plugin inputs changed during trial"
+            if prepared.get("namespace") is not None and not verify_native_namespace(prepared["namespace"]):
+                authority_error = "native Codex namespace changed during trial"
             try:
                 executable = self._executable(context)
                 if executable != prepared.get("executable_path") or _sha256_file(Path(executable)) != prepared.get("executable_sha256"):

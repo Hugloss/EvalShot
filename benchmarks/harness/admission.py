@@ -26,6 +26,7 @@ from benchmarks.harness.model import (
 )
 from benchmarks.harness.mutation import apply_mutation
 from benchmarks.harness.runtime_authority import (
+    transport_native_codex_environment,
     native_host_paths,
     transport_runtime_authority,
 )
@@ -344,6 +345,8 @@ def _agent_authority(agent, prepared: Observation) -> dict[str, Any]:
             "native_config_sha256": prepared.payload.get("native_config_sha256"),
             "native_config_observation": prepared.payload.get("native_config_observation"),
             "native_state_isolation": prepared.payload.get("native_state_isolation"),
+            "native_plugins_observation": prepared.payload.get("native_plugins_observation"),
+            "native_namespace_observation": prepared.payload.get("native_namespace_observation"),
             "native_mcp_servers": prepared.payload.get("native_mcp_servers"),
         },
     }
@@ -523,7 +526,9 @@ def admit_trial(
         if native_codex or native_opencode:
             native_paths = native_host_paths(source)
             if native_codex:
+                transport_native_codex_environment(source, context.environment)
                 context.environment["BENCHMARK_NATIVE_CODEX_HOME"] = native_paths["codex_home"]
+                context.environment["BENCHMARK_NATIVE_HOME"] = native_paths["home"]
             if native_opencode:
                 context.environment["BENCHMARK_NATIVE_HOME"] = native_paths["home"]
                 context.environment["BENCHMARK_NATIVE_XDG_CONFIG_HOME"] = native_paths[

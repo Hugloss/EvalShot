@@ -86,6 +86,8 @@ def _agent_common(admission: TrialAdmission) -> dict[str, Any]:
                 "native_config_sha256",
                 "native_config_observation",
                 "native_state_isolation",
+                "native_plugins_observation",
+                "native_namespace_observation",
                 "native_mcp_servers",
             )
         },

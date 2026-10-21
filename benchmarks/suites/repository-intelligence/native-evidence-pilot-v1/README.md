@@ -121,6 +121,18 @@ file and select the exact clean Hashmarks checkout. Run model-free readiness
 first. Both `codex-native` and `codex-required` are required for the full pilot;
 OpenCode and Pi are outside this host's initial population.
 
+Preserve the complete selected native configuration, including installed plugins.
+The native loader owns version and capability selection from the transported
+plugin inputs. Unrelated native MCP capabilities must remain the same in A, B
+and C. Both agent definitions declare `controlled_subject=hashmarks`; only that
+admitted exposure changes between arms. Do not disable other plugins to pass
+readiness. A missing plugin input, alternate Hashmarks route or unavailable
+enabled service blocks admission until its support is complete.
+
+The filesystem namespace maps native absolute Codex paths to private trial
+state. It retains networking and host read access; it does not prove that an
+external desktop service is independent or that oracle files are secret.
+
 ```sh
 ./benchmark check --env-file /path/to/private-pilot.env
 ./benchmark prepare --new --env-file /path/to/private-pilot.env

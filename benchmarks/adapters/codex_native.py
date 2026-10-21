@@ -16,6 +16,8 @@ import tomllib
 from typing import Any
 
 from benchmarks.harness.model import TrialContext
+from benchmarks.harness.runtime_authority import PRIVATE_STATE_ENV_KEYS
+from benchmarks.adapters.codex_native_namespace import build_native_argv
 from scripts.agent_economics.bounded_process import ProcessLimits, run_bounded
 
 
@@ -25,9 +27,28 @@ def _digest(value: Any) -> str:
 
 def validate_private_state(context: TrialContext) -> None:
     """Reject a shared source home before even native CLI startup can write it."""
-    selected = context.environment.get("CODEX_HOME")
-    if not selected or not Path(selected).resolve().is_relative_to(context.control_root.resolve()):
-        raise ValueError("native Codex state must use an independent trial CODEX_HOME")
+    required = {"CODEX_HOME", "HOME", "TMPDIR", "TMP", "TEMP", "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME"}
+    source_value = context.environment.get("BENCHMARK_NATIVE_CODEX_HOME")
+    if source_value:
+        source, control = Path(source_value).resolve(), context.control_root.resolve()
+        if source.is_relative_to(control) or control.is_relative_to(source):
+            raise ValueError("native Codex source and trial state overlap")
+    for name in PRIVATE_STATE_ENV_KEYS:
+        selected = context.environment.get(name)
+        if selected is None and name not in required:
+            continue
+        if not selected or not Path(selected).is_absolute() or not Path(selected).resolve().is_relative_to(context.control_root.resolve()):
+            raise ValueError("native Codex state must use independent trial state roots")
+
+
+def native_cli_argv(context: TrialContext, command: tuple[str, ...]) -> tuple[str, ...]:
+    validate_private_state(context)
+    if context.environment.get("BENCHMARK_NATIVE_NAMESPACE") == "1":
+        source = context.environment.get("BENCHMARK_NATIVE_CODEX_HOME")
+        if not source:
+            raise ValueError("native Codex namespace source is unavailable")
+        return build_native_argv(context, command, Path(source))
+    return command
 
 
 def _unsupported_inputs(config: dict[str, Any], prefix: str = "") -> list[str]:
@@ -36,10 +57,11 @@ def _unsupported_inputs(config: dict[str, Any], prefix: str = "") -> list[str]:
     for key, value in config.items():
         path = f"{prefix}.{key}" if prefix else key
         if key == "mcp_servers":
-            # Ambient servers are disabled and the admitted subject is injected
-            # using CLI overrides. Their transports are not trial input owners.
+            # Native MCP transports are retained byte-for-byte. Their active
+            # capabilities are qualified by native inventory in the private
+            # process namespace after the controlled-subject overlay.
             continue
-        if key in {"plugins", "hooks", "notify"} and value:
+        if key in {"hooks", "notify"} and value:
             unsupported.append(path)
         elif key in {"sqlite_home", "log_dir"}:
             unsupported.append(path)
@@ -85,7 +107,21 @@ def _input_paths(source: Path) -> list[Path]:
     return files
 
 
-def snapshot_native_inputs(context: TrialContext, source: Path) -> dict[str, Any]:
+def copy_native_auth(context: TrialContext, source: Path) -> bool:
+    """Transport opaque selected native credentials after static admission."""
+    validate_private_state(context)
+    target = Path(context.environment["CODEX_HOME"])
+    auth = source / "auth.json"
+    copied = auth.is_file()
+    if auth.is_symlink() or (auth.exists() and (not copied or auth.stat().st_size > 1_048_576)):
+        raise ValueError("unsupported native Codex auth input")
+    if copied:
+        shutil.copyfile(auth, target / "auth.json")
+        (target / "auth.json").chmod(0o600)
+    return copied
+
+
+def snapshot_native_inputs(context: TrialContext, source: Path, *, copy_auth: bool = True) -> dict[str, Any]:
     """Copy bounded native input bytes without serializing credentials in receipts."""
     source = source.expanduser().resolve()
     validate_private_state(context)
@@ -128,13 +164,7 @@ def snapshot_native_inputs(context: TrialContext, source: Path) -> dict[str, Any
         if not configuration and os.access(path, os.X_OK) != executable:
             raise ValueError("native Codex guidance mode changed during snapshot")
         manifest[relative] = {"sha256": identity, "mode": private_mode}
-    auth = source / "auth.json"
-    auth_copied = auth.is_file()
-    if auth.is_symlink() or (auth.exists() and (not auth_copied or auth.stat().st_size > 1_048_576)):
-        raise ValueError("unsupported native Codex auth input")
-    if auth_copied:
-        shutil.copyfile(auth, target / "auth.json")
-        (target / "auth.json").chmod(0o600)
+    auth_copied = copy_native_auth(context, source) if copy_auth else False
     return {
         "schema": "evalshot.native-codex-inputs.v1",
         "input_scope": "native-config-and-recognized-guidance; no conversation or state clone",
@@ -177,7 +207,7 @@ def validate_native_launch(context: TrialContext, command: str, timeout_seconds:
         (("exec", "--help"), ("--ephemeral", "--approve-for-me", "--sandbox", "--json")),
     ):
         result = run_bounded(
-            repository_root=context.workspace, argv=(command, *args),
+            repository_root=context.workspace, argv=native_cli_argv(context, (command, *args)),
             environment=context.environment,
             limits=ProcessLimits(timeout_seconds=min(30.0, timeout_seconds), max_stdout_bytes=200_000, max_stderr_bytes=200_000),
             inherit_environment=False,
@@ -204,7 +234,7 @@ def observe_native_config(context: TrialContext, command: str, timeout_seconds: 
         return {**unknown, "reason": "native-private-state-not-established"}
     result = run_bounded(
         repository_root=context.workspace,
-        argv=(command, "doctor", "--json"),
+        argv=native_cli_argv(context, (command, "doctor", "--json")),
         environment=context.environment,
         limits=ProcessLimits(timeout_seconds=min(30.0, timeout_seconds), max_stdout_bytes=1_000_000, max_stderr_bytes=200_000),
         inherit_environment=False,
