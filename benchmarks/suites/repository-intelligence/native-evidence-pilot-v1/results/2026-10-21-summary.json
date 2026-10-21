@@ -1,0 +1,1492 @@
+{
+  "campaign_id": "f366aa5161665e9b29c91a65985106234d0eda73c71040be44b5cdca289ffdbe",
+  "conditions": {
+    "hashmarks-codex-native": {
+      "assigned_trials": 6,
+      "costs_including_unqualified_executions": {
+        "cached_input_tokens": {
+          "complete_sum": 905472,
+          "median": 154304.0,
+          "observations": 6,
+          "observed_sum": 905472,
+          "unknown": 0
+        },
+        "duration_ms": {
+          "complete_sum": 326017.501,
+          "median": 39185.490999999995,
+          "observations": 6,
+          "observed_sum": 326017.501,
+          "unknown": 0
+        },
+        "input_tokens": {
+          "complete_sum": 1027037,
+          "median": 181706.5,
+          "observations": 6,
+          "observed_sum": 1027037,
+          "unknown": 0
+        },
+        "mcp_result_bytes": {
+          "complete_sum": 0,
+          "median": 0.0,
+          "observations": 6,
+          "observed_sum": 0,
+          "unknown": 0
+        },
+        "output_tokens": {
+          "complete_sum": 6523,
+          "median": 644.5,
+          "observations": 6,
+          "observed_sum": 6523,
+          "unknown": 0
+        },
+        "subject_mcp_calls": {
+          "complete_sum": 0,
+          "median": 0.0,
+          "observations": 6,
+          "observed_sum": 0,
+          "unknown": 0
+        },
+        "tool_calls": {
+          "complete_sum": 43,
+          "median": 6.0,
+          "observations": 6,
+          "observed_sum": 43,
+          "unknown": 0
+        }
+      },
+      "known_failures": 0,
+      "known_successes": 0,
+      "operational_trials_with_observed_subject_call": 0,
+      "status_counts": {
+        "CONTAMINATED": 2,
+        "INCOMPLETE": 4
+      },
+      "unknown_outcomes": 6
+    },
+    "hashmarks-codex-required": {
+      "assigned_trials": 6,
+      "costs_including_unqualified_executions": {
+        "cached_input_tokens": {
+          "complete_sum": 2110976,
+          "median": 312960.0,
+          "observations": 6,
+          "observed_sum": 2110976,
+          "unknown": 0
+        },
+        "duration_ms": {
+          "complete_sum": 454284.559,
+          "median": 77397.901,
+          "observations": 6,
+          "observed_sum": 454284.559,
+          "unknown": 0
+        },
+        "input_tokens": {
+          "complete_sum": 2345519,
+          "median": 349845.0,
+          "observations": 6,
+          "observed_sum": 2345519,
+          "unknown": 0
+        },
+        "mcp_result_bytes": {
+          "complete_sum": 227982,
+          "median": 25167.5,
+          "observations": 6,
+          "observed_sum": 227982,
+          "unknown": 0
+        },
+        "output_tokens": {
+          "complete_sum": 9929,
+          "median": 1594.5,
+          "observations": 6,
+          "observed_sum": 9929,
+          "unknown": 0
+        },
+        "subject_mcp_calls": {
+          "complete_sum": 33,
+          "median": 5.0,
+          "observations": 6,
+          "observed_sum": 33,
+          "unknown": 0
+        },
+        "tool_calls": {
+          "complete_sum": 61,
+          "median": 10.5,
+          "observations": 6,
+          "observed_sum": 61,
+          "unknown": 0
+        }
+      },
+      "known_failures": 0,
+      "known_successes": 0,
+      "operational_trials_with_observed_subject_call": 6,
+      "status_counts": {
+        "INCOMPLETE": 6
+      },
+      "unknown_outcomes": 6
+    },
+    "none-codex-native": {
+      "assigned_trials": 6,
+      "costs_including_unqualified_executions": {
+        "cached_input_tokens": {
+          "complete_sum": 1022208,
+          "median": 173952.0,
+          "observations": 6,
+          "observed_sum": 1022208,
+          "unknown": 0
+        },
+        "duration_ms": {
+          "complete_sum": 331158.667,
+          "median": 39215.4105,
+          "observations": 6,
+          "observed_sum": 331158.667,
+          "unknown": 0
+        },
+        "input_tokens": {
+          "complete_sum": 1210362,
+          "median": 201936.5,
+          "observations": 6,
+          "observed_sum": 1210362,
+          "unknown": 0
+        },
+        "mcp_result_bytes": {
+          "complete_sum": 0,
+          "median": 0.0,
+          "observations": 6,
+          "observed_sum": 0,
+          "unknown": 0
+        },
+        "output_tokens": {
+          "complete_sum": 6712,
+          "median": 705.0,
+          "observations": 6,
+          "observed_sum": 6712,
+          "unknown": 0
+        },
+        "subject_mcp_calls": {
+          "complete_sum": 0,
+          "median": 0.0,
+          "observations": 6,
+          "observed_sum": 0,
+          "unknown": 0
+        },
+        "tool_calls": {
+          "complete_sum": 41,
+          "median": 5.5,
+          "observations": 6,
+          "observed_sum": 41,
+          "unknown": 0
+        }
+      },
+      "known_failures": 0,
+      "known_successes": 0,
+      "operational_trials_with_observed_subject_call": 0,
+      "status_counts": {
+        "CONTAMINATED": 3,
+        "INCOMPLETE": 3
+      },
+      "unknown_outcomes": 6
+    }
+  },
+  "cost_scope": {
+    "admission_phase_timings": "retained in receipt measurements.admission; total includes its component phases",
+    "agent_duration_ms": "native agent execution only",
+    "full_trial_wall_time": "NOT_ESTABLISHED; publication and cleanup are outside recorded phase totals"
+  },
+  "date": "2026-10-21",
+  "earlier_aborted_campaign": {
+    "campaign_id": "8d9f162820baa605665f3de0f0767f71a8561b38c98492504ef421eba1857aa8",
+    "diagnostic_scorer_revision": "7a0f70dd539b935b624f600645eb599e5b5fa740",
+    "expected_trials": 18,
+    "harness_revision": "ae33b72da58d4a51abe297dd18b23b32ec382e13",
+    "native_event_count": 0,
+    "next_assignment": "controller interrupted during admission; no completed receipt",
+    "observed_trials": 1,
+    "pilot_measurement_qualified": false,
+    "reason": "native CLI rejected mutually exclusive --sandbox and --approve-for-me flags before inference",
+    "recorded_tool_calls": 0,
+    "replacement_policy": "fresh campaign after harness correction; aborted evidence retained",
+    "run_id": "000001",
+    "status_counts": {
+      "INCOMPLETE": 1
+    }
+  },
+  "evidence_hashes": {
+    "campaign_authority_sha256": "856828c6684514e5119efac1fecb72d352c175eb94679207d9729fd0bf91feda",
+    "controller_log_sha256": "bf87b21330ced55f74ae182bd5df8a02a9810ef49d051f1dc8739a31be8f8197",
+    "full_score_sha256": "5fb764ef598e1f3eaaf500aa06766209cc96abf02cd12d03c1e8f42439faa7d0"
+  },
+  "expected_trials": 18,
+  "frozen_scorer_voluntary_adoption": {
+    "assigned_trials": 6,
+    "invoked": 0,
+    "not_invoked": 0,
+    "rate": null,
+    "unknown": 6
+  },
+  "harness_commit": "7a0f70dd539b935b624f600645eb599e5b5fa740",
+  "hashmarks_commit": "883ba77129172fb9078d507ac5cfbd02eb41c6e6",
+  "limitations": {
+    "actual_launch_order_state": "NOT_INDEPENDENTLY_AUDITED",
+    "causal_effect_proven": false,
+    "external_desktop_service_independence": "NOT_ESTABLISHED",
+    "host_oracle_secrecy": "NOT_ESTABLISHED",
+    "model_request_inclusion": "UNKNOWN",
+    "native_source_read_counts": "UNKNOWN",
+    "overall_winner": null
+  },
+  "native_agents": {
+    "codex-native": {
+      "model": "gpt-6.1-sol",
+      "provider": "openai",
+      "reasoning_effort": null,
+      "version": "codex-cli 0.163.0"
+    },
+    "codex-required": {
+      "model": "gpt-6.1-sol",
+      "provider": "openai",
+      "reasoning_effort": null,
+      "version": "codex-cli 0.163.0"
+    }
+  },
+  "next_steps": [
+    "Qualify native workspace trust before sealing inputs and admitting runtime capabilities.",
+    "Qualify native environment setup without unexpected task-workspace mutation.",
+    "Preserve explicit native input-integrity rejection reasons in result receipts.",
+    "Freeze a separate follow-up campaign after repairs; do not retroactively qualify these outcomes."
+  ],
+  "observed_costs": {
+    "cached_input_tokens": {
+      "complete_sum": 4038656,
+      "median": 186944.0,
+      "observations": 18,
+      "observed_sum": 4038656,
+      "unknown": 0
+    },
+    "duration_ms": {
+      "complete_sum": 1111460.727,
+      "median": 47337.582500000004,
+      "observations": 18,
+      "observed_sum": 1111460.727,
+      "unknown": 0
+    },
+    "input_tokens": {
+      "complete_sum": 4582918,
+      "median": 214861.5,
+      "observations": 18,
+      "observed_sum": 4582918,
+      "unknown": 0
+    },
+    "mcp_result_bytes": {
+      "complete_sum": 227982,
+      "median": 0.0,
+      "observations": 18,
+      "observed_sum": 227982,
+      "unknown": 0
+    },
+    "output_tokens": {
+      "complete_sum": 23164,
+      "median": 862.5,
+      "observations": 18,
+      "observed_sum": 23164,
+      "unknown": 0
+    },
+    "subject_mcp_calls": {
+      "complete_sum": 33,
+      "median": 0.0,
+      "observations": 18,
+      "observed_sum": 33,
+      "unknown": 0
+    },
+    "tool_calls": {
+      "complete_sum": 145,
+      "median": 6.5,
+      "observations": 18,
+      "observed_sum": 145,
+      "unknown": 0
+    }
+  },
+  "observed_trial_admission_total_ms": 1438545,
+  "observed_trials": 18,
+  "pilot_measurement_qualified": false,
+  "primary_availability_intention_to_treat": {
+    "claim_scope": "all-frozen-assignments-descriptive-only",
+    "conditions": {
+      "hashmarks-codex-native": {
+        "assigned_trials": 6,
+        "failures": 0,
+        "success_rate": null,
+        "success_rate_bounds": [
+          0.0,
+          1.0
+        ],
+        "successes": 0,
+        "unknown_outcomes": 6
+      },
+      "none-codex-native": {
+        "assigned_trials": 6,
+        "failures": 0,
+        "success_rate": null,
+        "success_rate_bounds": [
+          0.0,
+          1.0
+        ],
+        "successes": 0,
+        "unknown_outcomes": 6
+      }
+    },
+    "expected_pairs": 6,
+    "known_pair_deltas": 0,
+    "mean_paired_delta": null,
+    "pairs": [
+      {
+        "available_success": null,
+        "baseline_success": null,
+        "delta": null,
+        "replicate_id": 9501,
+        "task_id": "locate-prefix-path-enumerator"
+      },
+      {
+        "available_success": null,
+        "baseline_success": null,
+        "delta": null,
+        "replicate_id": 9502,
+        "task_id": "locate-prefix-path-enumerator"
+      },
+      {
+        "available_success": null,
+        "baseline_success": null,
+        "delta": null,
+        "replicate_id": 9501,
+        "task_id": "locate-refresh-outcome"
+      },
+      {
+        "available_success": null,
+        "baseline_success": null,
+        "delta": null,
+        "replicate_id": 9502,
+        "task_id": "locate-refresh-outcome"
+      },
+      {
+        "available_success": null,
+        "baseline_success": null,
+        "delta": null,
+        "replicate_id": 9501,
+        "task_id": "repair-partial-receipt-regression"
+      },
+      {
+        "available_success": null,
+        "baseline_success": null,
+        "delta": null,
+        "replicate_id": 9502,
+        "task_id": "repair-partial-receipt-regression"
+      }
+    ]
+  },
+  "protocol_sha256": "b53169d1709d2a55b83e294bba1fb2840f99182f25b334b473683e84bf30d065",
+  "run_id": "000002",
+  "schema": "evalshot.native-evidence-pilot-execution-summary.v1",
+  "status_counts": {
+    "CONTAMINATED": 5,
+    "INCOMPLETE": 13
+  },
+  "supplemental_native_input_diagnostic": {
+    "authority": "read-only unsealed diagnostic; does not requalify trials",
+    "captured_workspaces": 14,
+    "captures_with_only_projects_field_change": 14,
+    "sha256": "a423381020ec1bf33c34eb9d277e2178d552eefe388e41f782d781616fa1338d"
+  },
+  "trials": [
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 15,
+        "materialize": 195,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 80685,
+        "snapshot": 16,
+        "total": 80912
+      },
+      "condition_id": "none-codex-native",
+      "contamination": {
+        "detected": true,
+        "unexpected_path_counts": {
+          ".venv": 17
+        }
+      },
+      "definition_id": "bee682197cea4dba637852ad578ff38e58eab97316a8ec810a319e2ff315eb1e",
+      "diagnostic_reason_code": "workspace-contamination",
+      "evidence_hashes": {
+        "agent_trace_sha256": "7fa0a6a51cdf323bb07ce8d9f3fd2c8a04fd6fccd3a5df415ccff21ceb505987",
+        "result_json_sha256": "bc38c46a5c549c2a7bbbec5ea29d3b7be449bc41cc56940e0f4ed5370485c407"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 171648,
+        "duration_ms": 38720.225,
+        "input_tokens": 207035,
+        "mcp_result_bytes": 0,
+        "output_tokens": 718,
+        "subject_mcp_calls": 0,
+        "tool_calls": 6
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contract-not-declared",
+          "required_operation": null,
+          "required_tool": null,
+          "state": "no-contract",
+          "treatment_observed": null
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "CONTAMINATED",
+      "task_id": "locate-prefix-path-enumerator",
+      "trial": 0,
+      "trial_id": "a2546fe2563ea51a3342f88abb9d87c5e2879912241c7e51a755c9403c8ca767"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 203,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 80998,
+        "snapshot": 17,
+        "total": 81234
+      },
+      "condition_id": "hashmarks-codex-native",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "3f5b7956ac47c967997ffa9e32a86622593969d70bb3f1953994f75b42728142",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "2fbe65363c9cc3dbf282f7b71e8961997b06162eeeef39fc1a89383f0fc0ea74",
+        "result_json_sha256": "f18061a9173c01bc0cc92723e9a485973d9879bcc2314f2995d4d5da909cda83"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 153984,
+        "duration_ms": 39448.804,
+        "input_tokens": 169944,
+        "mcp_result_bytes": 0,
+        "output_tokens": 607,
+        "subject_mcp_calls": 0,
+        "tool_calls": 6
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "not-attributable-to-subject-tool",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "subject-not-invoked",
+          "treatment_observed": false
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "locate-prefix-path-enumerator",
+      "trial": 0,
+      "trial_id": "53f94069d66860176340648187dcba5b9514314347cd51881a9db7b4289e7ca1"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 177,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 83213,
+        "snapshot": 14,
+        "total": 83419
+      },
+      "condition_id": "hashmarks-codex-required",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "c8072429dee4d94c8cb4a8865df0232af19637dc78f0d9c1a5873ed55c600337",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "e13d941d64a14f773b1656f0b8fb23df369f558e7d5b088a40c6e3a8964a14fb",
+        "result_json_sha256": "64aaf2e8a559862111052dbb49067ca7eb5cac6211702a25fc469bba82dd5639"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 262272,
+        "duration_ms": 54910.023,
+        "input_tokens": 282620,
+        "mcp_result_bytes": 21932,
+        "output_tokens": 1007,
+        "subject_mcp_calls": 4,
+        "tool_calls": 6
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contracted-treatment-observed",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "contracted-successful-result",
+          "treatment_observed": true
+        },
+        "subject_mcp_calls": 4,
+        "subject_tool_names": [
+          "source_observation",
+          "task_evidence"
+        ]
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "locate-prefix-path-enumerator",
+      "trial": 0,
+      "trial_id": "581459383868c44b789350098c05737d6ee74eef8d2109ca00db5b1d588222ea"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 176,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 84958,
+        "snapshot": 14,
+        "total": 85164
+      },
+      "condition_id": "hashmarks-codex-native",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "deabe7cdb855a28bd0935b5881b4bb708f0f09cab3ff9c0dfaf8e07781044eb5",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "90b4642fa0136be97eb3a52ecdaf1764d3b6a608ebec8a54a2413e7653bd397c",
+        "result_json_sha256": "dec3385e2a8e24cf5f8efa460e1e56558ef5a0c8c3918397ed7f12032b98a1d7"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 154624,
+        "duration_ms": 33489.425,
+        "input_tokens": 193469,
+        "mcp_result_bytes": 0,
+        "output_tokens": 682,
+        "subject_mcp_calls": 0,
+        "tool_calls": 5
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "not-attributable-to-subject-tool",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "subject-not-invoked",
+          "treatment_observed": false
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "locate-prefix-path-enumerator",
+      "trial": 1,
+      "trial_id": "e7ff9ceed3fcfb4b14c6445c36e66e2c8f2ac69f3955de50b0c97a8869831e04"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 16,
+        "materialize": 156,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 82145,
+        "snapshot": 14,
+        "total": 82333
+      },
+      "condition_id": "hashmarks-codex-required",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "8054be01c75dc99187d55fb1dba6aedc317c8a187f2bb4c83620adc6167ade5e",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "dc9e28e4af585c9533905d25842ed92603401f9db937b7c5941cc4d2c257dd91",
+        "result_json_sha256": "e18829c1938a4dfa41a9f6fc9aa4a45ac5d788257b9434af2a782e5efcea4675"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 623872,
+        "duration_ms": 99885.779,
+        "input_tokens": 679027,
+        "mcp_result_bytes": 113809,
+        "output_tokens": 2076,
+        "subject_mcp_calls": 10,
+        "tool_calls": 15
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contracted-treatment-observed",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "contracted-successful-result",
+          "treatment_observed": true
+        },
+        "subject_mcp_calls": 10,
+        "subject_tool_names": [
+          "find",
+          "source_observation",
+          "task_evidence"
+        ]
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "locate-prefix-path-enumerator",
+      "trial": 1,
+      "trial_id": "fabb5ce1f2890991ce4fdfc1baa268a301e549a45f43c3a1b1b16d699069f8b1"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 15,
+        "materialize": 183,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 69977,
+        "snapshot": 14,
+        "total": 70190
+      },
+      "condition_id": "none-codex-native",
+      "contamination": {
+        "detected": true,
+        "unexpected_path_counts": {
+          ".venv": 17
+        }
+      },
+      "definition_id": "aa0464f4b554762afa7a7df80d29e24c41dc53282922b4e4e9296c37b4a30a1f",
+      "diagnostic_reason_code": "workspace-contamination",
+      "evidence_hashes": {
+        "agent_trace_sha256": "831970f7191869d9db3a55626c49d5358878955b0a669ea6bc0578111b0ca5bf",
+        "result_json_sha256": "c28edfc34d5e07445690dff73c6569b949ceaabd9ef7fb64855c9cd7612ee522"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 176256,
+        "duration_ms": 39710.596,
+        "input_tokens": 196838,
+        "mcp_result_bytes": 0,
+        "output_tokens": 692,
+        "subject_mcp_calls": 0,
+        "tool_calls": 5
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contract-not-declared",
+          "required_operation": null,
+          "required_tool": null,
+          "state": "no-contract",
+          "treatment_observed": null
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "CONTAMINATED",
+      "task_id": "locate-prefix-path-enumerator",
+      "trial": 1,
+      "trial_id": "c863f96345d7299c565cf448632196a00da85f8af52a893e5624ef137098721b"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 15,
+        "materialize": 36,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 76497,
+        "snapshot": 11,
+        "total": 76560
+      },
+      "condition_id": "hashmarks-codex-required",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "b92f04367be62cfa5d0b13d690a7bbd1d628efd38fa237be30abf574b3e21153",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "b4abe3a71d5d90c6dbfc1212dbd96398075e3a414cf86a0524a9f6d45924e61d",
+        "result_json_sha256": "192d951dbb06a4512d6fcd8f94382f82ea941c349e0bf9974def5cd7a1fbf39c"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 272768,
+        "duration_ms": 51911.485,
+        "input_tokens": 317168,
+        "mcp_result_bytes": 28403,
+        "output_tokens": 1113,
+        "subject_mcp_calls": 11,
+        "tool_calls": 12
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contracted-treatment-observed",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "contracted-successful-result",
+          "treatment_observed": true
+        },
+        "subject_mcp_calls": 11,
+        "subject_tool_names": [
+          "source_observation",
+          "task_evidence"
+        ]
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "locate-refresh-outcome",
+      "trial": 0,
+      "trial_id": "5bb6985d4097229d069268f671b9e65e2a815ab7701d109a0b35d1120379b97a"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 44,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 82061,
+        "snapshot": 16,
+        "total": 82137
+      },
+      "condition_id": "none-codex-native",
+      "contamination": {
+        "detected": true,
+        "unexpected_path_counts": {
+          ".venv": 2853,
+          "uv.lock": 1
+        }
+      },
+      "definition_id": "7a9cb93dd80445078ea57b772507b3aa1a74d366d7d43f2fd891530e46e2df13",
+      "diagnostic_reason_code": "workspace-contamination",
+      "evidence_hashes": {
+        "agent_trace_sha256": "e3e372c78e7949e92dabdbc04b3a070508f556a34f4902035967419edd792a8d",
+        "result_json_sha256": "21fba4e1dd76c4e08876df9d36713ccca5c98c4c24a0f03f0c017770d06ca0c2"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 112640,
+        "duration_ms": 37728.019,
+        "input_tokens": 133893,
+        "mcp_result_bytes": 0,
+        "output_tokens": 529,
+        "subject_mcp_calls": 0,
+        "tool_calls": 5
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contract-not-declared",
+          "required_operation": null,
+          "required_tool": null,
+          "state": "no-contract",
+          "treatment_observed": null
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "CONTAMINATED",
+      "task_id": "locate-refresh-outcome",
+      "trial": 0,
+      "trial_id": "9f255f98073b76cd7b222541d6c4255e8a494d4fcb1cd31d92ba9928f6fc1a76"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 15,
+        "materialize": 40,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 81566,
+        "snapshot": 11,
+        "total": 81633
+      },
+      "condition_id": "hashmarks-codex-native",
+      "contamination": {
+        "detected": true,
+        "unexpected_path_counts": {
+          ".venv": 2853,
+          "uv.lock": 1
+        }
+      },
+      "definition_id": "7561a4ae5d2672f06b306e14bab2919272123a7c03b7ac0b76c2eaf8dead3705",
+      "diagnostic_reason_code": "workspace-contamination",
+      "evidence_hashes": {
+        "agent_trace_sha256": "20074acfe5e76fb51082335a37a4a8df1e01e33ac88fe8ddd8091b0a414ff97f",
+        "result_json_sha256": "e3f9941acfcc3f98e0b9225218d9b5e039a230e81e119f1f76295e87b388f551"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 88832,
+        "duration_ms": 37009.708,
+        "input_tokens": 107492,
+        "mcp_result_bytes": 0,
+        "output_tokens": 602,
+        "subject_mcp_calls": 0,
+        "tool_calls": 6
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "not-attributable-to-subject-tool",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "subject-not-invoked",
+          "treatment_observed": false
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "CONTAMINATED",
+      "task_id": "locate-refresh-outcome",
+      "trial": 0,
+      "trial_id": "6baf9f9884d6ef4572760245623a0df6c653988ba99228252f6819353088bf05"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 15,
+        "materialize": 39,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 81416,
+        "snapshot": 11,
+        "total": 81482
+      },
+      "condition_id": "hashmarks-codex-required",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "e8edb67b46b31509bf20d195e9584eee0222100b4e210a3beccdfc5854d26f10",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "4bc89d635586607187da2a0b3bee6ec689958028200b3049482945e191d20e9c",
+        "result_json_sha256": "d6512ab19c03e5d6f741394859f15bc98e3f31a08c051ad28f5d70a5b497d6ce"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 313088,
+        "duration_ms": 42763.68,
+        "input_tokens": 367014,
+        "mcp_result_bytes": 37160,
+        "output_tokens": 695,
+        "subject_mcp_calls": 6,
+        "tool_calls": 7
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contracted-treatment-observed",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "contracted-successful-result",
+          "treatment_observed": true
+        },
+        "subject_mcp_calls": 6,
+        "subject_tool_names": [
+          "source_observation",
+          "task_evidence"
+        ]
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "locate-refresh-outcome",
+      "trial": 1,
+      "trial_id": "959a18f1061867404a52d0d61ac419d5a6f111cff02f62791c67c47eac4b7e92"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 34,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 74746,
+        "snapshot": 11,
+        "total": 74806
+      },
+      "condition_id": "hashmarks-codex-native",
+      "contamination": {
+        "detected": true,
+        "unexpected_path_counts": {
+          ".venv": 2853,
+          "uv.lock": 1
+        }
+      },
+      "definition_id": "709a74f56c1de5af4f2f83e38ec4a3c5a5fd816fbf30ba12c32d037333b88c27",
+      "diagnostic_reason_code": "workspace-contamination",
+      "evidence_hashes": {
+        "agent_trace_sha256": "8b107ddcfe82d0aba9e8d73d65d2aa6a91a0a757fd62ab0712079783c078ff40",
+        "result_json_sha256": "6c19289a8cf70f6af12ab3040535667231c263850ab269c315fb1452790d217d"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 102144,
+        "duration_ms": 38922.178,
+        "input_tokens": 113591,
+        "mcp_result_bytes": 0,
+        "output_tokens": 495,
+        "subject_mcp_calls": 0,
+        "tool_calls": 6
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "not-attributable-to-subject-tool",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "subject-not-invoked",
+          "treatment_observed": false
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "CONTAMINATED",
+      "task_id": "locate-refresh-outcome",
+      "trial": 1,
+      "trial_id": "011e4a1a93953ca8acd8c8415d8c96d7e63746df07eb3ce48d88434182403482"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 16,
+        "materialize": 42,
+        "mutation_fixtures": 0,
+        "oracle_health": 0,
+        "participant_prepare": 84997,
+        "snapshot": 16,
+        "total": 85073
+      },
+      "condition_id": "none-codex-native",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "ab6f3dc8643be5565a17920b5db60ff5665405950ea7ea86459db9a03b185f52",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "cb29a817fbce1b8e47ef5cb33ae785d31f847886e775b57d3c4731a793e283b1",
+        "result_json_sha256": "c81492e94bb0e89139121a260db5dbcfddfb565bc828b9dcee11fa051c1c1a78"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 129792,
+        "duration_ms": 30053.453,
+        "input_tokens": 166971,
+        "mcp_result_bytes": 0,
+        "output_tokens": 391,
+        "subject_mcp_calls": 0,
+        "tool_calls": 3
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contract-not-declared",
+          "required_operation": null,
+          "required_tool": null,
+          "state": "no-contract",
+          "treatment_observed": null
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "locate-refresh-outcome",
+      "trial": 1,
+      "trial_id": "8cfdcfeaa2ead561d95afdffad3d6199a3c3961425ff33ff219d3d365d1b5f9f"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 38,
+        "mutation_fixtures": 24,
+        "oracle_health": 29,
+        "participant_prepare": 77510,
+        "snapshot": 6,
+        "total": 77623
+      },
+      "condition_id": "hashmarks-codex-native",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "e4397f97cd7d2b8a58530aa953f8f0afd950983d634dbfd07b2ad948f6678fa8",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "b0b4e8440f8097ac11a609c7dd3639fa4e66c7c637c17bffbc9bfb25e895b52c",
+        "result_json_sha256": "d8ca42508a03b11a919c268c51563292f71c49bd2b94a7696cca8ef63c402329"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 225664,
+        "duration_ms": 94771.698,
+        "input_tokens": 243395,
+        "mcp_result_bytes": 0,
+        "output_tokens": 2159,
+        "subject_mcp_calls": 0,
+        "tool_calls": 11
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "not-attributable-to-subject-tool",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "subject-not-invoked",
+          "treatment_observed": false
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "repair-partial-receipt-regression",
+      "trial": 0,
+      "trial_id": "f3de3e950ca84751021454cd586510d1875a0df71df5aac5f41e73ff83aea7ce"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 39,
+        "mutation_fixtures": 16,
+        "oracle_health": 30,
+        "participant_prepare": 74176,
+        "snapshot": 7,
+        "total": 74283
+      },
+      "condition_id": "none-codex-native",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "7cef665e11c1644f315e29ce3f3ef995117b877625f2594ba4b5fb7045a2a9bd",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "aaf413f8834a4ac3335c730034cf17a64a4e42e304c7900efdf5ba1e1c9a7a42",
+        "result_json_sha256": "195034d7e96d8e1f431474503099ea355c2ffecefc437eff8051fa0104aa91b7"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 238208,
+        "duration_ms": 101871.319,
+        "input_tokens": 282937,
+        "mcp_result_bytes": 0,
+        "output_tokens": 2579,
+        "subject_mcp_calls": 0,
+        "tool_calls": 12
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contract-not-declared",
+          "required_operation": null,
+          "required_tool": null,
+          "state": "no-contract",
+          "treatment_observed": null
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "repair-partial-receipt-regression",
+      "trial": 0,
+      "trial_id": "d27a1cec6d1a4e4aa18b09c5d3c2aa40efb501a54ed1c30f62ad29202857d55b"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 33,
+        "mutation_fixtures": 20,
+        "oracle_health": 23,
+        "participant_prepare": 79208,
+        "snapshot": 6,
+        "total": 79305
+      },
+      "condition_id": "hashmarks-codex-required",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "0a29073cc2a8f87bdd0e856935826272fa0f7bb9453139d0f4af1848b6cc1737",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "27ef841a483091e3dabfebf2eecc987e65921367d08f2abcd2635915f2e09d8a",
+        "result_json_sha256": "06ac56b3d0bd6d973ff1052ab8e03c9f40822bc9c321404b5eba662689d67c61"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 312832,
+        "duration_ms": 101052.934,
+        "input_tokens": 344272,
+        "mcp_result_bytes": 14412,
+        "output_tokens": 2714,
+        "subject_mcp_calls": 1,
+        "tool_calls": 10
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contracted-treatment-observed",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "contracted-successful-result",
+          "treatment_observed": true
+        },
+        "subject_mcp_calls": 1,
+        "subject_tool_names": [
+          "task_evidence"
+        ]
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9501,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "repair-partial-receipt-regression",
+      "trial": 0,
+      "trial_id": "79bd68b8541e1f33fee2eb9970396dcb5e3829729cc2c80d658f478045ced0f5"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 36,
+        "mutation_fixtures": 20,
+        "oracle_health": 23,
+        "participant_prepare": 79360,
+        "snapshot": 6,
+        "total": 79462
+      },
+      "condition_id": "none-codex-native",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "d600973fdd73f8d7f733a28796fa45beac178866d04c46255e1c96698cb3c98e",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "f33d0b1bd4b356fce284d58c42a5e1c87df32d62c72313ffe7aa048c357d606a",
+        "result_json_sha256": "e1db9f33081364637b64777fb20f175f22af33f6e92d4b88e3e2af777818a11d"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 193664,
+        "duration_ms": 83075.055,
+        "input_tokens": 222688,
+        "mcp_result_bytes": 0,
+        "output_tokens": 1803,
+        "subject_mcp_calls": 0,
+        "tool_calls": 10
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contract-not-declared",
+          "required_operation": null,
+          "required_tool": null,
+          "state": "no-contract",
+          "treatment_observed": null
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "repair-partial-receipt-regression",
+      "trial": 1,
+      "trial_id": "070d26e9ed84384e7ed2ea058a5db848ab9f5c662d485742744af8b9d2110062"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 41,
+        "mutation_fixtures": 22,
+        "oracle_health": 23,
+        "participant_prepare": 87181,
+        "snapshot": 6,
+        "total": 87288
+      },
+      "condition_id": "hashmarks-codex-required",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "782f0a79758577df7be12541c8f9b87fa787733e82942e1434a2700fffe8c08c",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "5c1df619aa7e51b19f9c9693697c1b5e72e23398a287186814b83ddf19ae5e47",
+        "result_json_sha256": "185824658579d42c15b71bac859520e3c1fb89b251a51ab1a5e9aca5e96524b9"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 326144,
+        "duration_ms": 103760.658,
+        "input_tokens": 355418,
+        "mcp_result_bytes": 12266,
+        "output_tokens": 2324,
+        "subject_mcp_calls": 1,
+        "tool_calls": 11
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "contracted-treatment-observed",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "contracted-successful-result",
+          "treatment_observed": true
+        },
+        "subject_mcp_calls": 1,
+        "subject_tool_names": [
+          "task_evidence"
+        ]
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "repair-partial-receipt-regression",
+      "trial": 1,
+      "trial_id": "403e61f3fd20e1dfbd5ea88997e4806070840fcb50f59e8ee90f2a0652d8641d"
+    },
+    {
+      "admission_timings_ms": {
+        "environment": 0,
+        "harness_identity": 14,
+        "materialize": 34,
+        "mutation_fixtures": 19,
+        "oracle_health": 23,
+        "participant_prepare": 75544,
+        "snapshot": 6,
+        "total": 75641
+      },
+      "condition_id": "hashmarks-codex-native",
+      "contamination": {
+        "detected": false,
+        "unexpected_path_counts": {}
+      },
+      "definition_id": "505e928a3e793854bd619c9df55ee89c8ccaf9b6c56972dccf25295d301ade18",
+      "diagnostic_reason_code": "agent-terminal-missing",
+      "evidence_hashes": {
+        "agent_trace_sha256": "b1a65f6174306c3493f8ce5782f52944e240a551c5b6c96fd6283a22364fe9ba",
+        "result_json_sha256": "54133ed0cd32b0d5f87974afb69b4ab21661d08c53b334eb17decc4b5ef3031e"
+      },
+      "observed_metrics": {
+        "cached_input_tokens": 180224,
+        "duration_ms": 82375.688,
+        "input_tokens": 199146,
+        "mcp_result_bytes": 0,
+        "output_tokens": 1978,
+        "subject_mcp_calls": 0,
+        "tool_calls": 9
+      },
+      "operational_trace_diagnostic": {
+        "claim_scope": "unqualified-execution-trace-only",
+        "native_turn_completed_in_trace": true,
+        "required_operation_result": {
+          "attribution_interpretation": "not-attributable-to-subject-tool",
+          "required_operation": "task_evidence",
+          "required_tool": "hashmarks_task_evidence",
+          "state": "subject-not-invoked",
+          "treatment_observed": false
+        },
+        "subject_mcp_calls": 0,
+        "subject_tool_names": []
+      },
+      "qualification_issues": [
+        "native-mcp-telemetry-incomplete",
+        "native-answer-receipt-join-unproven",
+        "oracle-outcome-unknown"
+      ],
+      "qualified_success": null,
+      "replicate_id": 9502,
+      "sealed_native_input_errors": [
+        "native-config-input-drift"
+      ],
+      "status": "INCOMPLETE",
+      "task_id": "repair-partial-receipt-regression",
+      "trial": 1,
+      "trial_id": "f323ba3adc43d02317651ffb8375879c53eab78eac3798ddc689be8e5dff0177"
+    }
+  ]
+}
