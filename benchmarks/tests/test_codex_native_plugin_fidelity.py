@@ -450,5 +450,33 @@ class NativeDynamicRpcTests(NativePluginFixtures):
         self.assertEqual(plugins._records(self.source), source_before)
 
 
+class NativePluginSelectionFailureTests(NativePluginFixtures):
+    def test_selection_failures_name_scope_and_cause_without_retaining_native_output(self):
+        self.context.environment["BENCHMARK_NATIVE_HOME"] = str(self.root)
+        cases = (
+            ({"timed_out": True}, "timeout"),
+            ({"return_code": 7}, "nonzero-exit"),
+            ({"executable_missing": True}, "missing-executable"),
+            ({"stdout_truncated": True}, "truncated"),
+        )
+        for reference in (False, True):
+            for changed, cause in cases:
+                with self.subTest(reference=reference, cause=cause):
+                    result = SimpleNamespace(**{
+                        "return_code": 0, "timed_out": False,
+                        "executable_missing": False, "stdout_truncated": False,
+                        "stderr_truncated": False, "stdout": SECRET.encode(),
+                        "stderr": SECRET.encode(), **changed,
+                    })
+                    with patch.object(plugins, "build_native_argv", return_value=("/system/bwrap", "--", "native-codex")), \
+                         patch.object(plugins, "run_bounded", return_value=result), \
+                         self.assertRaises(ValueError) as failure:
+                        plugins.observe_native_plugin_selection(self.context, "native-codex", self.source, reference=reference)
+                    message = str(failure.exception)
+                    self.assertIn("source-readonly" if reference else "trial", message)
+                    self.assertIn(cause, message)
+                    self.assertNotIn(SECRET, message)
+
+
 if __name__ == "__main__":
     unittest.main()

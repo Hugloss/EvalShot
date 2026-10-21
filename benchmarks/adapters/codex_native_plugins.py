@@ -326,9 +326,14 @@ def observe_native_plugin_selection(context: TrialContext, command: str, source_
         argv = (private_argv[0], "--die-with-parent", "--new-session", "--unshare-pid", "--ro-bind", "/", "/", "--proc", "/proc", "--dev", "/dev", "--bind", str(context.control_root.resolve()), str(context.control_root.resolve()), "--bind", str(context.workspace.resolve()), str(context.workspace.resolve()), "--chdir", str(context.workspace.resolve()), "--", command, "--no-daemon", "plugin", "list", "--json")
     else:
         argv = private_argv
-    process = run_bounded(repository_root=context.workspace, argv=argv, environment=environment, inherit_environment=False, limits=ProcessLimits(timeout_seconds=35, max_stdout_bytes=3_000_000, max_stderr_bytes=100_000))
+    # Native inventory may refresh remote catalogs before returning its local
+    # selection. Leave bounded headroom beyond the observed 25-30 second path;
+    # this is admission time, separate from the frozen agent execution budget.
+    process = run_bounded(repository_root=context.workspace, argv=argv, environment=environment, inherit_environment=False, limits=ProcessLimits(timeout_seconds=90, max_stdout_bytes=3_000_000, max_stderr_bytes=100_000))
     if process.executable_missing or process.timed_out or process.stdout_truncated or process.stderr_truncated or process.return_code != 0:
-        raise ValueError("native-plugin-cli-selection-unavailable")
+        failure = "timeout" if process.timed_out else "missing-executable" if process.executable_missing else "truncated" if process.stdout_truncated or process.stderr_truncated else "nonzero-exit"
+        scope = "source-readonly" if reference else "trial"
+        raise ValueError(f"native-plugin-cli-selection-unavailable ({scope}; {failure})")
     try:
         value = json.loads(process.stdout)
     except (ValueError, UnicodeError):
