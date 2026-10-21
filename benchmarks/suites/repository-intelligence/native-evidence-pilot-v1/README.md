@@ -143,3 +143,64 @@ runtime/source manifest and budget have been reviewed. The runner owns execution
 ordering, timeouts and receipts; Hashmarks supplies repository evidence only.
 The suite score keeps A/B intention-to-treat measurement and C diagnostics
 separate, with no overall-winner, release or causal authority.
+
+## First execution: 21 October 2026
+
+**All 18 assignments executed and were scored, but the pilot is unqualified.**
+The frozen scorer retained 18 unknown correctness outcomes: 13 receipts are
+`INCOMPLETE` and five are `CONTAMINATED`. There are zero known paired outcome
+deltas. This is not an observed 0% success rate and does not establish an
+effectiveness gain or regression.
+
+The [bounded execution summary](results/2026-10-21-summary.json) records every
+assignment, frozen-score unknowns, operational metrics and evidence hashes.
+Measured harness commit: `7a0f70dd539b935b624f600645eb599e5b5fa740`.
+Hashmarks producer commit: `883ba77129172fb9078d507ac5cfbd02eb41c6e6`.
+Campaign: `f366aa5161665e9b29c91a65985106234d0eda73c71040be44b5cdca289ffdbe`.
+Both native configurations observed `gpt-6.1-sol` with provider `openai`.
+The evaluator applied no inference-setting override or plugin stripping.
+
+| Arm | Assignments | Traces with a Hashmarks call | Known correctness outcomes |
+| --- | ---: | ---: | ---: |
+| A: native baseline | 6 | 0 | 0 |
+| B: optional Hashmarks | 6 | 0 | 0 |
+| C: instructed invocation | 6 | 6 | 0 |
+
+These call counts are **unqualified operational trace diagnostics**. The frozen
+availability scorer correctly reports six unknown B adoption observations and
+a null adoption rate. All six C traces have a contracted successful
+`task_evidence` return. A returned packet proves neither model-request inclusion
+nor attention, and these data cannot establish an information effect. Optional
+selection remains a question for a qualified follow-up; do not report the B
+count as a qualified 0% adoption estimate.
+
+Every raw native trace contains `turn.completed`, while every sealed execution
+event records `native Codex config changed during trial`. The adapter therefore
+withholds the admitted terminal event and answer. A separate read-only,
+unsealed diagnostic captured private `config.toml` rewrites in 14 workspaces;
+each captured semantic change added an entry under `projects`. This points to
+workspace trust initialization as a readiness gap. It does not authorize
+ignoring input drift after execution. Five trials also generated `.venv`
+content, including three that generated `uv.lock`, outside frozen allowances.
+
+All executions, including invalid ones, consumed approximately 18.5 minutes of
+native agent time and 24.0 minutes of per-trial admission time. Native usage
+reported 4,582,918 input tokens, 4,038,656 cached input tokens and 23,164 output
+tokens, with 145 observed tool calls. These are reported counters, not a monetary
+estimate or complete wall-cost accounting. Initial campaign preparation,
+publication and cleanup are outside those summed receipt timings. Source-read
+counts remain unknown, so the proposed 20% reduction is untested.
+
+Before a separately frozen follow-up, EvalShot needs to qualify workspace trust
+before sealing native inputs and admitting capabilities, qualify environment
+setup without unexpected task-workspace mutation, and preserve explicit input
+integrity rejection reasons instead of exposing only `agent-terminal-missing`.
+Do not widen these tasks' allowances, regrade these unknowns as successes, or
+rerun selected assignments to repair this campaign. The retained evidence does
+not justify a Hashmarks parser/ranking change or an OH-Goon integration change.
+
+An earlier campaign is retained separately with one pre-inference incomplete
+launch: the native CLI rejected mutually exclusive approval/sandbox flags.
+Its controller stopped during the next admission, before inference. The harness
+repair and null-terminal scoring repair preceded this fresh 18-assignment run;
+they did not follow a model outcome.

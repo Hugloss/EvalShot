@@ -70,10 +70,11 @@ def score(
                 issues.append("subject-configuration-unproven")
             trace = execution.get("artifacts", {}).get("agent_trace")
             if isinstance(trace, dict):
+                terminal = execution.get("agent_terminal")
                 observation = inspect_native_trace(
                     (results / receipt["trial_id"] / trace["path"]).read_text(encoding="utf-8"),
                     adapter="codex", subject="hashmarks",
-                    terminal_complete=execution.get("agent_terminal", {}).get("type") == "turn.completed",
+                    terminal_complete=isinstance(terminal, dict) and terminal.get("type") == "turn.completed",
                 )
             grade = receipt.get("scoring", {}).get("oracle_grade", {})
             if receipt.get("status") in {"PASS", "FAIL"} and grade.get("valid") is not False:

@@ -266,6 +266,7 @@ def _rpc(context: TrialContext, command: str, source_home: Path, requests: list[
     initial = [request for request in requests if request not in runtime]
     payload = encode({"method": "initialized"}) + b"".join(encode({"id": i, "method": method, "params": params}) for i, method, params in initial)
     stages = [(initialize, lambda raw: ready(raw, {0}))]
+    followups: dict[int, int] = {}
     if runtime:
         # A catalog can be cached while its server is disconnected. Start only
         # an ephemeral native thread, never a turn, and ask that same runtime.
@@ -282,9 +283,42 @@ def _rpc(context: TrialContext, command: str, source_home: Path, requests: list[
         def runtime_payload(raw: bytes) -> bytes:
             selected = thread_id(raw)
             return b"".join(encode({"id": i, "method": method, "params": {**params, "threadId": selected}}) for i, method, params in runtime)
+        def runtime_settled(raw: bytes) -> bool:
+            if not ready(raw, expected):
+                return False
+            values = responses(raw)
+            pending = set()
+            for identity, _, _ in runtime:
+                rows = values[identity].get("data") if isinstance(values[identity], dict) else None
+                if not isinstance(rows, list):
+                    continue
+                pending.update(row["name"] for row in rows if isinstance(row, dict) and isinstance(row.get("name"), str) and row.get("runtimeStatus") in ("notStarted", "starting"))
+            if not pending:
+                return True
+            # Starting is an in-flight native observation, not a failed server.
+            # Wait for this thread's own startup events, within the same bounded
+            # process, then re-read status. Never retry/relaunch the server.
+            latest = {}
+            for line in raw[:raw.rfind(b"\n") + 1].splitlines():
+                if not line.strip():
+                    continue
+                message = json.loads(line)
+                params = message.get("params")
+                if message.get("method") == "mcpServer/startupStatus/updated" and isinstance(params, dict) and isinstance(params.get("name"), str) and params.get("threadId") == thread_id(raw):
+                    latest[params.get("name")] = params.get("status")
+            return all(latest.get(name) in ("ready", "failed", "cancelled") for name in pending)
+        unused = 2_147_483_645
+        for identity, _, _ in runtime:
+            while unused in expected or unused in followups.values():
+                unused -= 1
+            followups[identity] = unused
+            unused -= 1
+        def final_runtime_payload(raw: bytes) -> bytes:
+            selected = thread_id(raw)
+            return b"".join(encode({"id": followups[i], "method": method, "params": {**params, "threadId": selected}}) for i, method, params in runtime)
         def close_payload(raw: bytes) -> bytes:
             return encode({"id": close_request, "method": "thread/unsubscribe", "params": {"threadId": thread_id(raw)}})
-        stages.extend(((payload, lambda raw: ready(raw, {thread_request, *(i for i, _, _ in initial)})), (runtime_payload, lambda raw: ready(raw, expected)), (close_payload, lambda raw: ready(raw, {close_request}))))
+        stages.extend(((payload, lambda raw: ready(raw, {thread_request, *(i for i, _, _ in initial)})), (runtime_payload, runtime_settled), (final_runtime_payload, lambda raw: ready(raw, set(followups.values()))), (close_payload, lambda raw: ready(raw, {close_request}))))
     else:
         stages.append((payload, lambda raw: ready(raw, expected)))
     process = run_bounded(
@@ -299,6 +333,10 @@ def _rpc(context: TrialContext, command: str, source_home: Path, requests: list[
     values = responses(process.stdout, final=True)
     if not expected.issubset(values):
         raise ValueError("native-plugin-private-api-incomplete")
+    for identity, followup in followups.items():
+        if followup not in values:
+            raise ValueError("native-plugin-private-api-incomplete")
+        values[identity] = values[followup]
     return values
 
 
@@ -326,9 +364,14 @@ def observe_native_plugin_selection(context: TrialContext, command: str, source_
         argv = (private_argv[0], "--die-with-parent", "--new-session", "--unshare-pid", "--ro-bind", "/", "/", "--proc", "/proc", "--dev", "/dev", "--bind", str(context.control_root.resolve()), str(context.control_root.resolve()), "--bind", str(context.workspace.resolve()), str(context.workspace.resolve()), "--chdir", str(context.workspace.resolve()), "--", command, "--no-daemon", "plugin", "list", "--json")
     else:
         argv = private_argv
-    process = run_bounded(repository_root=context.workspace, argv=argv, environment=environment, inherit_environment=False, limits=ProcessLimits(timeout_seconds=35, max_stdout_bytes=3_000_000, max_stderr_bytes=100_000))
+    # Native inventory may refresh remote catalogs before returning its local
+    # selection. Leave bounded headroom beyond the observed 25-30 second path;
+    # this is admission time, separate from the frozen agent execution budget.
+    process = run_bounded(repository_root=context.workspace, argv=argv, environment=environment, inherit_environment=False, limits=ProcessLimits(timeout_seconds=90, max_stdout_bytes=3_000_000, max_stderr_bytes=100_000))
     if process.executable_missing or process.timed_out or process.stdout_truncated or process.stderr_truncated or process.return_code != 0:
-        raise ValueError("native-plugin-cli-selection-unavailable")
+        failure = "timeout" if process.timed_out else "missing-executable" if process.executable_missing else "truncated" if process.stdout_truncated or process.stderr_truncated else "nonzero-exit"
+        scope = "source-readonly" if reference else "trial"
+        raise ValueError(f"native-plugin-cli-selection-unavailable ({scope}; {failure})")
     try:
         value = json.loads(process.stdout)
     except (ValueError, UnicodeError):
@@ -556,7 +599,9 @@ def observe_native_plugins(context: TrialContext, command: str, source_home: Pat
             raise ValueError("native-mcp-enabled-capability-unavailable")
         status = server.get("runtimeStatus")
         if status not in ("connected", "disabled") or name in required and status != "connected":
-            raise ValueError("native-mcp-enabled-runtime-unavailable")
+            known_state = status if isinstance(status, str) and status in {"notStarted", "starting", "authenticationRequired", "failed", "cancelled"} else "unknown"
+            role = "controlled" if name == controlled_subject else "ambient"
+            raise ValueError(f"native-mcp-enabled-runtime-unavailable ({role}; {known_state})")
         if name == controlled_subject:
             if exposure is None and status != "disabled":
                 raise ValueError("native-mcp-controlled-disabled-route-active")

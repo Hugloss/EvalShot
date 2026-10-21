@@ -204,7 +204,7 @@ def validate_native_launch(context: TrialContext, command: str, timeout_seconds:
     validate_private_state(context)
     for args, required in (
         (("--help",), ("--no-daemon",)),
-        (("exec", "--help"), ("--ephemeral", "--approve-for-me", "--sandbox", "--json")),
+        (("exec", "--help"), ("--ephemeral", "--approve-for-me", "--json")),
     ):
         result = run_bounded(
             repository_root=context.workspace, argv=native_cli_argv(context, (command, *args)),

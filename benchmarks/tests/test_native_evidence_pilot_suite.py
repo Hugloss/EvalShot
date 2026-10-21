@@ -84,7 +84,7 @@ class NativeEvidencePilotSuiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "eighteen"):
             pilot_score.score(suite_root=PILOT, results=Path("missing"), agents=("codex-native", "codex-required"), definition_ids=("one-selected-result",))
 
-    def diagnostic_score(self, *, missing=False, configured=True):
+    def diagnostic_score(self, *, missing=False, configured=True, incomplete=False):
         suite = load_suite(PILOT)
         answer = '{"path":"src/owner.py","symbol":"resolve"}'
         raw = (Path(__file__).with_name("fixtures") / "availability-codex.jsonl").read_text(encoding="utf-8")
@@ -106,6 +106,11 @@ class NativeEvidencePilotSuiteTests(unittest.TestCase):
                     "scoring": {"oracle_grade": {"valid": True, "passed": True}},
                     "measurements": {"agent": {"subject_tool_invoked": False, "subject_tool_configured": configured}},
                 })
+                if incomplete and i == 0:
+                    receipts[-1]["status"] = "INCOMPLETE"
+                    receipts[-1]["execution"]["agent_terminal"] = None
+                    receipts[-1]["execution"]["agent_answer"] = None
+                    (root / trial / "trace.jsonl").write_text("")
             # Publication, oracle evaluation and the A/B study have their own
             # integration tests; this isolates the new score's C population.
             report = {"observed_trials": 17 if missing else 18, "status_counts": {"PASS": 17 if missing else 18},
@@ -136,6 +141,16 @@ class NativeEvidencePilotSuiteTests(unittest.TestCase):
         self.assertEqual(len(rows), 6)
         self.assertEqual(sum(row["success"] is None for row in rows), 1)
         self.assertEqual(sum(row["subject_invoked"] is None for row in rows), 1)
+
+    def test_incomplete_C_with_null_terminal_preserves_unknowns(self):
+        result = self.diagnostic_score(incomplete=True)
+        self.assertFalse(result["pilot_measurement_qualified"])
+        rows = result["instructed_policy_diagnostic"]["trials"]
+        self.assertEqual(len(rows), 6)
+        self.assertIsNone(rows[0]["success"])
+        self.assertIsNone(rows[0]["subject_invoked"])
+        self.assertIn("oracle-outcome-unknown", rows[0]["issues"])
+        self.assertIn("native-mcp-telemetry-incomplete", rows[0]["issues"])
 
     def test_C_without_proven_configuration_cannot_be_called_instruction_noncompliance(self):
         result = self.diagnostic_score(configured=False)

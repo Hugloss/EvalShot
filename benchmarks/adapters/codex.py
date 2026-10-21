@@ -604,9 +604,9 @@ class CodexAgent:
             argv.append("--no-daemon")
         argv.extend(("exec", "--json"))
         if self.native_host:
-            argv.extend(
-                ("--sandbox", "workspace-write", "--approve-for-me", "--ephemeral")
-            )
+            # Native automatic review already selects workspace-write. The CLI
+            # rejects combining it with an explicit --sandbox selection.
+            argv.extend(("--approve-for-me", "--ephemeral"))
             argv.extend(self._native_mcp_overrides(names, exposure))
         else:
             argv.append("--full-auto")

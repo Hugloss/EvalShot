@@ -106,7 +106,7 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertIs(observed["successful_return_observed"], True)
         self.assertEqual(observed["trace_state"], "UNKNOWN")
 
-    def report(self, *, missing=False, invoked=False, catalog_known=True, mismatch=False, tainted=False):
+    def report(self, *, missing=False, invoked=False, catalog_known=True, mismatch=False, tainted=False, incomplete=False):
         frozen = suite()
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -129,6 +129,11 @@ class AvailabilityStudyTests(unittest.TestCase):
                     "scoring": {"oracle_grade": {"valid": True, "passed": True}},
                     "measurements": {"agent": {"subject_tool_configured": has_subject}},
                 })
+                if incomplete and i == 2:
+                    receipts[-1]["status"] = "INCOMPLETE"
+                    receipts[-1]["execution"]["agent_terminal"] = None
+                    receipts[-1]["execution"]["agent_answer"] = None
+                    (directory / "trace.jsonl").write_text("")
             manifest = {"campaign_id": "frozen-test-campaign", "subject_tool_catalog_proofs": [catalog()] if catalog_known else [],
                         "suite_identity": campaign_suite_identity(frozen),
                         "selected_definitions": [d["definition_id"] for d in frozen.trial_definitions()]}
@@ -156,6 +161,17 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertIsNone(arm["success_rate"])
         self.assertEqual(arm["success_rate_bounds"], [0.5, 1.0])
         self.assertFalse(report["study_measurement_qualified"])
+
+    def test_process_failure_with_null_terminal_keeps_unknown_outcome_and_adoption(self):
+        report = self.report(incomplete=True)
+        self.assertFalse(report["study_measurement_qualified"])
+        arm = report["primary_availability_intention_to_treat"]["conditions"]["available"]
+        self.assertEqual(arm["assigned_trials"], 2)
+        self.assertEqual(arm["unknown_outcomes"], 1)
+        self.assertEqual(arm["success_rate_bounds"], [0.5, 1.0])
+        self.assertIsNone(arm["success_rate"])
+        self.assertEqual(report["voluntary_adoption"]["unknown"], 1)
+        self.assertIsNone(report["voluntary_adoption"]["rate"])
 
     def test_returned_subset_cannot_replace_primary_or_become_delivered_subset(self):
         report = self.report(invoked=True)
