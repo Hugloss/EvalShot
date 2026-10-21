@@ -118,6 +118,29 @@ def _receipt(
 
 
 class BenchmarkStabilityReportingTests(unittest.TestCase):
+    def test_partial_token_measurements_do_not_become_campaign_totals(self) -> None:
+        suite = _suite()
+        receipts = []
+        for index, row in enumerate(suite.trial_definitions()):
+            receipt = _receipt(suite, row, "PASS", f"{index:064x}")
+            receipt["measurements"]["agent"] = {
+                "input_tokens": 10 if int(row["trial"]) == 0 else None,
+                "output_tokens": 0,
+            }
+            receipts.append(receipt)
+        with mock.patch("benchmarks.harness.report._receipts", return_value=receipts):
+            report = build_report(suite=suite, results_root=Path("/unused"))
+        for condition in report["conditions"].values():
+            tokens = condition["metrics"]["input_tokens"]
+            self.assertEqual(tokens["observations"], 1)
+            self.assertEqual(tokens["unknown_observations"], 2)
+            self.assertEqual(tokens["observed_total"], 10)
+            self.assertIsNone(tokens["total"])
+            self.assertEqual(condition["metrics"]["output_tokens"]["total"], 0)
+        for pair in report["paired_assistance"]:
+            if pair["trial_index"] != 0:
+                self.assertIsNone(pair["input_tokens_delta"])
+
     def test_report_preserves_replicate_variance_and_paired_transitions(self) -> None:
         suite = _suite()
         rows = {

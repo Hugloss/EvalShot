@@ -131,10 +131,10 @@ class TraceAndToolProbeTests(unittest.TestCase):
             SHELL,
         )
 
-    def test_hashmarks_trace_projection_reads_compact_v4_symbol_locator(self) -> None:
+    def test_hashmarks_trace_projection_reads_historical_compact_symbol_locator(self) -> None:
         evidence = _hashmarks_evidence(
             {
-                "schema": "hashmarks.task-evidence.v4",
+                "schema": "hashmarks.task-evidence.v3",
                 "retrieval": {
                     "presentation": "compact-locators-v1",
                     "bounds": {"limit": 20, "per_role": 3},
@@ -161,7 +161,7 @@ class TraceAndToolProbeTests(unittest.TestCase):
             {"path": "owner.py", "symbol": "owner"},
         )
 
-        self.assertEqual(evidence["schema"], "hashmarks.task-evidence.v4")
+        self.assertEqual(evidence["schema"], "hashmarks.task-evidence.v3")
         self.assertEqual(evidence["expected_target_rank"], 1)
         self.assertEqual(evidence["canonical_omitted_results"], 2)
         self.assertEqual(evidence["supplemental_results"], 2)
@@ -196,7 +196,7 @@ class TraceAndToolProbeTests(unittest.TestCase):
         for retrieval, state in cases:
             with self.subTest(retrieval=retrieval):
                 evidence = _hashmarks_evidence(
-                    {"schema": "hashmarks.task-evidence.v4", "retrieval": retrieval},
+                    {"schema": "hashmarks.task-evidence.v3", "retrieval": retrieval},
                     None,
                 )
                 self.assertEqual(evidence["retrieval_truncation_state"], state)

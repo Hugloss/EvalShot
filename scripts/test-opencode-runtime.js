@@ -47,6 +47,17 @@ function testConfigInspection() {
     left.config_sha256,
     runtime.inspectConfig(second).config_sha256,
   );
+
+  const nested = runtime.inspectConfig({
+    model: 'gateway/vendor/model/version',
+    provider: { gateway: { models: {
+      'vendor/model/version': { limit: { context: 8192, output: 1024 } },
+      vendor: { limit: { context: 1, output: 1 } },
+    } } },
+  });
+  assert.strictEqual(nested.model, 'gateway/vendor/model/version');
+  assert.strictEqual(nested.provider, 'gateway');
+  assert.deepStrictEqual(nested.model_limits, { context: 8192, output: 1024 });
 }
 
 function writeFakeOpenCode(root) {
