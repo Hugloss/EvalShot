@@ -28,7 +28,7 @@ DISABLED = "disabled@fixture-market"
 
 
 DYNAMIC_RPC_CLI = r'''#!/usr/bin/python3
-import json, os, pathlib, secrets, sys
+import json, os, pathlib, secrets, select, sys
 
 private = pathlib.Path(os.environ['CODEX_HOME'])
 log = private / 'dynamic-rpc-methods.jsonl'
@@ -36,6 +36,7 @@ active = private / 'dynamic-rpc-active.json'
 thread = None
 closed = False
 initialized = False
+status_calls = 0
 
 def record(value):
     with log.open('a') as stream:
@@ -76,7 +77,20 @@ for raw in sys.stdin:
     elif method == 'mcpServerStatus/list':
         if thread is None or params.get('threadId') != thread or params.get('detail') != 'full':
             raise SystemExit('status is not bound to the actual native thread')
-        reply(request, {'data': [{'name': 'fixture-runtime', 'runtimeStatus': 'connected',
+        status_calls += 1
+        startup = os.environ.get('FIXTURE_RUNTIME_STARTUP')
+        if startup and status_calls == 1:
+            reply(request, {'data': [{'name': 'fixture-runtime', 'runtimeStatus': 'starting',
+                'tools': {}, 'toolsError': None}], 'nextCursor': None})
+            print(json.dumps({'method': 'mcpServer/startupStatus/updated', 'params': {
+                'threadId': 'another-thread', 'name': 'fixture-runtime', 'status': 'ready'}}), flush=True)
+            if select.select([sys.stdin], [], [], 0.05)[0]:
+                raise SystemExit('client advanced before this thread completed startup')
+            print(json.dumps({'method': 'mcpServer/startupStatus/updated', 'params': {
+                'threadId': thread, 'name': 'fixture-runtime', 'status': 'failed' if startup == 'failed' else 'ready'}}), flush=True)
+            continue
+        state = 'failed' if startup == 'failed' else 'connected'
+        reply(request, {'data': [{'name': 'fixture-runtime', 'runtimeStatus': state,
             'tools': {'fixture_read': {}}, 'toolsError': None, 'threadId': thread}], 'nextCursor': None})
     elif method == 'thread/unsubscribe':
         if thread is None or params != {'threadId': thread}:
@@ -420,12 +434,13 @@ class NativeDynamicRpcTests(NativePluginFixtures):
         log = self.read_log(self.context)
         requests = [row for row in log if row["event"] == "request"]
         expected = ["initialize", "initialized", "plugin/installed", "config/read",
-                    "thread/start", "mcpServerStatus/list", "thread/unsubscribe"]
+                    "thread/start", "mcpServerStatus/list", "mcpServerStatus/list", "thread/unsubscribe"]
         self.assertEqual([row["method"] for row in requests], expected * 2)
-        for offset, thread_id in ((0, first_id), (7, second_id)):
+        for offset, thread_id in ((0, first_id), (8, second_id)):
             self.assertEqual(requests[offset + 4]["params"], {"cwd": str(self.workspace), "ephemeral": True})
             self.assertEqual(requests[offset + 5]["params"], {"detail": "full", "threadId": thread_id})
-            self.assertEqual(requests[offset + 6]["params"], {"threadId": thread_id})
+            self.assertEqual(requests[offset + 6]["params"], {"detail": "full", "threadId": thread_id})
+            self.assertEqual(requests[offset + 7]["params"], {"threadId": thread_id})
         endings = [row for row in log if row["event"] == "eof"]
         self.assertEqual(len(endings), 2)
         self.assertTrue(all(row["thread_unsubscribed"] is True and row["active_thread_file"] is False for row in endings))
@@ -435,6 +450,17 @@ class NativeDynamicRpcTests(NativePluginFixtures):
         self.assertEqual(startup["argv"], ["--no-daemon", "-c", "mcp_servers.hashmarks.enabled=false", "app-server", "--listen", "stdio://"])
         self.assertFalse((Path(self.context.environment["CODEX_HOME"]) / "dynamic-rpc-active.json").exists())
         self.assertEqual(plugins._records(self.source), source_before)
+
+    def test_starting_runtime_waits_for_its_own_native_event_then_rereads_status(self):
+        for terminal, expected in (("ready", "connected"), ("failed", "failed")):
+            with self.subTest(terminal=terminal):
+                context = self.make_context("startup-" + terminal)
+                context.environment["FIXTURE_RUNTIME_STARTUP"] = terminal
+                result = self.invoke(context)
+                self.assertEqual(result[3]["data"][0]["runtimeStatus"], expected)
+                requests = [row for row in self.read_log(context) if row["event"] == "request"]
+                self.assertEqual(sum(row["method"] == "mcpServerStatus/list" for row in requests), 2)
+                self.assertFalse(any(row["method"].startswith("turn/") for row in requests))
 
     def test_missing_empty_or_wrong_type_native_thread_id_stops_before_status_or_model_request(self):
         source_before = plugins._records(self.source)
