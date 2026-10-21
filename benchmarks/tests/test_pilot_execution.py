@@ -3447,6 +3447,9 @@ class PilotExecutionTests(unittest.TestCase):
             first_receipt = json.loads(
                 (first.result_dir / "result.json").read_text(encoding="utf-8")
             )
+            admission_cost = first_receipt["measurements"]["admission"]
+            self.assertTrue({"materialize", "participant_prepare", "oracle_health", "total"} <= set(admission_cost))
+            self.assertTrue(all(type(value) is int and value >= 0 for value in admission_cost.values()))
             self.assertEqual(
                 first_receipt["scoring"]["oracle_grade"],
                 {"valid": True, "passed": True},
@@ -3468,6 +3471,10 @@ class PilotExecutionTests(unittest.TestCase):
             self.assertEqual(second.trial_id, first.trial_id)
             self.assertTrue(second.reused)
             self.assertEqual(second.status, "PASS")
+            self.assertEqual(
+                json.loads((second.result_dir / "result.json").read_text())["measurements"]["admission"],
+                admission_cost,
+            )
 
             report = build_report(
                 suite=suite,
@@ -3523,6 +3530,7 @@ class PilotExecutionTests(unittest.TestCase):
             admission = SimpleNamespace(
                 trial_id="a" * 64,
                 definition_id="b" * 64,
+                admission_timings_ms={},
                 context=SimpleNamespace(workspace=workspace),
                 legacy_seed=False,
                 replicate_id=6201,

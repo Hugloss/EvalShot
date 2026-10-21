@@ -12,7 +12,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from benchmarks.adapters.runtime import observe_executable, resolve_native_executable
+from benchmarks.adapters.codex_native import (
+    observe_native_config,
+    snapshot_native_inputs,
+    validate_native_launch,
+    validate_private_state,
+    verify_native_inputs,
+)
+from benchmarks.adapters.runtime import _sha256_file, observe_executable, resolve_native_executable
 from benchmarks.harness.model import (
     McpExposure,
     Observation,
@@ -299,6 +306,7 @@ class CodexAgent:
     timeout_seconds: int = 600
     max_output_bytes: int = 50_000_000
     max_tool_calls: int | None = None
+    diagnostic_required_tool: str | None = None
 
     def subject_lifecycle_mode(self) -> SubjectLifecycleMode:
         return SubjectLifecycleMode.ADAPTER
@@ -313,6 +321,7 @@ class CodexAgent:
                 "reasoning_effort": self.reasoning_effort,
                 "surface": "codex-exec-json",
                 "native_host": self.native_host,
+                "diagnostic_required_tool": self.diagnostic_required_tool,
             },
         )
 
@@ -340,6 +349,12 @@ class CodexAgent:
         exposed_subject: SubjectAdapter | None,
     ) -> Observation:
         exposure = self._exposure(context, exposed_subject)
+        if self.diagnostic_required_tool is not None and (
+            not self.native_host or exposure is None
+            or not self.diagnostic_required_tool.startswith(exposure.name + "_")
+            or len(self.diagnostic_required_tool) <= len(exposure.name) + 1
+        ):
+            return Observation({"available": False, "reason": "diagnostic required tool must belong to the selected native subject"}, "")
         if self.native_host:
             return self._prepare_native(context, exposure)
         config = _render_config(
@@ -379,20 +394,25 @@ class CodexAgent:
         self, context: TrialContext, exposure: McpExposure | None
     ) -> Observation:
         try:
+            validate_private_state(context)
             command = self._executable(context)
         except ValueError as exc:
             return Observation({"available": False, "reason": str(exc)}, "")
         observed = observe_executable(context, command)
-        config_path = self._config_path(context)
+        selection = {"state": "unknown", "model": None, "provider": None, "scope": None}
+        inputs = None
         try:
-            raw = config_path.read_bytes()
-            config = tomllib.loads(raw.decode("utf-8"))
-            model = config.get("model")
-            effort = config.get("model_reasoning_effort")
-            if not isinstance(model, str) or not model:
-                raise ValueError(
-                    "native Codex config needs an explicit model for comparison"
-                )
+            source_home = context.environment.get("BENCHMARK_NATIVE_CODEX_HOME")
+            if not source_home:
+                raise ValueError("native Codex input source is not selected")
+            validate_native_launch(context, command, self.timeout_seconds)
+            inputs = snapshot_native_inputs(context, Path(source_home))
+            selection = observe_native_config(context, command, self.timeout_seconds)
+            selection["source_comparison"] = "unknown"
+            model = selection.get("model")
+            # Doctor does not expose resolved effort. Keep the native bytes,
+            # without promoting a root-file value over profiles/policy.
+            effort = None
             result = run_bounded(
                 repository_root=context.workspace,
                 argv=(command, "mcp", "list", "--json"),
@@ -423,7 +443,10 @@ class CodexAgent:
                 json.dumps(
                     {
                         "names": names,
-                        "config_sha256": hashlib.sha256(raw).hexdigest(),
+                        "config_sha256": inputs["identity"],
+                        "inputs": inputs,
+                        "executable_path": observed.payload.get("resolved_path"),
+                        "executable_sha256": observed.payload.get("executable_sha256"),
                         "selected_subject": selected,
                         "subject_exposure_sha256": exposure_sha256,
                     },
@@ -439,11 +462,10 @@ class CodexAgent:
             json.JSONDecodeError,
             ValueError,
         ) as exc:
-            model = effort = None
+            model, effort = selection.get("model"), None
             names = []
             reason = str(exc)
             available = False
-            raw = b""
         payload = dict(observed.payload)
         payload.update(
             {
@@ -451,10 +473,11 @@ class CodexAgent:
                 "reason": reason,
                 "auth_mode": "native-host",
                 "model": model,
+                "provider": selection.get("provider"),
                 "reasoning_effort": effort,
-                "native_config_sha256": hashlib.sha256(raw).hexdigest()
-                if raw
-                else None,
+                "native_config_sha256": inputs["identity"] if inputs else None,
+                "native_config_observation": selection,
+                "native_state_isolation": "private-input-snapshot" if inputs else "unavailable",
                 "native_mcp_servers": sorted(names),
                 "mcp_exposure": (
                     {
@@ -470,10 +493,11 @@ class CodexAgent:
                     "version": observed.payload.get("version"),
                     "executable_sha256": observed.payload.get("executable_sha256"),
                     "model": model,
+                    "provider": selection.get("provider"),
                     "reasoning_effort": effort,
-                    "native_config_sha256": hashlib.sha256(raw).hexdigest()
-                    if raw
-                    else None,
+                    "native_config_sha256": inputs["identity"] if inputs else None,
+                    "native_config_observation": selection,
+                    "native_state_isolation": "private-input-snapshot" if inputs else "unavailable",
                     "subject_exposure_sha256": _exposure_sha256(exposure),
                 },
             }
@@ -487,7 +511,10 @@ class CodexAgent:
         names: tuple[str, ...] = (),
         exposure: McpExposure | None = None,
     ) -> tuple[str, ...]:
-        argv = [self._executable(context), "exec", "--json"]
+        argv = [self._executable(context)]
+        if self.native_host:
+            argv.append("--no-daemon")
+        argv.extend(("exec", "--json"))
         if self.native_host:
             argv.extend(
                 ("--sandbox", "workspace-write", "--approve-for-me", "--ephemeral")
@@ -530,15 +557,21 @@ class CodexAgent:
         exposed_subject: SubjectAdapter | None,
     ) -> Observation:
         exposure = self._exposure(context, exposed_subject)
+        if self.diagnostic_required_tool is not None:
+            if exposure is None or not self.diagnostic_required_tool.startswith(exposure.name + "_") or len(self.diagnostic_required_tool) <= len(exposure.name) + 1:
+                raise ValueError("diagnostic required tool must belong to the selected subject")
+            prompt = (
+                f"Diagnostic tool requirement: call {self.diagnostic_required_tool} "
+                "for this repository task before using file search. Inspect source "
+                "evidence before answering. The tool call is required even if you "
+                "believe you already know the answer.\n\n" + prompt
+            )
         names: tuple[str, ...] = ()
         if self.native_host:
             prepared = json.loads(
                 (context.control_root / "codex-native-servers.json").read_text()
             )
-            if (
-                hashlib.sha256(self._config_path(context).read_bytes()).hexdigest()
-                != prepared["config_sha256"]
-            ):
+            if not verify_native_inputs(context, prepared.get("inputs", {})):
                 return Observation(
                     {
                         "terminal_event": None,
@@ -546,6 +579,13 @@ class CodexAgent:
                     },
                     "",
                 )
+            try:
+                executable = self._executable(context)
+                executable_matches = executable == prepared.get("executable_path") and _sha256_file(Path(executable)) == prepared.get("executable_sha256")
+            except (OSError, ValueError):
+                executable_matches = False
+            if not executable_matches:
+                return Observation({"terminal_event": None, "reason": "native Codex executable changed during trial"}, "")
             if _exposure_sha256(exposure) != prepared.get("subject_exposure_sha256"):
                 return Observation(
                     {
@@ -555,10 +595,17 @@ class CodexAgent:
                     "",
                 )
             names = tuple(prepared["names"])
+        execution_environment = {
+            key: value for key, value in context.environment.items()
+            if key not in {
+                "BENCHMARK_NATIVE_CODEX_HOME", "BENCHMARK_NATIVE_HOME",
+                "BENCHMARK_NATIVE_XDG_CONFIG_HOME",
+            }
+        } if self.native_host else context.environment
         result = run_bounded(
             repository_root=context.workspace,
             argv=self._exec_argv(context, prompt, names, exposure),
-            environment=context.environment,
+            environment=execution_environment,
             limits=ProcessLimits(
                 timeout_seconds=self.timeout_seconds,
                 max_stdout_bytes=self.max_output_bytes,
@@ -575,6 +622,18 @@ class CodexAgent:
             ),
             None,
         )
+        authority_error = None
+        if self.native_host:
+            if not verify_native_inputs(context, prepared.get("inputs", {})):
+                authority_error = "native Codex config changed during trial"
+            try:
+                executable = self._executable(context)
+                if executable != prepared.get("executable_path") or _sha256_file(Path(executable)) != prepared.get("executable_sha256"):
+                    authority_error = "native Codex executable changed during trial"
+            except (OSError, ValueError):
+                authority_error = "native Codex executable became unavailable during trial"
+            if authority_error:
+                terminal = None
         subject_server = exposure.name if exposure else None
         metrics = _metrics(events, subject_server=subject_server)
         metrics["duration_ms"] = result.elapsed_ms
@@ -587,7 +646,8 @@ class CodexAgent:
             "terminal_complete": bool(
                 terminal and terminal.get("type") in {"turn.completed", "turn.failed"}
             ),
-            "final_message": _final_message(events),
+            "final_message": None if authority_error else _final_message(events),
+            "reason": authority_error,
             "jsonl_parse_errors": parse_errors,
             "subject_server": subject_server,
             "tool_available": exposure is not None,

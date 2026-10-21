@@ -80,6 +80,16 @@ def build_agent(definition: dict[str, Any], *, budgets: dict[str, Any]):
                 "Codex benchmark adapter does not run local models: "
                 + ", ".join(sorted(unexpected))
             )
+        diagnostic_required_tool = config.get("diagnostic_required_tool")
+        if diagnostic_required_tool is not None and (
+            not native_host
+            or not isinstance(diagnostic_required_tool, str)
+            or not diagnostic_required_tool.strip()
+            or diagnostic_required_tool != diagnostic_required_tool.strip()
+        ):
+            raise AdapterConfigurationError(
+                "diagnostic required tool needs native Codex and a canonical tool name"
+            )
         return CodexAgent(
             model=model,
             reasoning_effort=reasoning_effort,
@@ -87,6 +97,7 @@ def build_agent(definition: dict[str, Any], *, budgets: dict[str, Any]):
             timeout_seconds=timeout_seconds,
             max_output_bytes=max_output_bytes,
             max_tool_calls=max_tool_calls,
+            diagnostic_required_tool=diagnostic_required_tool,
         )
 
     if adapter == "opencode-native":

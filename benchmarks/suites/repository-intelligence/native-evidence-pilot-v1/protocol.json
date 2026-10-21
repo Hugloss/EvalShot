@@ -1,0 +1,136 @@
+{
+  "C_comparison": "descriptive instructed-policy diagnostic only; not an isolated evidence-information effect",
+  "arms": {
+    "A": {
+      "condition": "none-codex-native",
+      "intervention": "native tools without admitted Hashmarks exposure"
+    },
+    "B": {
+      "condition": "hashmarks-codex-native",
+      "intervention": "shipped-default Hashmarks MCP available; invocation optional"
+    },
+    "C": {
+      "condition": "hashmarks-codex-required",
+      "intervention": "explicit request for task_evidence before native file search; instructed-policy diagnostic"
+    }
+  },
+  "assignments": 18,
+  "budget": {
+    "maximum_aggregate_trial_timeout_seconds": 10800,
+    "maximum_captured_stdout_bytes_per_trial": 50000000,
+    "maximum_tool_calls": 2100,
+    "model_inference_settings": "native host configuration; no evaluator token/temperature/reasoning override",
+    "monetary_budget": "not-established; no token limit is invented from missing usage",
+    "per_trial_timeout_seconds": 600,
+    "tool_call_limit_enforcement": "post-execution qualification check; hard stop at the declared count is not established",
+    "trials": 18
+  },
+  "counterbalance": "Each of six arm permutations occurs once across six task/replicate blocks; every arm occupies each ordinal twice. This deterministic counterbalance is not random assignment proof.",
+  "frozen_task_selection": "three inherited independently reviewed tasks; no task selected from treatment outcomes in this pilot",
+  "interpretation": {
+    "confirmation": "fresh tasks and power analysis required before effectiveness claims",
+    "cost_scope": "native execution and separately retained admission phases; complete trial wall time and total spend are not established",
+    "current_codex_headroom": "not-established; measure from A outcomes",
+    "model_request_inclusion": "UNKNOWN without submitted-request capture",
+    "safety_coverage": "no claim of complete ambiguity/negative-evidence/freshness qualification",
+    "zero_adoption": "valid measured result after server catalog, configuration and complete supported native trace qualification"
+  },
+  "omitted_candidates": {
+    "declarations-00": "Pre-treatment source review found AMBIGUOUS source comparison: Dockerfile selects python:3.12 while requires-python >=3.12 specifies a compatibility range; equal normalized producer claim strings do not establish equivalent source declaration semantics. Original task and results remain historical, without regrading.",
+    "freshness-00": "Independent source review found original rewrite unspecified and source/metadata conflicting; fixed next-evidence vocabulary excludes defensible responses. Original suite/results remain historical and are not regraded."
+  },
+  "ordering_authority": "experiment.json execution_order; no independent executable order map",
+  "primary_comparison": "A versus B, all six assigned pairs regardless invocation",
+  "purpose": "discovery-pilot-not-heldout-confirmation",
+  "replicate_ids": [
+    9501,
+    9502
+  ],
+  "replicate_ids_are_model_rng_seeds": false,
+  "schema": "evalshot.native-evidence-pilot-protocol.v1",
+  "source_experiment_sha256": "5f7f7c4e9d0570114841c09d14455705f159c16116d9436c0a70f495d3885ccf",
+  "source_review_file_sha256": "e1337a7b8f7f76107d0b594288fd90cb9bdea9c9c155eeb452097ddd2923bcdd",
+  "study_id": "repository-intelligence-native-evidence-pilot-v1",
+  "task_replicate_blocks": 6,
+  "task_sources": {
+    "locate-prefix-path-enumerator": {
+      "oracle": {
+        "adapter": "repository-location-json",
+        "configuration": {
+          "expected": {
+            "path": "hashmarks/codemap/repository_index_store.py",
+            "symbol": "paths_under"
+          }
+        },
+        "identity": {
+          "id": "locate-prefix-path-enumerator-oracle",
+          "version": "2"
+        }
+      },
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "source_suite": "heldout-v1",
+      "task_digest": "bb522aaf7a3988b5c1e51986cbc4d9aa9eae7b78ee63840f3a2f52f66b6dc705",
+      "task_file_sha256": "22877b2febce16a938ea05a20515098f542eb3c9c5835e3af93e11154c9c9202"
+    },
+    "locate-refresh-outcome": {
+      "oracle": {
+        "adapter": "repository-location-json",
+        "configuration": {
+          "expected": {
+            "path": "ux/src/domain/mutations/WriteCommandResult.ts",
+            "symbol": "withRefreshOutcome"
+          }
+        },
+        "identity": {
+          "id": "locate-refresh-outcome-oracle",
+          "version": "2"
+        }
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "source_suite": "heldout-v1",
+      "task_digest": "a822024365583862ab1b160254adbf1f5e5855877136b87a7e745667b2ead0b7",
+      "task_file_sha256": "a0a2073842fa1ec5e380d04dd193e84f94793d83685f418575b28cb2e5ec2fe6"
+    },
+    "repair-partial-receipt-regression": {
+      "oracle": {
+        "adapter": "command",
+        "configuration": {
+          "grade_argv": [
+            "{python}",
+            "-m",
+            "unittest",
+            "benchmarks.tests.test_foundation.FoundationTests.test_partial_or_corrupt_receipt_is_not_complete"
+          ],
+          "health_argv": [
+            "{python}",
+            "-m",
+            "compileall",
+            "-q",
+            "benchmarks/harness/receipt.py"
+          ],
+          "timeout_seconds": 120
+        },
+        "identity": {
+          "id": "partial-receipt-regression-oracle",
+          "version": "2"
+        }
+      },
+      "repository": {
+        "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+        "tree": "65a32888329e308615647dda194f0e36c2afe2ac",
+        "url": "https://github.com/Hugloss/agentsCookbook.git"
+      },
+      "source_suite": "heldout-v1",
+      "task_digest": "3b1df25c2b593c95e95d2aa2eb1290afcb0a2983205b005199804c4acc39f703",
+      "task_file_sha256": "65d43499bd711021309abf086b9466f6cdf7cc5248378aad272d5ec1df7c64c9"
+    }
+  }
+}

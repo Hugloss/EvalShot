@@ -1,0 +1,92 @@
+{
+  "schema": "agents-cookbook-oracle-reviews.v1",
+  "tasks": {
+    "locate-prefix-path-enumerator": {
+      "alternatives": [
+        "_sorted_paths_under works on an in-memory discovery list, not persisted indexed paths."
+      ],
+      "evidence": "RepositoryIndexStore.paths_under queries file_map for an exact path or descendants below a prefix.",
+      "owner": {
+        "path": "hashmarks/codemap/repository_index_store.py",
+        "symbol": "paths_under"
+      },
+      "repository": {
+        "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+        "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e",
+        "url": "https://github.com/Hugloss/Hashmarks.git"
+      },
+      "review_requirement": {
+        "escalation_reason": "Heldout run 000007 (report sha256:9d1a40bc6f0e5bc1831fe272b36fed3575e5559218198fbc68315dff1f746fd1; decision-evidence sha256:24d979dde9b71d945e78d3380fbd7fd3509104c1e703176a0af3493b614080c9) showed semantic instability for this task across bare/Hashmarks/Enola conditions; require a second independent source audit before future campaigns.",
+        "minimum_independent_reviews": 2
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "RepositoryIndexStore.paths_under queries file_map for an exact path or descendants below a prefix.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "bb522aaf7a3988b5c1e51986cbc4d9aa9eae7b78ee63840f3a2f52f66b6dc705"
+        },
+        {
+          "decision": "unique",
+          "reason": "Independent pinned-source inspection found RepositoryIndexStore.paths_under uniquely owns indexed-path prefix enumeration: it queries the persisted file_map index for the exact path or descendant range. _declaration_provider_paths instead traverses currently admitted repository files for declaration-provider input and is not an indexed-store query.",
+          "reviewer": "gpt-5.6-sol-independent-source-audit-2026-10-03",
+          "task_digest": "bb522aaf7a3988b5c1e51986cbc4d9aa9eae7b78ee63840f3a2f52f66b6dc705"
+        }
+      ],
+      "task_digest": "bb522aaf7a3988b5c1e51986cbc4d9aa9eae7b78ee63840f3a2f52f66b6dc705"
+    },
+    "locate-refresh-outcome": {
+      "alternatives": [
+        "Write command handlers call this helper but do not own this result conversion."
+      ],
+      "evidence": "withRefreshOutcome converts a saved write with a failed refresh to saved-refresh-required while preserving value and revision.",
+      "owner": {
+        "path": "ux/src/domain/mutations/WriteCommandResult.ts",
+        "symbol": "withRefreshOutcome"
+      },
+      "repository": {
+        "commit": "fbfad7ad14d96d2cb51a6da931b0fb1a60f66e9d",
+        "tree": "3ded8be71da0ac93700dcf3a3af76eb172e75ff8",
+        "url": "https://github.com/Hugloss/uv-fleet-updater.git"
+      },
+      "review_requirement": {
+        "escalation_reason": null,
+        "minimum_independent_reviews": 1
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "withRefreshOutcome converts a saved write with a failed refresh to saved-refresh-required while preserving value and revision.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "a822024365583862ab1b160254adbf1f5e5855877136b87a7e745667b2ead0b7"
+        }
+      ],
+      "task_digest": "a822024365583862ab1b160254adbf1f5e5855877136b87a7e745667b2ead0b7"
+    },
+    "repair-partial-receipt-regression": {
+      "alternatives": [
+        "write_receipt publishes evidence; it does not decide whether an existing partial directory is complete."
+      ],
+      "evidence": "The pinned receipt.is_complete_receipt requires result.json, result.sha256, and completion.json with matching hashes; the mutation changes this owner and the focused test rejects a partial result.",
+      "owner": null,
+      "repository": {
+        "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+        "tree": "65a32888329e308615647dda194f0e36c2afe2ac",
+        "url": "https://github.com/Hugloss/agentsCookbook.git"
+      },
+      "review_requirement": {
+        "escalation_reason": null,
+        "minimum_independent_reviews": 1
+      },
+      "reviews": [
+        {
+          "decision": "unique",
+          "reason": "The pinned receipt.is_complete_receipt requires result.json, result.sha256, and completion.json with matching hashes; the mutation changes this owner and the focused test rejects a partial result.",
+          "reviewer": "codex-independent-audit-2026-10-02",
+          "task_digest": "3b1df25c2b593c95e95d2aa2eb1290afcb0a2983205b005199804c4acc39f703"
+        }
+      ],
+      "task_digest": "3b1df25c2b593c95e95d2aa2eb1290afcb0a2983205b005199804c4acc39f703"
+    }
+  }
+}

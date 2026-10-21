@@ -105,7 +105,18 @@ class SuiteDefinition:
                             ),
                         }
                     )
-        return rows
+        order = self.experiment.get("execution_order")
+        if order is None:
+            return rows
+        _validate_execution_order(self.experiment)
+        indexed = {
+            (row["task_id"], row["condition_id"], row.get("replicate_id", row.get("seed"))): row
+            for row in rows
+        }
+        return [
+            indexed[(entry["task_id"], entry["condition_id"], entry["replicate_id"])]
+            for entry in order
+        ]
 
 
 def _load_experiment(root: Path) -> dict[str, Any]:
@@ -170,6 +181,7 @@ def _validate_participant_references(
         if agent in grouped and grouped[agent] != ids:
             raise SuiteError(f"agent {agent} has unpaired replicate_ids")
         grouped[agent] = ids
+    _validate_execution_order(experiment)
 
 
 def _condition_replicates(condition: dict[str, Any]) -> tuple[int, ...]:
@@ -177,6 +189,25 @@ def _condition_replicates(condition: dict[str, Any]) -> tuple[int, ...]:
         return tuple(int(value) for value in condition["replicate_ids"])
     seed = int(condition["seed"])
     return tuple(seed + index for index in range(int(condition["trials"])))
+
+
+def _validate_execution_order(experiment: dict[str, Any]) -> None:
+    """An optional frozen order must conserve every assignment exactly once."""
+    order = experiment.get("execution_order")
+    if order is None:
+        return
+    expected = {
+        (task, condition["id"], replicate)
+        for task in experiment["tasks"]
+        for condition in experiment["conditions"]
+        for replicate in _condition_replicates(condition)
+    }
+    keys = [
+        (entry["task_id"], entry["condition_id"], entry["replicate_id"])
+        for entry in order
+    ]
+    if len(keys) != len(expected) or len(set(keys)) != len(keys) or set(keys) != expected:
+        raise SuiteError("execution_order must contain every task/condition/replicate assignment exactly once")
 
 
 def _validate_context_conditions(experiment: dict[str, Any]) -> None:
