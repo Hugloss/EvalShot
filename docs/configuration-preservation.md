@@ -49,6 +49,14 @@ an observed subtotal; their total remains null when any measurement is unknown.
 Paired deltas also remain null when either measurement is unknown. Historical
 receipts are not rewritten.
 
+Native Codex now uses supported runtime-resolved diagnostics with explicit unknown
+fields, independent state, bounded opaque plugin transport, source/private native
+selection comparison, and native capability readback after subject exposure.
+It preserves requested-but-unselected settings separately from loaded native
+selection. See [Independent native Codex trials](native-codex-inputs.md) for its
+supported input scope and remaining external-service/configuration-equivalence
+limits.
+
 ## Remaining work from the ownership review
 
 This bundle does not claim complete configuration neutrality across every launch
@@ -58,10 +66,6 @@ path. In particular:
   sources differently. Unify transport only after validating global, project,
   custom-directory, relative-path, credentials and session-state behavior. Do not
   introduce an evaluator-owned configuration precedence algorithm.
-- Native Codex preparation still uses single-file model observation. Replace that
-  assumption using a supported runtime-resolved observation, preserving explicit
-  experiment identity requirements and distinguishing unavailable observation from
-  invalid configuration.
 
 The implementation changes which runtime behavior is evaluated. Start a new
 campaign generation for these source revisions; preserve historical suites,

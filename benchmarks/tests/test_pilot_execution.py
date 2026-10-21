@@ -338,7 +338,7 @@ class PilotExecutionTests(unittest.TestCase):
                 ):
                     harness_identity(root)
 
-    def test_native_codex_injects_exact_subject_and_disables_ambient_mcp(self) -> None:
+    def test_native_codex_injects_exact_subject_and_preserves_ambient_mcp(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             workspace = root / "workspace"
@@ -368,13 +368,11 @@ class PilotExecutionTests(unittest.TestCase):
             )
 
         self.assertIn("--approve-for-me", argv)
-        self.assertIn("mcp_servers.hashmarks.enabled=false", argv)
-        self.assertIn("mcp_servers.enola.enabled=false", argv)
-        self.assertIn("mcp_servers.hashmarks.enabled=true", argv)
-        self.assertIn(
-            'mcp_servers.hashmarks.command="/work/Hashmarks/.venv/bin/hashmarks"',
-            argv,
-        )
+        self.assertNotIn("mcp_servers.hashmarks.enabled=false", argv)
+        self.assertNotIn("mcp_servers.enola.enabled=false", argv)
+        configured = next(value for value in argv if value.startswith("mcp_servers.hashmarks="))
+        self.assertIn('command="/work/Hashmarks/.venv/bin/hashmarks"', configured)
+        self.assertIn("enabled=true", configured)
         self.assertNotIn("--model", argv)
 
     def test_pilot_suite_freezes_nine_paired_trials(self) -> None:

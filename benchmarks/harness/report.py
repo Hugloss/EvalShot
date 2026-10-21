@@ -636,6 +636,12 @@ def _comparison_identity(receipt: dict[str, Any]) -> dict[str, Any]:
     elif adapter == "codex":
         common["reasoning_effort"] = observed.get("reasoning_effort")
         common["native_config_sha256"] = observed.get("native_config_sha256")
+        for name in (
+            "provider", "native_config_observation", "native_state_isolation",
+            "native_plugins_observation", "native_namespace_observation",
+        ):
+            if observed.get(name) is not None:
+                common[name] = observed[name]
     return common
 
 
@@ -742,7 +748,10 @@ def _check_comparable_agents(receipts: list[dict[str, Any]]) -> None:
         global_identity = {
             key: value
             for key, value in identity.items()
-            if key != "native_config_sha256"
+            if key not in {
+                "native_config_sha256", "native_config_observation",
+                "native_plugins_observation",
+            }
         }
         prior_global = global_identities.setdefault(agent, global_identity)
         if prior_global != global_identity:

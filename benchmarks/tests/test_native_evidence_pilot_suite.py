@@ -74,6 +74,7 @@ class NativeEvidencePilotSuiteTests(unittest.TestCase):
         for name, agent in suite.agents.items():
             config = agent["configuration"]
             self.assertTrue(config["native_host"])
+            self.assertEqual(config["controlled_subject"], "hashmarks")
             self.assertFalse(set(config) & {"model", "provider", "reasoning_effort", "temperature", "max_tokens"})
             self.assertEqual(config.get("diagnostic_required_tool"), "hashmarks_task_evidence" if name == "codex-required" else None)
 

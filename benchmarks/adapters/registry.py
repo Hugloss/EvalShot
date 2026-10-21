@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from typing import Any
 
@@ -90,6 +91,15 @@ def build_agent(definition: dict[str, Any], *, budgets: dict[str, Any]):
             raise AdapterConfigurationError(
                 "diagnostic required tool needs native Codex and a canonical tool name"
             )
+        controlled_subject = config.get("controlled_subject")
+        if controlled_subject is not None and (
+            not native_host
+            or not isinstance(controlled_subject, str)
+            or re.fullmatch(r"[A-Za-z0-9_-]+", controlled_subject) is None
+        ):
+            raise AdapterConfigurationError(
+                "controlled subject needs native Codex and a canonical MCP server name"
+            )
         return CodexAgent(
             model=model,
             reasoning_effort=reasoning_effort,
@@ -98,6 +108,7 @@ def build_agent(definition: dict[str, Any], *, budgets: dict[str, Any]):
             max_output_bytes=max_output_bytes,
             max_tool_calls=max_tool_calls,
             diagnostic_required_tool=diagnostic_required_tool,
+            controlled_subject=controlled_subject,
         )
 
     if adapter == "opencode-native":

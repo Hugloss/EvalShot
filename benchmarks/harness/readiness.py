@@ -23,6 +23,7 @@ from benchmarks.harness.model import McpExposure, TrialContext
 from benchmarks.harness.subject_exposure import exposure_probe_required_tool
 from benchmarks.harness.runtime_authority import (
     native_host_paths,
+    transport_native_codex_environment,
     transport_runtime_authority,
 )
 from benchmarks.harness.suite import SuiteDefinition
@@ -172,6 +173,9 @@ def _agent_native_check(
     source: Mapping[str, str],
 ) -> ReadinessCheck:
     context = _context(root, f"agent-{agent_id}", source)
+    definition = suite.agents[agent_id]
+    if definition["adapter"] == "codex" and definition.get("configuration", {}).get("native_host") is True:
+        transport_native_codex_environment(source, context.environment)
     try:
         observation = _agent(suite, agent_id).prepare(context, None)
     except (OSError, ValueError) as exc:
@@ -241,6 +245,8 @@ def _pair_check(
     context = _context(root, f"pair-{agent_id}-{subject_id}", source)
     definition = suite.agents[agent_id]
     adapter = str(definition["adapter"])
+    if adapter == "codex" and definition.get("configuration", {}).get("native_host") is True:
+        transport_native_codex_environment(source, context.environment)
     label = (
         f"{agent_id} -> {subject_id} MCP"
         if adapter == "opencode-native"

@@ -35,6 +35,15 @@
     "safety_coverage": "no claim of complete ambiguity/negative-evidence/freshness qualification",
     "zero_adoption": "valid measured result after server catalog, configuration and complete supported native trace qualification"
   },
+  "native_configuration": {
+    "profile": "complete selected native configuration, including installed plugins; no plugin-free substitution",
+    "plugin_selection_owner": "native CLI loader over exact bounded installed candidate inputs",
+    "non_subject_capabilities": "preserved across A/B/C; unavailable enabled services block admission",
+    "controlled_subject": "hashmarks",
+    "state": "private trial state with native absolute paths mapped into the trial namespace",
+    "external_desktop_service_independence": "NOT_ESTABLISHED",
+    "host_read_secrecy": "NOT_ESTABLISHED"
+  },
   "omitted_candidates": {
     "declarations-00": "Pre-treatment source review found AMBIGUOUS source comparison: Dockerfile selects python:3.12 while requires-python >=3.12 specifies a compatibility range; equal normalized producer claim strings do not establish equivalent source declaration semantics. Original task and results remain historical, without regrading.",
     "freshness-00": "Independent source review found original rewrite unspecified and source/metadata conflicting; fixed next-evidence vocabulary excludes defensible responses. Original suite/results remain historical and are not regraded."
