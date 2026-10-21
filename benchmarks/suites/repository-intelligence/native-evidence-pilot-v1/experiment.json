@@ -1,0 +1,155 @@
+{
+  "id": "repository-intelligence-native-evidence-pilot-v1",
+  "version": 1,
+  "suite": "repository-intelligence",
+  "oracle_reviews": "qualification/oracle-reviews.json",
+  "tasks": [
+    "locate-prefix-path-enumerator",
+    "locate-refresh-outcome",
+    "repair-partial-receipt-regression"
+  ],
+  "conditions": [
+    {
+      "id": "none-codex-native",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 2,
+      "replicate_ids": [
+        9501,
+        9502
+      ]
+    },
+    {
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 2,
+      "replicate_ids": [
+        9501,
+        9502
+      ]
+    },
+    {
+      "id": "hashmarks-codex-required",
+      "subject": "hashmarks",
+      "agent": "codex-required",
+      "trials": 2,
+      "replicate_ids": [
+        9501,
+        9502
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "native-evidence-discovery-pilot",
+    "version": 1,
+    "metrics": [
+      "task_success",
+      "semantic_gradeability",
+      "format_compliance",
+      "subject_tool_invoked",
+      "subject_mcp_calls",
+      "mcp_result_bytes",
+      "input_tokens",
+      "cached_input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ]
+  },
+  "subject_exposure_contract": {
+    "require_probe_contract": true
+  },
+  "execution_order": [
+    {
+      "task_id": "locate-prefix-path-enumerator",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "locate-prefix-path-enumerator",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "locate-prefix-path-enumerator",
+      "condition_id": "hashmarks-codex-required",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "locate-prefix-path-enumerator",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "locate-prefix-path-enumerator",
+      "condition_id": "hashmarks-codex-required",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "locate-prefix-path-enumerator",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "locate-refresh-outcome",
+      "condition_id": "hashmarks-codex-required",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "locate-refresh-outcome",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "locate-refresh-outcome",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "locate-refresh-outcome",
+      "condition_id": "hashmarks-codex-required",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "locate-refresh-outcome",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "locate-refresh-outcome",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "repair-partial-receipt-regression",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "repair-partial-receipt-regression",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "repair-partial-receipt-regression",
+      "condition_id": "hashmarks-codex-required",
+      "replicate_id": 9501
+    },
+    {
+      "task_id": "repair-partial-receipt-regression",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "repair-partial-receipt-regression",
+      "condition_id": "hashmarks-codex-required",
+      "replicate_id": 9502
+    },
+    {
+      "task_id": "repair-partial-receipt-regression",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9502
+    }
+  ]
+}

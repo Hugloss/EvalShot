@@ -342,6 +342,8 @@ def _agent_authority(agent, prepared: Observation) -> dict[str, Any]:
             "reasoning_effort": prepared.payload.get("reasoning_effort"),
             "provider": prepared.payload.get("provider"),
             "native_config_sha256": prepared.payload.get("native_config_sha256"),
+            "native_config_observation": prepared.payload.get("native_config_observation"),
+            "native_state_isolation": prepared.payload.get("native_state_isolation"),
             "native_mcp_servers": prepared.payload.get("native_mcp_servers"),
         },
     }
@@ -521,7 +523,7 @@ def admit_trial(
         if native_codex or native_opencode:
             native_paths = native_host_paths(source)
             if native_codex:
-                context.environment["CODEX_HOME"] = native_paths["codex_home"]
+                context.environment["BENCHMARK_NATIVE_CODEX_HOME"] = native_paths["codex_home"]
             if native_opencode:
                 context.environment["BENCHMARK_NATIVE_HOME"] = native_paths["home"]
                 context.environment["BENCHMARK_NATIVE_XDG_CONFIG_HOME"] = native_paths[

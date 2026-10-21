@@ -1,0 +1,20 @@
+{
+  "id": "codex-required",
+  "adapter": "codex",
+  "identity": {
+    "id": "codex-required",
+    "version": "host-config-required-use-v1"
+  },
+  "capabilities": [
+    "shell",
+    "workspace_edit",
+    "mcp",
+    "jsonl_trace",
+    "native_config"
+  ],
+  "configuration": {
+    "native_host": true,
+    "timeout_seconds": 600,
+    "diagnostic_required_tool": "hashmarks_task_evidence"
+  }
+}

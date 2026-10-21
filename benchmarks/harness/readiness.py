@@ -75,7 +75,7 @@ def _context(root: Path, label: str, source: Mapping[str, str]) -> TrialContext:
     transport_runtime_authority(source, environment)
 
     native = native_host_paths(source)
-    environment["CODEX_HOME"] = native["codex_home"]
+    environment["BENCHMARK_NATIVE_CODEX_HOME"] = native["codex_home"]
     environment["BENCHMARK_NATIVE_HOME"] = native["home"]
     environment["BENCHMARK_NATIVE_XDG_CONFIG_HOME"] = native["xdg_config_home"]
     return TrialContext(

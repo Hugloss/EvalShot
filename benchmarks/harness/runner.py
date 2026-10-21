@@ -856,6 +856,7 @@ def run_trial(
                     "detail": diagnostic_detail,
                 },
                 "measurements": {
+                    "admission": dict(admission.admission_timings_ms),
                     "subject_prepare": subject_prepare.measurements,
                     "agent_prepare": agent_prepare.measurements,
                     "agent": agent_observation.measurements,
