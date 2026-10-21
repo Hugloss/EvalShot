@@ -1,0 +1,1082 @@
+{
+  "producer": {
+    "repository": "https://github.com/Hugloss/Hashmarks",
+    "commit": "9fcc7f1c474a8de10ac739e8b5c4cbf2da0f0903",
+    "capture": "CodeMap.tasks.evidence(full/initial) -> native MCP CallToolResult",
+    "fixture_source": {
+      "a.py": "def target_impl(value):\n    return value + 1\n",
+      "b.py": "def target_impl(value):\n    return value - 1\n"
+    }
+  },
+  "full": {
+    "schema": "hashmarks.task-evidence.v5",
+    "task": "change target_impl behavior",
+    "evidence_receipt": {
+      "schema": "hashmarks.decision-evidence-receipt.v1",
+      "evidence_identity": "7fb4d9902f85863d288b8856e840b60208ce3a19f27c8f2bba6cb7811f76105a",
+      "repository_identity": "workspace:d15e42ab70110e8a16ab4001cd141966762d50ae6309b7b402528c46f7e39690",
+      "task_identity": "974aef11f1b08dc5b86a0522806cd093f7fc792b1c0f2406388493427751fdb7",
+      "codemap_generation": 1,
+      "stale": null
+    },
+    "retrieval": {
+      "results": [
+        {
+          "path": "a.py",
+          "rank": 1,
+          "symbol": "target_impl",
+          "roles": [
+            "edit"
+          ],
+          "start_line": 1,
+          "end_line": 2,
+          "evidence_visibility": "source"
+        },
+        {
+          "path": "b.py",
+          "rank": 2,
+          "symbol": "target_impl",
+          "roles": [
+            "edit"
+          ],
+          "start_line": 1,
+          "end_line": 2,
+          "evidence_visibility": "source"
+        }
+      ],
+      "bounds": {
+        "limit": 20,
+        "per_role": 3,
+        "canonical_completeness": "complete",
+        "canonical_truncation": "complete",
+        "bound_reasons": []
+      },
+      "ordering": "retrieval-relevance-only",
+      "ownership_authority": false,
+      "presentation": "compact-locators-v1"
+    },
+    "explicit_target": {
+      "status": "not-explicit",
+      "basis": null,
+      "path": null,
+      "symbol": null
+    },
+    "ownership": {
+      "status": "ambiguous",
+      "authority_proof_identity": "sha256:4c300a7b92bb57c8341f38241317cf2b08c20afa128eead15d7d7a9e9ba976c9",
+      "proof_scope": null,
+      "proof_scope_complete": false,
+      "owner": null,
+      "candidate": {
+        "path": "a.py",
+        "canonical_rank": 1,
+        "canonical_score": 32.786885245901644,
+        "domains": [
+          "source"
+        ],
+        "roles": [
+          "edit"
+        ],
+        "name": "target_impl",
+        "qualname": "target_impl",
+        "signature": "def target_impl(value)",
+        "start_line": 1,
+        "end_line": 2,
+        "evidence_visibility": "source"
+      },
+      "basis": null,
+      "candidate_basis": null,
+      "ambiguity": {
+        "schema": "hashmarks.action-ambiguity.v2",
+        "ambiguous": true,
+        "reason": "multiple-exact-identifier-edit-owners",
+        "candidates": [
+          {
+            "path": "a.py",
+            "canonical_rank": 1,
+            "canonical_score": 32.786885245901644,
+            "domains": [
+              "source"
+            ],
+            "roles": [
+              "edit"
+            ],
+            "name": "target_impl",
+            "qualname": "target_impl",
+            "signature": "def target_impl(value)",
+            "start_line": 1,
+            "end_line": 2,
+            "evidence_visibility": "source",
+            "plausibility": "current-best-edit-authority",
+            "discriminator": "inspect ownership/definition evidence and verify whether this path owns the requested behavior"
+          },
+          {
+            "path": "b.py",
+            "canonical_rank": 2,
+            "canonical_score": 29.03225806451613,
+            "domains": [
+              "source"
+            ],
+            "roles": [
+              "edit"
+            ],
+            "name": "target_impl",
+            "qualname": "target_impl",
+            "signature": "def target_impl(value)",
+            "start_line": 1,
+            "end_line": 2,
+            "evidence_visibility": "source",
+            "plausibility": "alternate-edit-authority",
+            "discriminator": "inspect symbol ownership, callers, and repository relationships to determine the actual implementation owner"
+          }
+        ],
+        "alternatives": [
+          {
+            "path": "b.py",
+            "canonical_rank": 2,
+            "canonical_score": 29.03225806451613,
+            "domains": [
+              "source"
+            ],
+            "roles": [
+              "edit"
+            ],
+            "name": "target_impl",
+            "qualname": "target_impl",
+            "signature": "def target_impl(value)",
+            "start_line": 1,
+            "end_line": 2,
+            "evidence_visibility": "source"
+          }
+        ],
+        "task_local_structural_owners": [],
+        "task_local_verification_origins": [],
+        "discrimination_question": "Which worker-visible path actually owns the requested behavior, and what repository evidence distinguishes ownership from verification or compatibility surfaces?",
+        "secret_knowledge_used": false
+      },
+      "authority": "repository-ownership-only",
+      "source_evidence": null,
+      "next_read": null,
+      "source_budget": {
+        "requested_tokens": 256,
+        "estimated_tokens": 0,
+        "complete": false
+      }
+    },
+    "verification": {
+      "selected": null,
+      "relevance": {
+        "schema": "hashmarks.verification-relevance.v1",
+        "selected": null,
+        "candidates": [],
+        "selection_reason": "no-edit-owner",
+        "selection_changed": false,
+        "authority": "bounded-index-evidence-not-verification-execution",
+        "secret_knowledge_used": false,
+        "task_matches": {
+          "basis": "indexed-task-term-matches",
+          "index_generation": 1,
+          "source_binding": "indexed-not-source-revalidated",
+          "matches": [],
+          "observed_in_search": 0,
+          "omitted_from_projection": 0,
+          "search_truncated": false,
+          "bounds": {
+            "lexical_files": 64,
+            "returned_test_paths": 16
+          },
+          "edit_relationship": "unestablished",
+          "verification_selection_authority": false,
+          "negative_evidence_admissible": false
+        },
+        "candidate_disclosure": {
+          "basis": "indexed-source-candidates-and-task-matches",
+          "source_locator_bound": 3,
+          "subject_bound": 6,
+          "observed_subjects": 2,
+          "returned_bound": 8,
+          "observed_candidates": 0,
+          "returned_candidates": 0,
+          "omitted_candidates": 0,
+          "verification_selection_authority": false,
+          "negative_evidence_admissible": false
+        }
+      },
+      "plan": {
+        "schema": "hashmarks.verification-plan.v1",
+        "available": false,
+        "reason": "no-verification-surface"
+      },
+      "authority": "repository-verification-evidence-only"
+    },
+    "related": {
+      "contract": null,
+      "inspect": [],
+      "candidates": []
+    },
+    "consumer_action": "external",
+    "provenance": {
+      "why": "canonical-edit-role",
+      "freshness": "unknown",
+      "revision": "32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b",
+      "context_identity": "sha256:5ccec727808311151ba685b6b72c8915e5738459fec00572b88ebea320449633"
+    },
+    "freshness": {
+      "state": "unknown",
+      "reason": null
+    },
+    "evidence_packet_identity": "sha256:a060b62b8c57a680b8c0c482b6837a46b3d9037dd74788245a3d1cf4e3bcb242"
+  },
+  "resolved_full": {
+    "schema": "hashmarks.task-evidence.v5",
+    "task": "change a.py",
+    "evidence_receipt": {
+      "schema": "hashmarks.decision-evidence-receipt.v1",
+      "evidence_identity": "a51f92e8010ca542c4346e4974a32f7b58245477b9f8b3d3f87e18cdc5d3221a",
+      "repository_identity": "workspace:d15e42ab70110e8a16ab4001cd141966762d50ae6309b7b402528c46f7e39690",
+      "task_identity": "7f4e02e6de8e60e92f71835f57e741b6816e8fc72c1733d3a0fa77f3138539cd",
+      "codemap_generation": 1,
+      "stale": null
+    },
+    "retrieval": {
+      "results": [
+        {
+          "path": "a.py",
+          "rank": 1,
+          "roles": [
+            "edit"
+          ],
+          "evidence_visibility": "source"
+        },
+        {
+          "path": "b.py",
+          "rank": 2,
+          "roles": [
+            "edit"
+          ],
+          "evidence_visibility": "source"
+        }
+      ],
+      "bounds": {
+        "limit": 20,
+        "per_role": 3,
+        "canonical_completeness": "complete",
+        "canonical_truncation": "complete",
+        "bound_reasons": []
+      },
+      "ordering": "requested-identifiers-then-retrieval-relevance",
+      "ownership_authority": false,
+      "presentation": "compact-locators-v1",
+      "exact_identifier_supplements": {
+        "observed": 0,
+        "returned": 0,
+        "search_complete": false,
+        "omitted": 0,
+        "ownership_authority": false
+      }
+    },
+    "explicit_target": {
+      "status": "resolved",
+      "basis": "literal-path",
+      "path": "a.py",
+      "symbol": null
+    },
+    "ownership": {
+      "status": "resolved",
+      "authority_proof_identity": "sha256:8744d3205fbe520e09ede76c2d65e98b593ae4f4ca364fd06414be2b1f64a17d",
+      "proof_scope": "repository-global-path-identity",
+      "proof_scope_complete": true,
+      "owner": {
+        "path": "a.py",
+        "canonical_rank": 1,
+        "canonical_score": 19.67213114754098,
+        "domains": [
+          "source"
+        ],
+        "roles": [
+          "edit"
+        ],
+        "name": null,
+        "qualname": null,
+        "signature": null,
+        "start_line": null,
+        "end_line": null,
+        "evidence_visibility": "source"
+      },
+      "candidate": {
+        "path": "a.py",
+        "canonical_rank": 1,
+        "canonical_score": 19.67213114754098,
+        "domains": [
+          "source"
+        ],
+        "roles": [
+          "edit"
+        ],
+        "name": null,
+        "qualname": null,
+        "signature": null,
+        "start_line": null,
+        "end_line": null,
+        "evidence_visibility": "source"
+      },
+      "basis": "literal-path",
+      "candidate_basis": "literal-path",
+      "ambiguity": {
+        "schema": "hashmarks.action-ambiguity.v2",
+        "ambiguous": false,
+        "reason": "resolved-by-role",
+        "candidates": [],
+        "alternatives": [
+          {
+            "path": "b.py",
+            "canonical_rank": 2,
+            "canonical_score": 19.35483870967742,
+            "domains": [
+              "source"
+            ],
+            "roles": [
+              "edit"
+            ],
+            "name": null,
+            "qualname": null,
+            "signature": null,
+            "start_line": null,
+            "end_line": null,
+            "evidence_visibility": "source"
+          }
+        ],
+        "task_local_structural_owners": [],
+        "task_local_verification_origins": [],
+        "discrimination_question": null,
+        "secret_knowledge_used": false
+      },
+      "authority": "repository-ownership-only",
+      "source_evidence": {
+        "symbol": null,
+        "representation": "outline",
+        "content": "def target_impl(value)  [1-2]",
+        "estimated_tokens": 8
+      },
+      "next_read": {
+        "path": "a.py",
+        "symbol": null,
+        "reason": "no-exact-symbol-range"
+      },
+      "source_budget": {
+        "requested_tokens": 256,
+        "estimated_tokens": 8,
+        "complete": false
+      }
+    },
+    "verification": {
+      "selected": null,
+      "relevance": {
+        "schema": "hashmarks.verification-relevance.v1",
+        "selected": null,
+        "candidates": [],
+        "candidate_count": 0,
+        "selection_reason": "no-verification-candidate",
+        "completeness": "complete",
+        "truncation": "complete",
+        "negative_evidence_admissible": true,
+        "search_bound_reasons": [],
+        "selection_changed": false,
+        "current_canonical_verify": null,
+        "qualified_identity_ambiguous": false,
+        "verifier_identity_ambiguous": false,
+        "unresolved_import_identity_paths": [],
+        "unresolved_reference_identity_paths": [],
+        "unresolved_reference_identity_omitted_paths": 0,
+        "bounds": {
+          "returned_candidates": 8,
+          "reverse_refs_per_symbol": 1024,
+          "module_test_paths": 64,
+          "module_test_reverse_refs_per_symbol": 1024,
+          "edit_symbols": 16,
+          "indirect_source_paths": 64,
+          "indirect_symbols_per_source": 16,
+          "indirect_reverse_refs_per_symbol": 256,
+          "indirect_test_paths": 4096,
+          "indirect_test_reverse_refs_per_symbol": 1024
+        },
+        "authority": "bounded-index-evidence-not-verification-execution",
+        "secret_knowledge_used": false,
+        "task_matches": {
+          "basis": "indexed-task-term-matches",
+          "index_generation": 1,
+          "source_binding": "indexed-not-source-revalidated",
+          "matches": [],
+          "observed_in_search": 0,
+          "omitted_from_projection": 0,
+          "search_truncated": false,
+          "bounds": {
+            "lexical_files": 64,
+            "returned_test_paths": 16
+          },
+          "edit_relationship": "unestablished",
+          "verification_selection_authority": false,
+          "negative_evidence_admissible": false
+        },
+        "candidate_disclosure": {
+          "basis": "indexed-source-candidates-and-task-matches",
+          "source_locator_bound": 3,
+          "subject_bound": 6,
+          "observed_subjects": 2,
+          "returned_bound": 8,
+          "observed_candidates": 0,
+          "returned_candidates": 0,
+          "omitted_candidates": 0,
+          "verification_selection_authority": false,
+          "negative_evidence_admissible": false
+        }
+      },
+      "plan": {
+        "schema": "hashmarks.verification-plan.v1",
+        "available": false,
+        "reason": "no-verification-surface"
+      },
+      "authority": "repository-verification-evidence-only"
+    },
+    "related": {
+      "contract": null,
+      "inspect": [],
+      "candidates": [],
+      "resource_lifecycle": {
+        "schema": "hashmarks.python-filesystem-lifecycle-observation.v1",
+        "repository_identity": "sha256:c9e759bd2ecba4fd118d46ff79aa2dd50b6b18e056f2d789e02cedad63a29ae6",
+        "generation": 1,
+        "stale": null,
+        "producer": {
+          "version": "0.31.2",
+          "rules": "python-filesystem-source-bindings.v1",
+          "implementation_identity": "sha256:8d3f7b5c828b7298e14b65728400ea52f28da8faf3ac02ca9447ac7bef8a2970"
+        },
+        "scope": [
+          "a.py"
+        ],
+        "bounds": {
+          "max_depth": 8,
+          "calls_per_symbol": 64,
+          "references_per_symbol": 256,
+          "symbols_per_anchor": 256,
+          "candidate_paths": 10000,
+          "observations": 256
+        },
+        "source_revisions": {
+          "a.py": "32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b"
+        },
+        "coverage": {
+          "completeness": "complete-within-supported-scope",
+          "truncated": false,
+          "negative_evidence_admissible": false,
+          "runtime_protection": "unverified"
+        },
+        "operations": [],
+        "observations": [],
+        "unresolved": [],
+        "accounting": {
+          "requested_paths": 1,
+          "considered_paths": 1,
+          "bounded_paths": 0,
+          "analyzed_paths": 1,
+          "failed_paths": 0,
+          "observed": 0,
+          "returned": 0,
+          "omitted": 0
+        },
+        "authority": "repository-evidence-only",
+        "execution_effect": "none",
+        "observation_identity": "sha256:778c23e0c71367db0b332047b7e67e9b93181b5aa13e14930e29d8698c1e4fbb"
+      }
+    },
+    "consumer_action": "external",
+    "provenance": {
+      "why": "canonical-edit-role",
+      "freshness": "unknown",
+      "revision": "32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b",
+      "context_identity": "sha256:1a9f958ec84388b2d7b55514c287a17f508e585bbf51c040858f166ce5f587dd"
+    },
+    "freshness": {
+      "state": "unknown",
+      "reason": null
+    },
+    "evidence_packet_identity": "sha256:1ea42ea696f0738896aa4d968728c738ec8935c932d8ae125a82c644c55e01ca"
+  },
+  "initial_logical": {
+    "schema": "hashmarks.task-evidence-initial.v2",
+    "source_evidence_identity": "sha256:a060b62b8c57a680b8c0c482b6837a46b3d9037dd74788245a3d1cf4e3bcb242",
+    "evidence_packet_identity": "sha256:71868c974e9d3bff4a44ce62937c9e75dd6c50a198ef4f9c393d09859ae9cac5",
+    "task": "change target_impl behavior",
+    "evidence_receipt": {
+      "schema": "hashmarks.decision-evidence-receipt.v1",
+      "evidence_identity": "7fb4d9902f85863d288b8856e840b60208ce3a19f27c8f2bba6cb7811f76105a",
+      "repository_identity": "workspace:d15e42ab70110e8a16ab4001cd141966762d50ae6309b7b402528c46f7e39690",
+      "task_identity": "974aef11f1b08dc5b86a0522806cd093f7fc792b1c0f2406388493427751fdb7",
+      "codemap_generation": 1,
+      "stale": null
+    },
+    "retrieval": {
+      "results": [
+        {
+          "path": "a.py",
+          "rank": 1,
+          "symbol": "target_impl",
+          "roles": [
+            "edit"
+          ],
+          "start_line": 1,
+          "end_line": 2,
+          "evidence_visibility": "source"
+        },
+        {
+          "path": "b.py",
+          "rank": 2,
+          "symbol": "target_impl",
+          "roles": [
+            "edit"
+          ],
+          "start_line": 1,
+          "end_line": 2,
+          "evidence_visibility": "source"
+        }
+      ],
+      "bounds": {
+        "limit": 20,
+        "per_role": 3,
+        "canonical_completeness": "complete",
+        "canonical_truncation": "complete",
+        "bound_reasons": []
+      },
+      "ordering": "retrieval-relevance-only",
+      "ownership_authority": false,
+      "presentation": "compact-locators-v1"
+    },
+    "explicit_target": {
+      "status": "not-explicit",
+      "basis": null,
+      "path": null,
+      "symbol": null
+    },
+    "ownership": {
+      "status": "ambiguous",
+      "authority_proof_identity": "sha256:4c300a7b92bb57c8341f38241317cf2b08c20afa128eead15d7d7a9e9ba976c9",
+      "proof_scope": null,
+      "proof_scope_complete": false,
+      "owner": null,
+      "candidate": {
+        "path": "a.py",
+        "domains": [
+          "source"
+        ],
+        "roles": [
+          "edit"
+        ],
+        "qualname": "target_impl",
+        "start_line": 1,
+        "end_line": 2,
+        "evidence_visibility": "source"
+      },
+      "basis": null,
+      "candidate_basis": null,
+      "ambiguity": {
+        "schema": "hashmarks.action-ambiguity.v2",
+        "ambiguous": true,
+        "reason": "multiple-exact-identifier-edit-owners",
+        "candidates": [
+          {
+            "path": "a.py",
+            "canonical_rank": 1,
+            "canonical_score": 32.786885245901644,
+            "domains": [
+              "source"
+            ],
+            "roles": [
+              "edit"
+            ],
+            "name": "target_impl",
+            "qualname": "target_impl",
+            "signature": "def target_impl(value)",
+            "start_line": 1,
+            "end_line": 2,
+            "evidence_visibility": "source",
+            "plausibility": "current-best-edit-authority",
+            "discriminator": "inspect ownership/definition evidence and verify whether this path owns the requested behavior"
+          },
+          {
+            "path": "b.py",
+            "canonical_rank": 2,
+            "canonical_score": 29.03225806451613,
+            "domains": [
+              "source"
+            ],
+            "roles": [
+              "edit"
+            ],
+            "name": "target_impl",
+            "qualname": "target_impl",
+            "signature": "def target_impl(value)",
+            "start_line": 1,
+            "end_line": 2,
+            "evidence_visibility": "source",
+            "plausibility": "alternate-edit-authority",
+            "discriminator": "inspect symbol ownership, callers, and repository relationships to determine the actual implementation owner"
+          }
+        ],
+        "alternatives": [
+          {
+            "path": "b.py",
+            "domains": [
+              "source"
+            ],
+            "roles": [
+              "edit"
+            ],
+            "qualname": "target_impl",
+            "start_line": 1,
+            "end_line": 2,
+            "evidence_visibility": "source"
+          }
+        ],
+        "task_local_structural_owners": [],
+        "task_local_verification_origins": [],
+        "discrimination_question": "Which worker-visible path actually owns the requested behavior, and what repository evidence distinguishes ownership from verification or compatibility surfaces?",
+        "secret_knowledge_used": false
+      },
+      "authority": "repository-ownership-only",
+      "source_evidence": null,
+      "next_read": null,
+      "source_budget": {
+        "requested_tokens": 256,
+        "estimated_tokens": 0,
+        "complete": false
+      }
+    },
+    "verification": {
+      "selected": null,
+      "relevance": {
+        "schema": "hashmarks.verification-relevance.v1",
+        "selected": null,
+        "candidates": [],
+        "selection_reason": "no-edit-owner",
+        "selection_changed": false,
+        "authority": "bounded-index-evidence-not-verification-execution",
+        "secret_knowledge_used": false,
+        "task_matches": {
+          "basis": "indexed-task-term-matches",
+          "index_generation": 1,
+          "source_binding": "indexed-not-source-revalidated",
+          "matches": [],
+          "observed_in_search": 0,
+          "omitted_from_projection": 0,
+          "search_truncated": false,
+          "bounds": {
+            "lexical_files": 64,
+            "returned_test_paths": 16
+          },
+          "edit_relationship": "unestablished",
+          "verification_selection_authority": false,
+          "negative_evidence_admissible": false,
+          "matches_encoding": {
+            "kind": "columns-rows.v1",
+            "columns": [
+              "path",
+              "matched_term_count",
+              "evidence_visibility"
+            ]
+          }
+        },
+        "candidate_disclosure": {
+          "basis": "indexed-source-candidates-and-task-matches",
+          "source_locator_bound": 3,
+          "subject_bound": 6,
+          "observed_subjects": 2,
+          "returned_bound": 8,
+          "observed_candidates": 0,
+          "returned_candidates": 0,
+          "omitted_candidates": 0,
+          "verification_selection_authority": false,
+          "negative_evidence_admissible": false
+        }
+      },
+      "plan": {
+        "schema": "hashmarks.verification-plan.v1",
+        "available": false,
+        "reason": "no-verification-surface"
+      },
+      "authority": "repository-verification-evidence-only"
+    },
+    "consumer_action": "external",
+    "provenance": {
+      "why": "canonical-edit-role",
+      "freshness": "unknown",
+      "revision": "32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b",
+      "context_identity": "sha256:5ccec727808311151ba685b6b72c8915e5738459fec00572b88ebea320449633"
+    },
+    "freshness": {
+      "state": "unknown",
+      "reason": null
+    },
+    "initial_projection": {
+      "authority": "projection-only",
+      "omissions": {
+        "locator_fields": [
+          "canonical_rank",
+          "canonical_score",
+          "name",
+          "signature",
+          "namespace_overlap",
+          "namespace_terms",
+          "task_anchor_count",
+          "task_anchor_terms",
+          "runner_available"
+        ],
+        "locator_scopes": [
+          "/ownership/owner",
+          "/ownership/candidate",
+          "/ownership/ambiguity/alternatives/*",
+          "/verification/selected",
+          "/verification/relevance/selected",
+          "/verification/relevance/candidates/*"
+        ],
+        "sections": [
+          "/related"
+        ],
+        "collections": {
+          "/retrieval/results": {
+            "observed_in_source_packet": 2,
+            "returned": 2,
+            "omitted": 0
+          },
+          "/verification/relevance/candidates": {
+            "observed_in_source_packet": 0,
+            "returned": 0,
+            "omitted": 0
+          }
+        }
+      },
+      "expansion": {
+        "operation": "task_evidence",
+        "result_mode": "default",
+        "identity_check": "compare-full-packet-identity; changed source may differ"
+      },
+      "negative_evidence_from_omissions": "not-admissible"
+    }
+  },
+  "initial_wire": {
+    "schema": "hashmarks.task-evidence-initial.v2",
+    "source_evidence_identity": "sha256:a060b62b8c57a680b8c0c482b6837a46b3d9037dd74788245a3d1cf4e3bcb242",
+    "evidence_packet_identity": "sha256:71868c974e9d3bff4a44ce62937c9e75dd6c50a198ef4f9c393d09859ae9cac5",
+    "encoding": {
+      "kind": "json+lzma-base85",
+      "decoded_bytes": 5341
+    },
+    "data": "{Wp48S^xk9=GL@E0stWa0ssI2yzicT;1t{kmR$fnh>C_(Y$Ri0xL<8%rw#5FN=_Zo6_$s>Oz3(o^cj{2GCLTPRR2qmFH)=x_<Hev=VAm3>cV}|FVTxtzncO}ARK(-g6H`4XHW$($UnSLKS*}Uv6)z(KE34(_Tz)~m{#~$IUzZ|__HT?MnD7sz^Z`Z5O7Zn^cp6I-d*eLn`8w?)OU5<k(_E`4^veNB%z4O?>)dqX7de=5*^k~WgwPhcWn+9AB!mAxL2J`aMSYjRh+eb1)arEXch`URvW8^8Xl#NAkS$!sOG<;kd?Vwfmw5H;f^z)*3|-9`;$WhW(7eC`cCgevrqEtff`V!UKc4)0g_KYcbY?o9+g0_>KS=ab1F+<%h|A4YCvgyE6`jq2jA<J7rRlmqyIB}uJL!$ty9?3x0@ZfQ!{rp{(g3lMq7t^r)$HcD#D-QgIj}fY1Z=9AFqm1-Tb>2+S(F6ry<cBVs(8X+fZ{6Pc1!cJ7p<X`>mL$#vU`!&PphDlw4GY5$SBNk|MrMU$rO1NEO5Ggw>+^ZIuwx3NT9%wA>)f+;grW0q9MFS{Z?kKDDQ;$9B{Fc7f_$oj+)sUZ-9}2{LrFS?dJ43J4hqp_?HR(;3wbQoLiR(s!(c?k7)inX-h9OhEjf3+~>gM;n+0QBPa9qcfva?<$KPw~uT&ZL`$+4<N>MRo|d~2O3off2}JuMCBkY3eoj=1kK6+3$L?VrfONsrH{9^)8KC_XX7`6W9$1TD@(s^%Lq^z@NwO^_o_Ut<J(Bjhbz3H+H;4fGlb~*0QoVV_|H(_))o#Q5~B0A=<Rww8KYWP*AbEN0;)TDZQ;h7Z1FCp$q#Q8PrJ#djy<{yg{?N<id4L=yx%`+6JylvPD&ON2V#4urJ@?8)wr`6@i_IfQJ-IHvLgh=l9757NyX7PA`nBP+D`B)t%stew26`b(8G9GWwRh?Q>G#5@oaj4Eac6MY{nwm#ZC#OwGKCKPh#$KFOC3@Y%Wc6i^mehf}s3)d)O1DFoG>AX-14aZ6Io0CBS!uT<kIyf^R2+JYiJQ4)x$ciky#K?O#TW3yEfot*+vjmA6nfIFG@>UFLLza_`hLW4Vq$1+Q*%7qI4ZnoZLHK?ioEIILEP*RA2y3$5BkPnlmk-Q9WRY?^(TAXmDnbLRW#(qC44M1IW2M|O>KDDpZl)RAMT#`AaKohqx!Ye`&TK9VDfxXc*`BTN7>khhGFu1I6((f1%1j}!Q#@5>U0$MPjvW|MAY*@&fMo7@!vJkHll4}POE=E5HS2_h-Ssa2XkQz9g(!@L9h`ER^l2OvBI!$t2jYg0hJ5gk8_NZrUjYt|f!Do-Ln3uzoO42Ij@zR_KTM{N_ZvWa(HT_s|BFEpsIX6&-{dA0~?fy(hCTYQFm`A}V~_fxhpzq6GF)xBh7%Bfrwq&`x>lC4`m>}pAF)Vc_AZ2b5TP_=|iO@Qq<BOwYnutliJPJ-~}_^<V`{VsX#JFGikqG}VIa&H1i#I$=lR-?QZeunZjP){afo^vFu9IIh^tnMY<r#anzDy2OuK1TpL!-y(j_Z-BXIG;9pH(0**H^Px#4~k-M;L5niy}70m(;j9=5KqfGmX2fVHwffkd6;|3STQBuM7-E)(|LwA0QbQvQWrQwWGp9asN)3A$9q-Y>{WNjdhUh&kL_@MFTaiQRUX4OG=fo(_P>wGQ^AivoI6&x#RqAH@rCNbRcvq!TXi<8bx{UN6)5-24~e)`q3%H(rWgr;J!c;%lbufyEK)bCMc82URMMKhQdPV&<tN$)Iys}?48~SWZ^;c_E8MS)2o<$sfkDjskx@swg7jKbOsF53#{L_h<UZ6b$)=}2Uh&m2xL6;sWrL1SYJ4H;XJ!V7jw{P-`9nqt<6f!8m)uhWXM{KT^S-xDEgl^8L>n~seE-9iS*;B-Q-eDArd&^`n#0$>^H;7b!Zz~g4emjJ*0Z=^zj1W5KkGJJ(oDHSs(57BGiBf<$&@Tq2>n}MQmM&rs}lZ()(Z<q;*DQT7_t|pJww;4jL=p!MDM%AbdpQvbCtw9q*78DN1kq9)0ZL}O;g7CVVn_ke-ff*Dsr)O^<&EQ9FDol;LW?Od_23ac}PGGdf8r`X8Gl2?a4DeNxa%SZf?iNNFszCpf+X#$$Sq%Jv%f@Yl*4+P8&xZXjXCx*~SatDs~A|SPNO&G7~chttunH{*a?=bF}v;Ai4v1G~%V0eMBU5T60=il>>u~qo&#5R4u?ku%5E5h-f+ENrGaTWA=hAp5!ug4KQRk$r_068!%JbhQ-o4z4ClEl1WUBiV5PrdWhCNW4B^>;FIdco~BNip;Tu|xvm|jGfnT{uiQ44MkV_O*GXvH22bwZrrbe}iC$|ACc5>A*L80c)^?X$-xqDe>S-7+=Z79J#Zh$OlhL;vOuA^(eV4-(cTbwid?buDZ#{X>f;!A>W#un?P=VQ|b^%EDOl3I3JLpP)zSAW^eCR63eq#LzP~b!f4rF44y#ibq|9&g)SM4_200000jv3-Ra#q|700FWO-6;S7S?#6uvBYQl0ssI200dcD"
+  },
+  "mcp_result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Ownership: ambiguous; freshness: {\"reason\": null, \"state\": \"unknown\"} (@ /ownership, /freshness).\nAmbiguity: True (@ /ownership/ambiguity).\nOwner proof scope: None; complete: False; authority: repository-ownership-only (@ /ownership).\nOwner unresolved (@ /ownership/owner).\nAmbiguity reason: multiple-exact-identifier-edit-owners (@ /ownership/ambiguity/reason).\nDiscrimination question: Which worker-visible path actually owns the requested behavior, and what repository evidence distinguishes ownership from verification or compatibility surfaces? (@ /ownership/ambiguity/discrimination_question).\nOwner alternative: {\"path\":\"b.py\",\"qualname\":\"target_impl\",\"start_line\":1,\"end_line\":2} (@ /ownership/ambiguity/alternatives/0).\nSource candidate: a.py::target_impl (1:2; basis: canonical-retrieval; @ /retrieval/results/0).\nSource candidate: b.py::target_impl (1:2; basis: canonical-retrieval; @ /retrieval/results/1).\nQualification details remain in the native packet. Omissions: /initial_projection/omissions; omissions do not establish absence. Verification is relevance evidence; tests were not executed."
+      }
+    ],
+    "structuredContent": {
+      "schema": "hashmarks.task-evidence-initial.v2",
+      "source_evidence_identity": "sha256:a060b62b8c57a680b8c0c482b6837a46b3d9037dd74788245a3d1cf4e3bcb242",
+      "evidence_packet_identity": "sha256:71868c974e9d3bff4a44ce62937c9e75dd6c50a198ef4f9c393d09859ae9cac5",
+      "encoding": {
+        "kind": "json+lzma-base85",
+        "decoded_bytes": 5341
+      },
+      "data": "{Wp48S^xk9=GL@E0stWa0ssI2yzicT;1t{kmR$fnh>C_(Y$Ri0xL<8%rw#5FN=_Zo6_$s>Oz3(o^cj{2GCLTPRR2qmFH)=x_<Hev=VAm3>cV}|FVTxtzncO}ARK(-g6H`4XHW$($UnSLKS*}Uv6)z(KE34(_Tz)~m{#~$IUzZ|__HT?MnD7sz^Z`Z5O7Zn^cp6I-d*eLn`8w?)OU5<k(_E`4^veNB%z4O?>)dqX7de=5*^k~WgwPhcWn+9AB!mAxL2J`aMSYjRh+eb1)arEXch`URvW8^8Xl#NAkS$!sOG<;kd?Vwfmw5H;f^z)*3|-9`;$WhW(7eC`cCgevrqEtff`V!UKc4)0g_KYcbY?o9+g0_>KS=ab1F+<%h|A4YCvgyE6`jq2jA<J7rRlmqyIB}uJL!$ty9?3x0@ZfQ!{rp{(g3lMq7t^r)$HcD#D-QgIj}fY1Z=9AFqm1-Tb>2+S(F6ry<cBVs(8X+fZ{6Pc1!cJ7p<X`>mL$#vU`!&PphDlw4GY5$SBNk|MrMU$rO1NEO5Ggw>+^ZIuwx3NT9%wA>)f+;grW0q9MFS{Z?kKDDQ;$9B{Fc7f_$oj+)sUZ-9}2{LrFS?dJ43J4hqp_?HR(;3wbQoLiR(s!(c?k7)inX-h9OhEjf3+~>gM;n+0QBPa9qcfva?<$KPw~uT&ZL`$+4<N>MRo|d~2O3off2}JuMCBkY3eoj=1kK6+3$L?VrfONsrH{9^)8KC_XX7`6W9$1TD@(s^%Lq^z@NwO^_o_Ut<J(Bjhbz3H+H;4fGlb~*0QoVV_|H(_))o#Q5~B0A=<Rww8KYWP*AbEN0;)TDZQ;h7Z1FCp$q#Q8PrJ#djy<{yg{?N<id4L=yx%`+6JylvPD&ON2V#4urJ@?8)wr`6@i_IfQJ-IHvLgh=l9757NyX7PA`nBP+D`B)t%stew26`b(8G9GWwRh?Q>G#5@oaj4Eac6MY{nwm#ZC#OwGKCKPh#$KFOC3@Y%Wc6i^mehf}s3)d)O1DFoG>AX-14aZ6Io0CBS!uT<kIyf^R2+JYiJQ4)x$ciky#K?O#TW3yEfot*+vjmA6nfIFG@>UFLLza_`hLW4Vq$1+Q*%7qI4ZnoZLHK?ioEIILEP*RA2y3$5BkPnlmk-Q9WRY?^(TAXmDnbLRW#(qC44M1IW2M|O>KDDpZl)RAMT#`AaKohqx!Ye`&TK9VDfxXc*`BTN7>khhGFu1I6((f1%1j}!Q#@5>U0$MPjvW|MAY*@&fMo7@!vJkHll4}POE=E5HS2_h-Ssa2XkQz9g(!@L9h`ER^l2OvBI!$t2jYg0hJ5gk8_NZrUjYt|f!Do-Ln3uzoO42Ij@zR_KTM{N_ZvWa(HT_s|BFEpsIX6&-{dA0~?fy(hCTYQFm`A}V~_fxhpzq6GF)xBh7%Bfrwq&`x>lC4`m>}pAF)Vc_AZ2b5TP_=|iO@Qq<BOwYnutliJPJ-~}_^<V`{VsX#JFGikqG}VIa&H1i#I$=lR-?QZeunZjP){afo^vFu9IIh^tnMY<r#anzDy2OuK1TpL!-y(j_Z-BXIG;9pH(0**H^Px#4~k-M;L5niy}70m(;j9=5KqfGmX2fVHwffkd6;|3STQBuM7-E)(|LwA0QbQvQWrQwWGp9asN)3A$9q-Y>{WNjdhUh&kL_@MFTaiQRUX4OG=fo(_P>wGQ^AivoI6&x#RqAH@rCNbRcvq!TXi<8bx{UN6)5-24~e)`q3%H(rWgr;J!c;%lbufyEK)bCMc82URMMKhQdPV&<tN$)Iys}?48~SWZ^;c_E8MS)2o<$sfkDjskx@swg7jKbOsF53#{L_h<UZ6b$)=}2Uh&m2xL6;sWrL1SYJ4H;XJ!V7jw{P-`9nqt<6f!8m)uhWXM{KT^S-xDEgl^8L>n~seE-9iS*;B-Q-eDArd&^`n#0$>^H;7b!Zz~g4emjJ*0Z=^zj1W5KkGJJ(oDHSs(57BGiBf<$&@Tq2>n}MQmM&rs}lZ()(Z<q;*DQT7_t|pJww;4jL=p!MDM%AbdpQvbCtw9q*78DN1kq9)0ZL}O;g7CVVn_ke-ff*Dsr)O^<&EQ9FDol;LW?Od_23ac}PGGdf8r`X8Gl2?a4DeNxa%SZf?iNNFszCpf+X#$$Sq%Jv%f@Yl*4+P8&xZXjXCx*~SatDs~A|SPNO&G7~chttunH{*a?=bF}v;Ai4v1G~%V0eMBU5T60=il>>u~qo&#5R4u?ku%5E5h-f+ENrGaTWA=hAp5!ug4KQRk$r_068!%JbhQ-o4z4ClEl1WUBiV5PrdWhCNW4B^>;FIdco~BNip;Tu|xvm|jGfnT{uiQ44MkV_O*GXvH22bwZrrbe}iC$|ACc5>A*L80c)^?X$-xqDe>S-7+=Z79J#Zh$OlhL;vOuA^(eV4-(cTbwid?buDZ#{X>f;!A>W#un?P=VQ|b^%EDOl3I3JLpP)zSAW^eCR63eq#LzP~b!f4rF44y#ibq|9&g)SM4_200000jv3-Ra#q|700FWO-6;S7S?#6uvBYQl0ssI200dcD"
+    },
+    "isError": false,
+    "resultType": "complete"
+  },
+  "mcp_full_result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"schema\":\"hashmarks.task-evidence.v5\",\"task\":\"change a.py\",\"evidence_receipt\":{\"schema\":\"hashmarks.decision-evidence-receipt.v1\",\"evidence_identity\":\"a51f92e8010ca542c4346e4974a32f7b58245477b9f8b3d3f87e18cdc5d3221a\",\"repository_identity\":\"workspace:d15e42ab70110e8a16ab4001cd141966762d50ae6309b7b402528c46f7e39690\",\"task_identity\":\"7f4e02e6de8e60e92f71835f57e741b6816e8fc72c1733d3a0fa77f3138539cd\",\"codemap_generation\":1,\"stale\":null},\"retrieval\":{\"results\":[{\"path\":\"a.py\",\"rank\":1,\"roles\":[\"edit\"],\"evidence_visibility\":\"source\"},{\"path\":\"b.py\",\"rank\":2,\"roles\":[\"edit\"],\"evidence_visibility\":\"source\"}],\"bounds\":{\"limit\":20,\"per_role\":3,\"canonical_completeness\":\"complete\",\"canonical_truncation\":\"complete\",\"bound_reasons\":[]},\"ordering\":\"requested-identifiers-then-retrieval-relevance\",\"ownership_authority\":false,\"presentation\":\"compact-locators-v1\",\"exact_identifier_supplements\":{\"observed\":0,\"returned\":0,\"search_complete\":false,\"omitted\":0,\"ownership_authority\":false}},\"explicit_target\":{\"status\":\"resolved\",\"basis\":\"literal-path\",\"path\":\"a.py\",\"symbol\":null},\"ownership\":{\"status\":\"resolved\",\"authority_proof_identity\":\"sha256:8744d3205fbe520e09ede76c2d65e98b593ae4f4ca364fd06414be2b1f64a17d\",\"proof_scope\":\"repository-global-path-identity\",\"proof_scope_complete\":true,\"owner\":{\"path\":\"a.py\",\"canonical_rank\":1,\"canonical_score\":19.67213114754098,\"domains\":[\"source\"],\"roles\":[\"edit\"],\"name\":null,\"qualname\":null,\"signature\":null,\"start_line\":null,\"end_line\":null,\"evidence_visibility\":\"source\"},\"candidate\":{\"path\":\"a.py\",\"canonical_rank\":1,\"canonical_score\":19.67213114754098,\"domains\":[\"source\"],\"roles\":[\"edit\"],\"name\":null,\"qualname\":null,\"signature\":null,\"start_line\":null,\"end_line\":null,\"evidence_visibility\":\"source\"},\"basis\":\"literal-path\",\"candidate_basis\":\"literal-path\",\"ambiguity\":{\"schema\":\"hashmarks.action-ambiguity.v2\",\"ambiguous\":false,\"reason\":\"resolved-by-role\",\"candidates\":[],\"alternatives\":[{\"path\":\"b.py\",\"canonical_rank\":2,\"canonical_score\":19.35483870967742,\"domains\":[\"source\"],\"roles\":[\"edit\"],\"name\":null,\"qualname\":null,\"signature\":null,\"start_line\":null,\"end_line\":null,\"evidence_visibility\":\"source\"}],\"task_local_structural_owners\":[],\"task_local_verification_origins\":[],\"discrimination_question\":null,\"secret_knowledge_used\":false},\"authority\":\"repository-ownership-only\",\"source_evidence\":{\"symbol\":null,\"representation\":\"outline\",\"content\":\"def target_impl(value)  [1-2]\",\"estimated_tokens\":8},\"next_read\":{\"path\":\"a.py\",\"symbol\":null,\"reason\":\"no-exact-symbol-range\"},\"source_budget\":{\"requested_tokens\":256,\"estimated_tokens\":8,\"complete\":false}},\"verification\":{\"selected\":null,\"relevance\":{\"schema\":\"hashmarks.verification-relevance.v1\",\"selected\":null,\"candidates\":[],\"candidate_count\":0,\"selection_reason\":\"no-verification-candidate\",\"completeness\":\"complete\",\"truncation\":\"complete\",\"negative_evidence_admissible\":true,\"search_bound_reasons\":[],\"selection_changed\":false,\"current_canonical_verify\":null,\"qualified_identity_ambiguous\":false,\"verifier_identity_ambiguous\":false,\"unresolved_import_identity_paths\":[],\"unresolved_reference_identity_paths\":[],\"unresolved_reference_identity_omitted_paths\":0,\"bounds\":{\"returned_candidates\":8,\"reverse_refs_per_symbol\":1024,\"module_test_paths\":64,\"module_test_reverse_refs_per_symbol\":1024,\"edit_symbols\":16,\"indirect_source_paths\":64,\"indirect_symbols_per_source\":16,\"indirect_reverse_refs_per_symbol\":256,\"indirect_test_paths\":4096,\"indirect_test_reverse_refs_per_symbol\":1024},\"authority\":\"bounded-index-evidence-not-verification-execution\",\"secret_knowledge_used\":false,\"task_matches\":{\"basis\":\"indexed-task-term-matches\",\"index_generation\":1,\"source_binding\":\"indexed-not-source-revalidated\",\"matches\":[],\"observed_in_search\":0,\"omitted_from_projection\":0,\"search_truncated\":false,\"bounds\":{\"lexical_files\":64,\"returned_test_paths\":16},\"edit_relationship\":\"unestablished\",\"verification_selection_authority\":false,\"negative_evidence_admissible\":false},\"candidate_disclosure\":{\"basis\":\"indexed-source-candidates-and-task-matches\",\"source_locator_bound\":3,\"subject_bound\":6,\"observed_subjects\":2,\"returned_bound\":8,\"observed_candidates\":0,\"returned_candidates\":0,\"omitted_candidates\":0,\"verification_selection_authority\":false,\"negative_evidence_admissible\":false}},\"plan\":{\"schema\":\"hashmarks.verification-plan.v1\",\"available\":false,\"reason\":\"no-verification-surface\"},\"authority\":\"repository-verification-evidence-only\"},\"related\":{\"contract\":null,\"inspect\":[],\"candidates\":[],\"resource_lifecycle\":{\"schema\":\"hashmarks.python-filesystem-lifecycle-observation.v1\",\"repository_identity\":\"sha256:c9e759bd2ecba4fd118d46ff79aa2dd50b6b18e056f2d789e02cedad63a29ae6\",\"generation\":1,\"stale\":null,\"producer\":{\"version\":\"0.31.2\",\"rules\":\"python-filesystem-source-bindings.v1\",\"implementation_identity\":\"sha256:8d3f7b5c828b7298e14b65728400ea52f28da8faf3ac02ca9447ac7bef8a2970\"},\"scope\":[\"a.py\"],\"bounds\":{\"max_depth\":8,\"calls_per_symbol\":64,\"references_per_symbol\":256,\"symbols_per_anchor\":256,\"candidate_paths\":10000,\"observations\":256},\"source_revisions\":{\"a.py\":\"32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b\"},\"coverage\":{\"completeness\":\"complete-within-supported-scope\",\"truncated\":false,\"negative_evidence_admissible\":false,\"runtime_protection\":\"unverified\"},\"operations\":[],\"observations\":[],\"unresolved\":[],\"accounting\":{\"requested_paths\":1,\"considered_paths\":1,\"bounded_paths\":0,\"analyzed_paths\":1,\"failed_paths\":0,\"observed\":0,\"returned\":0,\"omitted\":0},\"authority\":\"repository-evidence-only\",\"execution_effect\":\"none\",\"observation_identity\":\"sha256:778c23e0c71367db0b332047b7e67e9b93181b5aa13e14930e29d8698c1e4fbb\"}},\"consumer_action\":\"external\",\"provenance\":{\"why\":\"canonical-edit-role\",\"freshness\":\"unknown\",\"revision\":\"32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b\",\"context_identity\":\"sha256:1a9f958ec84388b2d7b55514c287a17f508e585bbf51c040858f166ce5f587dd\"},\"freshness\":{\"state\":\"unknown\",\"reason\":null},\"evidence_packet_identity\":\"sha256:1ea42ea696f0738896aa4d968728c738ec8935c932d8ae125a82c644c55e01ca\"}"
+      }
+    ],
+    "structuredContent": {
+      "schema": "hashmarks.task-evidence.v5",
+      "task": "change a.py",
+      "evidence_receipt": {
+        "schema": "hashmarks.decision-evidence-receipt.v1",
+        "evidence_identity": "a51f92e8010ca542c4346e4974a32f7b58245477b9f8b3d3f87e18cdc5d3221a",
+        "repository_identity": "workspace:d15e42ab70110e8a16ab4001cd141966762d50ae6309b7b402528c46f7e39690",
+        "task_identity": "7f4e02e6de8e60e92f71835f57e741b6816e8fc72c1733d3a0fa77f3138539cd",
+        "codemap_generation": 1,
+        "stale": null
+      },
+      "retrieval": {
+        "results": [
+          {
+            "path": "a.py",
+            "rank": 1,
+            "roles": [
+              "edit"
+            ],
+            "evidence_visibility": "source"
+          },
+          {
+            "path": "b.py",
+            "rank": 2,
+            "roles": [
+              "edit"
+            ],
+            "evidence_visibility": "source"
+          }
+        ],
+        "bounds": {
+          "limit": 20,
+          "per_role": 3,
+          "canonical_completeness": "complete",
+          "canonical_truncation": "complete",
+          "bound_reasons": []
+        },
+        "ordering": "requested-identifiers-then-retrieval-relevance",
+        "ownership_authority": false,
+        "presentation": "compact-locators-v1",
+        "exact_identifier_supplements": {
+          "observed": 0,
+          "returned": 0,
+          "search_complete": false,
+          "omitted": 0,
+          "ownership_authority": false
+        }
+      },
+      "explicit_target": {
+        "status": "resolved",
+        "basis": "literal-path",
+        "path": "a.py",
+        "symbol": null
+      },
+      "ownership": {
+        "status": "resolved",
+        "authority_proof_identity": "sha256:8744d3205fbe520e09ede76c2d65e98b593ae4f4ca364fd06414be2b1f64a17d",
+        "proof_scope": "repository-global-path-identity",
+        "proof_scope_complete": true,
+        "owner": {
+          "path": "a.py",
+          "canonical_rank": 1,
+          "canonical_score": 19.67213114754098,
+          "domains": [
+            "source"
+          ],
+          "roles": [
+            "edit"
+          ],
+          "name": null,
+          "qualname": null,
+          "signature": null,
+          "start_line": null,
+          "end_line": null,
+          "evidence_visibility": "source"
+        },
+        "candidate": {
+          "path": "a.py",
+          "canonical_rank": 1,
+          "canonical_score": 19.67213114754098,
+          "domains": [
+            "source"
+          ],
+          "roles": [
+            "edit"
+          ],
+          "name": null,
+          "qualname": null,
+          "signature": null,
+          "start_line": null,
+          "end_line": null,
+          "evidence_visibility": "source"
+        },
+        "basis": "literal-path",
+        "candidate_basis": "literal-path",
+        "ambiguity": {
+          "schema": "hashmarks.action-ambiguity.v2",
+          "ambiguous": false,
+          "reason": "resolved-by-role",
+          "candidates": [],
+          "alternatives": [
+            {
+              "path": "b.py",
+              "canonical_rank": 2,
+              "canonical_score": 19.35483870967742,
+              "domains": [
+                "source"
+              ],
+              "roles": [
+                "edit"
+              ],
+              "name": null,
+              "qualname": null,
+              "signature": null,
+              "start_line": null,
+              "end_line": null,
+              "evidence_visibility": "source"
+            }
+          ],
+          "task_local_structural_owners": [],
+          "task_local_verification_origins": [],
+          "discrimination_question": null,
+          "secret_knowledge_used": false
+        },
+        "authority": "repository-ownership-only",
+        "source_evidence": {
+          "symbol": null,
+          "representation": "outline",
+          "content": "def target_impl(value)  [1-2]",
+          "estimated_tokens": 8
+        },
+        "next_read": {
+          "path": "a.py",
+          "symbol": null,
+          "reason": "no-exact-symbol-range"
+        },
+        "source_budget": {
+          "requested_tokens": 256,
+          "estimated_tokens": 8,
+          "complete": false
+        }
+      },
+      "verification": {
+        "selected": null,
+        "relevance": {
+          "schema": "hashmarks.verification-relevance.v1",
+          "selected": null,
+          "candidates": [],
+          "candidate_count": 0,
+          "selection_reason": "no-verification-candidate",
+          "completeness": "complete",
+          "truncation": "complete",
+          "negative_evidence_admissible": true,
+          "search_bound_reasons": [],
+          "selection_changed": false,
+          "current_canonical_verify": null,
+          "qualified_identity_ambiguous": false,
+          "verifier_identity_ambiguous": false,
+          "unresolved_import_identity_paths": [],
+          "unresolved_reference_identity_paths": [],
+          "unresolved_reference_identity_omitted_paths": 0,
+          "bounds": {
+            "returned_candidates": 8,
+            "reverse_refs_per_symbol": 1024,
+            "module_test_paths": 64,
+            "module_test_reverse_refs_per_symbol": 1024,
+            "edit_symbols": 16,
+            "indirect_source_paths": 64,
+            "indirect_symbols_per_source": 16,
+            "indirect_reverse_refs_per_symbol": 256,
+            "indirect_test_paths": 4096,
+            "indirect_test_reverse_refs_per_symbol": 1024
+          },
+          "authority": "bounded-index-evidence-not-verification-execution",
+          "secret_knowledge_used": false,
+          "task_matches": {
+            "basis": "indexed-task-term-matches",
+            "index_generation": 1,
+            "source_binding": "indexed-not-source-revalidated",
+            "matches": [],
+            "observed_in_search": 0,
+            "omitted_from_projection": 0,
+            "search_truncated": false,
+            "bounds": {
+              "lexical_files": 64,
+              "returned_test_paths": 16
+            },
+            "edit_relationship": "unestablished",
+            "verification_selection_authority": false,
+            "negative_evidence_admissible": false
+          },
+          "candidate_disclosure": {
+            "basis": "indexed-source-candidates-and-task-matches",
+            "source_locator_bound": 3,
+            "subject_bound": 6,
+            "observed_subjects": 2,
+            "returned_bound": 8,
+            "observed_candidates": 0,
+            "returned_candidates": 0,
+            "omitted_candidates": 0,
+            "verification_selection_authority": false,
+            "negative_evidence_admissible": false
+          }
+        },
+        "plan": {
+          "schema": "hashmarks.verification-plan.v1",
+          "available": false,
+          "reason": "no-verification-surface"
+        },
+        "authority": "repository-verification-evidence-only"
+      },
+      "related": {
+        "contract": null,
+        "inspect": [],
+        "candidates": [],
+        "resource_lifecycle": {
+          "schema": "hashmarks.python-filesystem-lifecycle-observation.v1",
+          "repository_identity": "sha256:c9e759bd2ecba4fd118d46ff79aa2dd50b6b18e056f2d789e02cedad63a29ae6",
+          "generation": 1,
+          "stale": null,
+          "producer": {
+            "version": "0.31.2",
+            "rules": "python-filesystem-source-bindings.v1",
+            "implementation_identity": "sha256:8d3f7b5c828b7298e14b65728400ea52f28da8faf3ac02ca9447ac7bef8a2970"
+          },
+          "scope": [
+            "a.py"
+          ],
+          "bounds": {
+            "max_depth": 8,
+            "calls_per_symbol": 64,
+            "references_per_symbol": 256,
+            "symbols_per_anchor": 256,
+            "candidate_paths": 10000,
+            "observations": 256
+          },
+          "source_revisions": {
+            "a.py": "32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b"
+          },
+          "coverage": {
+            "completeness": "complete-within-supported-scope",
+            "truncated": false,
+            "negative_evidence_admissible": false,
+            "runtime_protection": "unverified"
+          },
+          "operations": [],
+          "observations": [],
+          "unresolved": [],
+          "accounting": {
+            "requested_paths": 1,
+            "considered_paths": 1,
+            "bounded_paths": 0,
+            "analyzed_paths": 1,
+            "failed_paths": 0,
+            "observed": 0,
+            "returned": 0,
+            "omitted": 0
+          },
+          "authority": "repository-evidence-only",
+          "execution_effect": "none",
+          "observation_identity": "sha256:778c23e0c71367db0b332047b7e67e9b93181b5aa13e14930e29d8698c1e4fbb"
+        }
+      },
+      "consumer_action": "external",
+      "provenance": {
+        "why": "canonical-edit-role",
+        "freshness": "unknown",
+        "revision": "32b4a0a2f506f2223b7683c081b7461ceebff2b791bf4404d7a78c693f136e6b",
+        "context_identity": "sha256:1a9f958ec84388b2d7b55514c287a17f508e585bbf51c040858f166ce5f587dd"
+      },
+      "freshness": {
+        "state": "unknown",
+        "reason": null
+      },
+      "evidence_packet_identity": "sha256:1ea42ea696f0738896aa4d968728c738ec8935c932d8ae125a82c644c55e01ca"
+    },
+    "isError": false,
+    "resultType": "complete"
+  }
+}

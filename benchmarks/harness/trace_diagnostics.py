@@ -10,7 +10,11 @@ from pathlib import Path
 from statistics import mean, median
 from typing import Any
 
-from benchmarks.hashmarks_task_evidence import retrieval_candidate_matches
+from benchmarks.hashmarks_task_evidence import (
+    INITIAL_SCHEMA,
+    decode_task_evidence,
+    retrieval_candidate_matches,
+)
 from benchmarks.tool_routing import (
     NATIVE_READ,
     NATIVE_SEARCH,
@@ -108,10 +112,8 @@ def _retrieval_truncation_state(retrieval: Any) -> str:
 
 def _hashmarks_evidence(output: Any, expected: dict[str, str] | None) -> dict[str, Any]:
     try:
-        packet = json.loads(output) if isinstance(output, str) else output
-    except ValueError:
-        packet = None
-    if not isinstance(packet, dict):
+        packet = decode_task_evidence(output)
+    except (ValueError, TypeError, RecursionError):
         return {"packet_status": "unparseable"}
     retrieval = packet.get("retrieval")
     results = retrieval.get("results") if isinstance(retrieval, dict) else None
@@ -122,6 +124,7 @@ def _hashmarks_evidence(output: Any, expected: dict[str, str] | None) -> dict[st
                 rank = index
                 break
     ownership = packet.get("ownership")
+    freshness = packet.get("freshness")
     next_read = (
         ownership.get("next_read")
         if isinstance(ownership, dict)
@@ -131,6 +134,11 @@ def _hashmarks_evidence(output: Any, expected: dict[str, str] | None) -> dict[st
     return {
         "packet_status": "parsed",
         "schema": packet.get("schema"),
+        "disclosure": "initial" if packet.get("schema") == INITIAL_SCHEMA else "full",
+        "source_evidence_identity": packet.get("source_evidence_identity"),
+        "evidence_packet_identity": packet.get("evidence_packet_identity"),
+        "initial_projection": packet.get("initial_projection"),
+        "freshness_state": freshness.get("state") if isinstance(freshness, dict) else None,
         "retrieval_count": len(results) if isinstance(results, list) else None,
         "retrieval_truncation_state": _retrieval_truncation_state(retrieval),
         "canonical_omitted_results": (
@@ -189,6 +197,20 @@ def _repository_candidate_evidence(
             set(),
             set(),
         )
+
+    if (
+        str(packet.get("schema", "")).startswith("hashmarks.task-evidence")
+        or "structuredContent" in packet or "structured_content" in packet
+        or "content" in packet
+    ):
+        try:
+            packet = decode_task_evidence(packet)
+        except (ValueError, TypeError, RecursionError):
+            return (
+                {"state": "unparseable", "candidate_results": None,
+                 "candidate_paths_observed": 0, "candidate_symbols_observed": 0},
+                set(), set(),
+            )
 
     retrieval = packet.get("retrieval")
     results = retrieval.get("results") if isinstance(retrieval, dict) else None

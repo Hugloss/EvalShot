@@ -39,6 +39,16 @@ process path with an instrumented child. Missing pruning remains missing; explic
 `0` and `1` remain unchanged. No real model or physical containment is claimed.
 These tests are automatically included in the existing benchmark CI test discovery.
 
+## Current measurement corrections
+
+Native OpenCode inspection preserves the complete model ID after the provider
+separator, including nested IDs. Native Codex/OpenCode token measurements preserve
+missing or invalid counts as null; explicit zero remains zero. A partial OpenCode
+token sum is not a complete total. Reports expose unknown-observation counts and
+an observed subtotal; their total remains null when any measurement is unknown.
+Paired deltas also remain null when either measurement is unknown. Historical
+receipts are not rewritten.
+
 ## Remaining work from the ownership review
 
 This bundle does not claim complete configuration neutrality across every launch
@@ -52,9 +62,6 @@ path. In particular:
   assumption using a supported runtime-resolved observation, preserving explicit
   experiment identity requirements and distinguishing unavailable observation from
   invalid configuration.
-- Full model-ID preservation in inspection and unknown-versus-zero token usage
-  remain independently testable follow-ups. Reporting changes require checking
-  downstream consumers and historical receipt compatibility.
 
 The implementation changes which runtime behavior is evaluated. Start a new
 campaign generation for these source revisions; preserve historical suites,

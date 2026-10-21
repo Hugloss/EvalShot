@@ -24,7 +24,10 @@ from benchmarks.harness.model import TrialContext
 from benchmarks.harness.runtime_authority import transport_runtime_authority
 from benchmarks.harness.source import materialize_repository
 from benchmarks.harness.workspace import WorkspaceError, isolated_environment
-from benchmarks.hashmarks_task_evidence import is_task_evidence_packet
+from benchmarks.hashmarks_task_evidence import (
+    INITIAL_SCHEMA,
+    decode_task_evidence,
+)
 
 FAMILIES = ("logs", "splunk", "dependencies", "semantics", "identities", "code_owners")
 SUBJECTS = ("hashmarks", "enola")
@@ -188,10 +191,8 @@ def grade_direct_claims(
             "provenance_structure": "NOT_ASSESSED",
         }
     try:
-        packet = json.loads(raw)
-    except json.JSONDecodeError:
-        packet = None
-    if not is_task_evidence_packet(packet):
+        packet = decode_task_evidence(raw)
+    except (ValueError, TypeError, RecursionError):
         return {
             "parse_valid": False,
             "answer_correctness": "NOT_ASSESSED",
@@ -238,6 +239,8 @@ def grade_direct_claims(
         abstention = "CORRECT" if correct else "INCORRECT" if conflict else "UNRESOLVED"
     else:
         correct = owner_path == expected["path"] and ambiguous is False
+        if packet["schema"] in {"hashmarks.task-evidence.v5", INITIAL_SCHEMA}:
+            correct = correct and ownership.get("status") == "resolved"
         conflict = owner_path is not None and owner_path != expected["path"]
         abstention = "NOT_APPLICABLE" if owner_path is not None else "UNRESOLVED"
     return {

@@ -222,8 +222,9 @@ function inspectMcp(config) {
 function inspectConfig(config, agentName = null) {
   const model = configuredModel(config, agentName);
   const mcp = inspectMcp(config);
-  const [provider, modelId] = typeof model === 'string'
-    ? model.split('/', 2) : [];
+  const separator = typeof model === 'string' ? model.indexOf('/') : -1;
+  const provider = separator >= 0 ? model.slice(0, separator) : null;
+  const modelId = separator >= 0 ? model.slice(separator + 1) : null;
   const modelLimits = config.provider?.[provider]?.models?.[modelId]?.limit;
   return {
     model,

@@ -139,8 +139,10 @@ def _metric_summary(receipts: list[dict[str, Any]]) -> dict[str, Any]:
         ]
         metrics[name] = {
             "observations": len(values),
+            "unknown_observations": len(receipts) - len(values),
             "mean": mean(values) if values else None,
-            "total": sum(values) if values else None,
+            "observed_total": sum(values) if values else None,
+            "total": sum(values) if values and len(values) == len(receipts) else None,
         }
     return metrics
 
