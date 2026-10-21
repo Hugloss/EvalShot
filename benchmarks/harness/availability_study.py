@@ -238,10 +238,11 @@ def build_availability_study(
                 issues.append("trial-campaign-binding-unproven")
             evidence = execution.get("artifacts", {}).get("agent_trace")
             if isinstance(evidence, dict):
+                terminal = execution.get("agent_terminal")
                 observation = inspect_native_trace(
                     (results_root / receipt["trial_id"] / evidence["path"]).read_text(encoding="utf-8"),
                     adapter=str(adapter), subject="hashmarks",
-                    terminal_complete=execution.get("agent_terminal", {}).get("type") == "turn.completed",
+                    terminal_complete=isinstance(terminal, dict) and terminal.get("type") == "turn.completed",
                 )
             if observation["trace_state"] != "COMPLETE_MCP_TELEMETRY":
                 issues.append("native-mcp-telemetry-incomplete")

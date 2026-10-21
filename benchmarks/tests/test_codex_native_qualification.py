@@ -19,6 +19,8 @@ from benchmarks.harness.workspace import isolated_environment
 CLI_FIXTURE = r'''#!/usr/bin/env python3
 import json, os, pathlib, sys
 args = sys.argv[1:]
+if '--sandbox' in args and '--approve-for-me' in args:
+    raise SystemExit('native CLI rejects mutually exclusive sandbox and automatic review')
 dispatch = [argument for argument in args if argument != '--no-daemon']
 home = pathlib.Path(os.environ['CODEX_HOME'])
 with (home / 'native-startups.jsonl').open('a') as startup:
@@ -119,6 +121,8 @@ class NativeCodexQualificationTests(unittest.TestCase):
         args = json.loads((private / "observed-argv.json").read_text())
         self.assertIn("--no-daemon", args)
         self.assertIn("--ephemeral", args)
+        self.assertIn("--approve-for-me", args)
+        self.assertNotIn("--sandbox", args)
         self.assertNotIn("--model", args)
         self.assertFalse(any("model_reasoning_effort=" in argument for argument in args))
         self.assertEqual(json.loads((private / "observed-transport-keys.json").read_text()), [])
