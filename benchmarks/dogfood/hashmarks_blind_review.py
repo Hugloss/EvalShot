@@ -140,6 +140,10 @@ def prepare_blind_review(
         or controls.get("assignments") != 12
         or controls.get("three_replicate_ids") != [9901, 9902, 9903]
         or controls.get("native_agent_config") != "HOST_NATIVE_UNMODIFIED"
+        or controls.get("subjects") != ["none", "hashmarks"]
+        or controls.get("control_condition") != "none-codex-native"
+        or controls.get("assisted_condition") != "hashmarks-codex-native"
+        or controls.get("actual_launch_order_independently_attested") is not False
         or controls.get("primary_effectiveness_claim_allowed") is not False
         or controls.get("model_sampling_seed_proven") is not False
         or controls.get("random_assignment_proven") is not False
@@ -255,11 +259,19 @@ def prepare_blind_review(
         tasks=validated_tasks, subjects=runtime.subjects, agents=runtime.agents,
     )
     assignments = frozen.trial_definitions()
+    blocks = [assignments[index:index + 2] for index in range(0, len(assignments), 2)]
     if (
         len(assignments) != 12
         or len({slot["definition_id"] for slot in assignments}) != 12
         or sum(slot["condition_id"] == "none-codex-native" for slot in assignments) != 6
         or sum(slot["condition_id"] == "hashmarks-codex-native" for slot in assignments) != 6
+        or len(blocks) != 6
+        or any(
+            len({(slot["task_id"], slot["replicate_id"]) for slot in block}) != 1
+            or {slot["condition_id"] for slot in block} != set(expected_arms)
+            for block in blocks
+        )
+        or sum(block[0]["condition_id"] == "none-codex-native" for block in blocks) != 3
     ):
         raise BlindReviewError("canonical frozen assignment expansion changed")
 
