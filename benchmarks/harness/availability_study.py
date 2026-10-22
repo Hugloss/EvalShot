@@ -71,8 +71,12 @@ def _completed_tool_order_diagnostic(
 
 
 def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
-    """A repeated native start/completion ID cannot certify one call history."""
-    starts: set[str] = set()
+    """Require stable tool identity for a native item ID across its lifecycle.
+
+    Historical completion-only traces remain valid evidence of completion,
+    but a started ID cannot complete as a different item type or MCP tool.
+    """
+    starts: dict[str, tuple[object, str | None]] = {}
     completions: set[str] = set()
     for event in events:
         phase = event.get("type")
@@ -82,14 +86,19 @@ def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
         if not isinstance(item, dict) or not isinstance(item.get("id"), str):
             return True
         identity = item["id"]
-        members = starts if phase == "item.started" else completions
-        if identity in members or (
-            phase == "item.started" and identity in completions
-        ):
-            # Historical completion-only traces remain valid, but an eventual
-            # "start" arriving after its completion is not a valid chronology.
-            return True
-        members.add(identity)
+        if phase == "item.started":
+            if identity in starts or identity in completions:
+                return True
+            starts[identity] = (item.get("type"), _tracked_tool_name(item))
+        else:
+            if identity in completions:
+                return True
+            if identity in starts and starts[identity] != (
+                item.get("type"),
+                _tracked_tool_name(item),
+            ):
+                return True
+            completions.add(identity)
     return False
 
 
