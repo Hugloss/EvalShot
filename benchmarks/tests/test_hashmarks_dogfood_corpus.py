@@ -76,7 +76,7 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         self.assertIn("INVALID_ORACLE_PATH", result["tasks"][0]["problems"])
 
     def test_control_character_path_is_not_admissible(self):
-        self.task["oracle"]["configuration"]["expected"]["path"] = "src/owner\\n.py"
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src/owner" + chr(10) + ".py"
         self._write()
         result = audit(self.suites, checkout=self.checkout)
         self.assertIn("INVALID_ORACLE_PATH", result["tasks"][0]["problems"])
