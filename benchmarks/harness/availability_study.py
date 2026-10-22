@@ -156,6 +156,28 @@ def _codex_started_tool_order(
     }
 
 
+def _codex_subject_start_observed(
+    events: list[dict[str, Any]], subject: str
+) -> bool | None:
+    """Prove only a native MCP start event, never a completed result or model use."""
+    for event in events:
+        if event.get("type") != "item.started":
+            continue
+        item = event.get("item")
+        if (
+            isinstance(item, dict)
+            and isinstance(item.get("id"), str)
+            and item["id"]
+            and item.get("type") == "mcp_tool_call"
+            and item.get("server") == subject
+            and isinstance(item.get("tool"), str)
+            and item["tool"]
+        ):
+            return True
+    # Completion-only hosts and incomplete exports cannot prove no start.
+    return None
+
+
 def inspect_native_trace(
     raw: str, *, adapter: str, subject: str, terminal_complete: bool,
 ) -> dict[str, Any]:
@@ -268,6 +290,11 @@ def inspect_native_trace(
     return {
         "trace_state": state,
         "subject_invoked": invocation,
+        "subject_start_observed": (
+            _codex_subject_start_observed(events, subject)
+            if adapter == "codex"
+            else None
+        ),
         "successful_return_observed": returned if returned else False if invocation is False else None,
         "final_answer": final,
         "model_request_inclusion": "UNKNOWN",
@@ -448,6 +475,7 @@ def build_availability_study(
                 for c in (baseline_condition, available_condition)}
     subject_rows = arm_rows[available_condition]
     invoked = sum(r["subject_invoked"] is True for r in subject_rows)
+    started = sum(r["subject_start_observed"] is True for r in subject_rows)
     unknown = sum(r["subject_invoked"] is None for r in subject_rows)
     first_order_summary = _tool_order_summary(
         subject_rows, field="completed_tool_order",
@@ -479,6 +507,12 @@ def build_availability_study(
             "mean_paired_delta": sum(p["delta"] for p in pair_rows) / len(pair_rows)
             if qualified and pair_rows else None,
             "claim_scope": "all-frozen-assignments-descriptive-only",
+        },
+        "native_subject_start_diagnostic": {
+            "assigned_trials": len(subject_rows),
+            "observed_starts": started,
+            "not_established": len(subject_rows) - started,
+            "claim_scope": "observed-native-mcp-start-only;not-adoption-or-return",
         },
         "voluntary_adoption": {
             "assigned_trials": len(subject_rows),
