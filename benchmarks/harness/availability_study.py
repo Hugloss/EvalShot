@@ -298,9 +298,22 @@ def build_availability_study(
             if qualified and pair_rows else None,
             "claim_scope": "all-frozen-assignments-descriptive-only",
         },
-        "voluntary_adoption": {"assigned_trials": len(subject_rows), "invoked": invoked,
-                               "not_invoked": len(subject_rows) - invoked - unknown, "unknown": unknown,
-                               "rate": invoked / len(subject_rows) if subject_rows and not unknown else None},
+        "voluntary_adoption": {
+            "assigned_trials": len(subject_rows),
+            "invoked": invoked,
+            "not_invoked": len(subject_rows) - invoked - unknown,
+            "unknown": unknown,
+            # Operational counts may survive invalid/contaminated receipts,
+            # but only a qualified study may publish an adoption rate.
+            "rate": (
+                invoked / len(subject_rows)
+                if qualified and subject_rows and not unknown
+                else None
+            ),
+            "rate_qualification": (
+                "qualified" if qualified else "unqualified-operational-counts-only"
+            ),
+        },
         "successful_return_subset_diagnostic": {
             **_outcomes([r for r in subject_rows if r["successful_return_observed"] is True]),
             "claim_scope": "post-assignment-selected-subset-descriptive-only",
