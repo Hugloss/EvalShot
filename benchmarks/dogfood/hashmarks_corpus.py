@@ -54,7 +54,26 @@ def _safe_file(value: object) -> bool:
     return not path.is_absolute() and all(part not in (".", "..") for part in value.split("/"))
 
 
-def audit(suites: Path, *, checkout: Path | None = None, require_source: bool = False) -> dict[str, Any]:
+def _canonical_review_ready(suite_root: Path) -> bool:
+    """Delegate the whole-suite review decision to EvalShot's existing owners."""
+    from benchmarks.harness.oracle_reviews import validate_oracle_reviews
+    from benchmarks.harness.suite import load_suite
+
+    try:
+        suite = load_suite(suite_root)
+        validate_oracle_reviews(suite, require_complete=True)
+    except (ValueError, OSError):
+        return False
+    return True
+
+
+def audit(
+    suites: Path,
+    *,
+    checkout: Path | None = None,
+    require_source: bool = False,
+    require_reviewed: bool = False,
+) -> dict[str, Any]:
     """Inventory real, frozen Hashmarks tasks without altering their authority."""
     if require_source and checkout is None:
         raise ValueError("--require-source requires --checkout")
@@ -109,6 +128,8 @@ def audit(suites: Path, *, checkout: Path | None = None, require_source: bool = 
         if checkout is not None:
             if "INVALID_COMMIT" in problems or "INVALID_TREE" in problems:
                 source_status = "INVALID_IDENTITY"
+            elif "INVALID_ORACLE_PATH" in problems:
+                source_status = "INVALID_PATH"
             else:
                 source_key = (commit, tree, owner_path if isinstance(owner_path, str) else "")
                 if source_key not in source_memo:
@@ -118,12 +139,25 @@ def audit(suites: Path, *, checkout: Path | None = None, require_source: bool = 
                     elif found != tree:
                         source_memo[source_key] = "TREE_MISMATCH"
                     elif owner_path is not None:
-                        exists, _ = _git(checkout, "cat-file", "-e", f"{commit}:{owner_path}")
-                        source_memo[source_key] = "VERIFIED_PATH" if exists else "ORACLE_PATH_MISSING"
+                        # ls-tree preserves Git's entry mode. cat-file -e would
+                        # incorrectly accept directories and symlinks as source files.
+                        found_path, listing = _git(
+                            checkout, "ls-tree", "--full-tree", "-z", commit, "--", owner_path
+                        )
+                        if not found_path or not listing:
+                            source_memo[source_key] = "ORACLE_PATH_MISSING"
+                        else:
+                            entry = listing.split("\t", 1)[0]
+                            mode_and_type = entry.split(" ", 2)[:2]
+                            source_memo[source_key] = (
+                                "VERIFIED_PATH"
+                                if mode_and_type in (["100644", "blob"], ["100755", "blob"])
+                                else "ORACLE_PATH_NOT_FILE"
+                            )
                     else:
                         source_memo[source_key] = "VERIFIED_COMMIT"
                 source_status = source_memo[source_key]
-                if source_status in {"TREE_MISMATCH", "ORACLE_PATH_MISSING"}:
+                if source_status in {"TREE_MISMATCH", "ORACLE_PATH_MISSING", "ORACLE_PATH_NOT_FILE"}:
                     problems.append(source_status)
                 if require_source and source_status == "SOURCE_UNAVAILABLE":
                     problems.append("SOURCE_UNAVAILABLE")
@@ -151,6 +185,19 @@ def audit(suites: Path, *, checkout: Path | None = None, require_source: bool = 
     if not records:
         raise ValueError("no Hashmarks-source tasks found under suite root")
 
+    # The existing EvalShot suite loader and oracle-review validator alone own
+    # review admission. The dogfood inventory must never duplicate or relax that
+    # decision by equating a matched transcript with approved independent review.
+    canonical_reviews: dict[str, str] = {}
+    if require_reviewed:
+        for suite_name in sorted({str(row["suite"]) for row in records}):
+            approved = _canonical_review_ready(suites / suite_name)
+            canonical_reviews[suite_name] = "APPROVED" if approved else "BLOCKED"
+            if not approved:
+                for row in records:
+                    if row["suite"] == suite_name:
+                        row["problems"].append("CANONICAL_REVIEW_NOT_APPROVED")
+
     variants = [
         {"commit": commit, "task": task_id, "distinct_frozen_definitions": len(hashes)}
         for (commit, task_id), hashes in sorted(groups.items()) if len(hashes) > 1
@@ -166,6 +213,7 @@ def audit(suites: Path, *, checkout: Path | None = None, require_source: bool = 
             "unreviewed_tasks": sum(r["review"] in {"NO_REVIEW_FILE", "NO_TASK_REVIEW"} for r in records),
             "unchecked_sources": sum(r["source"] in {"NOT_CHECKED", "SOURCE_UNAVAILABLE"} for r in records),
         },
+        "canonical_review_qualification": canonical_reviews if require_reviewed else "NOT_CHECKED",
         "variants": variants,
         "tasks": records,
     }
@@ -176,10 +224,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--suite-root", type=Path, default=Path("benchmarks/suites/repository-intelligence"))
     parser.add_argument("--checkout", type=Path, help="existing local Hashmarks checkout with historical commits")
     parser.add_argument("--require-source", action="store_true", help="fail if any referenced commit is unavailable")
+    parser.add_argument("--require-reviewed", action="store_true", help="delegate review readiness to the canonical EvalShot validator")
     parser.add_argument("--output", type=Path, help="write identical JSON report to this path")
     args = parser.parse_args(argv)
     try:
-        result = audit(args.suite_root, checkout=args.checkout, require_source=args.require_source)
+        result = audit(
+            args.suite_root, checkout=args.checkout, require_source=args.require_source,
+            require_reviewed=args.require_reviewed,
+        )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         parser.error(str(exc))
     report = json.dumps(result, indent=2, sort_keys=True) + "\n"
