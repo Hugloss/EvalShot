@@ -507,6 +507,11 @@ def build_availability_study(
                 if receipt.get("measurements", {}).get("agent", {}).get("subject_tool_configured") is not True:
                     issues.append("subject-configuration-unproven")
             else:
+                # A native subject start in the control arm is already
+                # contaminated, even when the tool never completed and the
+                # invocation state correctly remains unknown.
+                if observation["subject_start_observed"] is True:
+                    issues.append("baseline-subject-start-contamination")
                 if observation["subject_invoked"] is True:
                     issues.append("baseline-subject-contamination")
                 if receipt.get("measurements", {}).get("agent", {}).get("subject_tool_configured") is not False:
