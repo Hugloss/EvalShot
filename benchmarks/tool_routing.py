@@ -66,7 +66,7 @@ _ROUTER_OPERATIONS = frozenset({
     "functions_exec",
 })
 
-_SEPARATOR = re.compile(r"(?:::|__|[./])+")
+_SEPARATOR = re.compile(r"(?:::|__|[./:])+")
 
 
 def tool_tokens(name: object) -> tuple[str, ...]:
