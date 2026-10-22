@@ -299,11 +299,11 @@ class NativeCodexQualificationTests(unittest.TestCase):
                 self.assertIsNone(native_input_integrity_reason(context, manifest))
                 self.assertTrue(verify_native_inputs(context, manifest))
                 if change == "content":
-                    (private / "config.toml").write_text("model = 'different'\\n")
+                    (private / "config.toml").write_text("model = 'different'\n")
                 elif change == "mode":
                     (private / "AGENTS.md").chmod(0o700)
                 else:
-                    (private / "added.config.toml").write_text("feature = true\\n")
+                    (private / "added.config.toml").write_text("feature = true\n")
                 self.assertEqual(
                     native_input_integrity_reason(context, manifest), expected
                 )
@@ -312,9 +312,7 @@ class NativeCodexQualificationTests(unittest.TestCase):
                 self.assertEqual(
                     result.payload["native_input_integrity_reason"], expected
                 )
-                self.assertFalse(result.payload["terminal_complete"]
-                                 if "terminal_complete" in result.payload
-                                 else result.payload["terminal_event"])
+                self.assertIsNone(result.payload["terminal_event"])
                 self.assertNotIn("different", json.dumps(result.payload))
                 self.assertFalse((private / "runtime-state").exists())
 
