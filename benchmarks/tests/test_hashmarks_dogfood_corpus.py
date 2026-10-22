@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import json
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
 
-from benchmarks.dogfood.hashmarks_corpus import audit
+from benchmarks.dogfood.hashmarks_corpus import audit, main
 
 
 class HashmarksDogfoodAuditTests(unittest.TestCase):
@@ -166,6 +168,9 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
             checked = audit(self.suites, require_reviewed=True)
         self.assertEqual(checked["canonical_review_qualification"], {"frozen-v1": "BLOCKED"})
         self.assertNotIn("CANONICAL_REVIEW_NOT_APPROVED", checked["tasks"][0]["problems"])
+        self.assertEqual(checked["summary"]["tasks_with_problems"], 0)
+        self.assertEqual(checked["requirements"]["blocked_review_suites"], ["frozen-v1"])
+        self.assertFalse(checked["requirements"]["audit_passed"])
 
     def test_assigned_unreviewed_task_is_visible_without_approving(self):
         (self.suite / "experiment.json").write_text(json.dumps({"tasks": ["locate-decision"]}))
@@ -176,6 +181,42 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         with patch("benchmarks.dogfood.hashmarks_corpus._canonical_review_ready", return_value=False):
             checked = audit(self.suites, require_reviewed=True)
         self.assertIn("CANONICAL_REVIEW_NOT_APPROVED", checked["tasks"][0]["problems"])
+
+    def test_strict_cli_rejects_canonical_review_even_with_no_task_issues(self):
+        (self.suite / "experiment.json").write_text(json.dumps({"tasks": ["other-task"]}))
+        output = StringIO()
+        with patch("benchmarks.dogfood.hashmarks_corpus._canonical_review_ready", return_value=False):
+            with redirect_stdout(output):
+                code = main(["--suite-root", str(self.suites), "--require-reviewed"])
+        self.assertEqual(code, 1)
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["summary"]["tasks_with_problems"], 0)
+        self.assertFalse(result["requirements"]["audit_passed"])
+        self.assertEqual(result["summary"]["blocked_review_suites"], 1)
+
+    def test_invalid_git_checkout_does_not_masquerade_as_missing_commit(self):
+        non_git = self.root / "not-a-git-workspace"
+        non_git.mkdir()
+        with self.assertRaisesRegex(ValueError, "readable Git working tree"):
+            audit(self.suites, checkout=non_git)
+        with self.assertRaisesRegex(ValueError, "existing directory"):
+            audit(self.suites, checkout=self.root / "absent")
+
+    def test_pinned_source_is_independent_of_uncommitted_worktree_edits(self):
+        (self.checkout / "src" / "owner.py").unlink()
+        self.assertEqual(
+            audit(self.suites, checkout=self.checkout, require_source=True)["tasks"][0]["source"],
+            "VERIFIED_PATH",
+        )
+        self.assertTrue((self.checkout / ".git").is_dir())
+
+    def test_unchecked_requirements_cannot_claim_independent_review(self):
+        result = audit(self.suites)
+        self.assertTrue(result["requirements"]["audit_passed"])
+        self.assertEqual(result["canonical_review_qualification"], "NOT_CHECKED")
+        self.assertFalse(result["requirements"]["canonical_review_required"])
+        self.assertFalse(result["requirements"]["source_required"])
+        self.assertEqual(result["tasks"][0]["source"], "NOT_CHECKED")
 
     def test_non_hashmarks_task_not_in_scope(self):
         self.task["repository"]["url"] = "https://github.com/example/other.git"
