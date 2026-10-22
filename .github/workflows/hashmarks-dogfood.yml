@@ -12,6 +12,7 @@ on:
       - "benchmarks/tests/test_hashmarks_dogfood_collisions.py"
       - "benchmarks/tests/test_hashmarks_dogfood_callsites.py"
       - "benchmarks/tests/test_hashmarks_dogfood_headroom.py"
+      - "benchmarks/tests/test_hashmarks_dogfood_baseline_staging.py"
   workflow_dispatch:
 
 permissions:
@@ -52,7 +53,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging
 
       - name: Verify frozen Hashmarks source identities
         run: |
