@@ -1989,6 +1989,8 @@ def _diagnostic(receipt: dict[str, Any]) -> dict[str, Any]:
     reason = raw_reason.lower()
     if reason_code == "interrupted-launch":
         primary = "runtime"
+    elif reason_code == "native-input-integrity-rejection":
+        primary = "input-integrity"
     elif reason_code == "agent-timeout":
         primary = "timeout"
     elif reason_code == "oracle-invalid":
