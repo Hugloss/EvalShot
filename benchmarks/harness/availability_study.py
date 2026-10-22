@@ -159,8 +159,28 @@ def _codex_started_tool_order(
 def _codex_subject_start_observed(
     events: list[dict[str, Any]], subject: str
 ) -> bool | None:
-    """Prove only a native MCP start event, never a completed result or model use."""
-    for event in events:
+    """Observe a start within one native thread/turn, never return or model use."""
+    if not events or events[0].get("type") != "thread.started":
+        return None
+    # An isolated tool event without its turn boundary, or a post-terminal
+    # event, cannot establish that the selected native run initiated the call.
+    turns = [
+        index for index, event in enumerate(events)
+        if event.get("type") == "turn.started"
+    ]
+    if len(turns) != 1:
+        return None
+    start = turns[0]
+    if start <= 0:
+        return None
+    terminal = next(
+        (
+            index for index in range(start + 1, len(events))
+            if events[index].get("type") in {"turn.completed", "turn.failed", "error"}
+        ),
+        len(events),
+    )
+    for event in events[start + 1 : terminal]:
         if event.get("type") != "item.started":
             continue
         item = event.get("item")
