@@ -16,6 +16,8 @@ import re
 import subprocess
 from typing import Any
 
+from benchmarks.harness.identity import digest
+
 SOURCE_REPOSITORY = "github.com/hugloss/hashmarks"
 _SHA = re.compile(r"[0-9a-f]{40}\Z")
 
@@ -89,6 +91,7 @@ def audit(
     records: list[dict[str, Any]] = []
     families: Counter[str] = Counter()
     groups: dict[tuple[str, str], set[str]] = defaultdict(set)
+    semantic_groups: dict[tuple[str, str], set[str]] = defaultdict(set)
     source_memo: dict[tuple[str, str, str], str] = {}
     assignment_memo: dict[Path, set[str] | None] = {}
 
@@ -187,7 +190,11 @@ def audit(
 
         task_hash = hashlib.sha256(task_path.read_bytes()).hexdigest()
         if isinstance(commit, str) and isinstance(task_id, str):
-            groups[(commit, task_id)].add(task_hash)
+            key = (commit, task_id)
+            groups[key].add(task_hash)
+            # Use EvalShot's canonical task identity, not a second JSON
+            # normalization invented by the dogfood inventory.
+            semantic_groups[key].add(digest(task))
         family = str(task.get("family", "UNSPECIFIED"))
         families[family] += 1
         records.append({
@@ -223,7 +230,17 @@ def audit(
                         row["problems"].append("CANONICAL_REVIEW_NOT_APPROVED")
 
     variants = [
-        {"commit": commit, "task": task_id, "distinct_frozen_definitions": len(hashes)}
+        {
+            "commit": commit,
+            "task": task_id,
+            "distinct_frozen_definitions": len(hashes),
+            "distinct_semantic_definitions": len(semantic_groups[(commit, task_id)]),
+            "kind": (
+                "SEMANTIC_VARIANT"
+                if len(semantic_groups[(commit, task_id)]) > 1
+                else "BYTE_ONLY_VARIANT"
+            ),
+        }
         for (commit, task_id), hashes in sorted(groups.items()) if len(hashes) > 1
     ]
     issues = sum(bool(row["problems"]) for row in records)
