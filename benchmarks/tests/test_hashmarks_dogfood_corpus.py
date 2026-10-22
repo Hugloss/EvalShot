@@ -156,6 +156,27 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         self.assertEqual(checked["tasks"][0]["source"], "NOT_CHECKED")
         self.assertEqual(checked["summary"]["tasks_with_problems"], 0)
 
+    def test_unassigned_archived_task_is_not_a_missing_active_review(self):
+        (self.suite / "experiment.json").write_text(json.dumps({"tasks": ["other-task"]}))
+        report = audit(self.suites)
+        row = report["tasks"][0]
+        self.assertEqual(row["experiment_membership"], "UNASSIGNED")
+        self.assertEqual(report["summary"]["unreviewed_assigned_tasks"], 0)
+        with patch("benchmarks.dogfood.hashmarks_corpus._canonical_review_ready", return_value=False):
+            checked = audit(self.suites, require_reviewed=True)
+        self.assertEqual(checked["canonical_review_qualification"], {"frozen-v1": "BLOCKED"})
+        self.assertNotIn("CANONICAL_REVIEW_NOT_APPROVED", checked["tasks"][0]["problems"])
+
+    def test_assigned_unreviewed_task_is_visible_without_approving(self):
+        (self.suite / "experiment.json").write_text(json.dumps({"tasks": ["locate-decision"]}))
+        (self.suite / "qualification" / "oracle-reviews.json").unlink()
+        report = audit(self.suites)
+        self.assertEqual(report["tasks"][0]["experiment_membership"], "ASSIGNED")
+        self.assertEqual(report["summary"]["unreviewed_assigned_tasks"], 1)
+        with patch("benchmarks.dogfood.hashmarks_corpus._canonical_review_ready", return_value=False):
+            checked = audit(self.suites, require_reviewed=True)
+        self.assertIn("CANONICAL_REVIEW_NOT_APPROVED", checked["tasks"][0]["problems"])
+
     def test_non_hashmarks_task_not_in_scope(self):
         self.task["repository"]["url"] = "https://github.com/example/other.git"
         self._write()
