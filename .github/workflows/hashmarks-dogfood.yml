@@ -6,6 +6,7 @@ on:
       - ".github/workflows/hashmarks-dogfood.yml"
       - "benchmarks/dogfood/**"
       - "benchmarks/tests/test_hashmarks_dogfood_corpus.py"
+      - "benchmarks/tests/test_hashmarks_dogfood_coverage.py"
   workflow_dispatch:
 
 permissions:
@@ -46,7 +47,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -56,11 +57,22 @@ jobs:
             --require-source --gate-assigned-only \
             --output "$RUNNER_TEMP/hashmarks-source-audit.json"
 
+      - name: Derive coverage gaps and review-only candidate queue
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/hashmarks-source-audit.json" ]; then
+            uv run --no-project python -m benchmarks.dogfood.hashmarks_coverage \
+              --audit "$RUNNER_TEMP/hashmarks-source-audit.json" \
+              --output "$RUNNER_TEMP/hashmarks-coverage.json"
+          fi
+
       - name: Upload source audit report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: hashmarks-frozen-source-audit
-          path: ${{ runner.temp }}/hashmarks-source-audit.json
+          path: |
+            ${{ runner.temp }}/hashmarks-source-audit.json
+            ${{ runner.temp }}/hashmarks-coverage.json
           if-no-files-found: ignore
           retention-days: 7
