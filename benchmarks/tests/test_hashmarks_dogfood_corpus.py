@@ -113,6 +113,8 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         (second / "locate-decision.json").write_text(json.dumps(modified))
         report = audit(self.suites)
         self.assertEqual(len(report["variants"]), 1)
+        self.assertEqual(report["variants"][0]["kind"], "SEMANTIC_VARIANT")
+        self.assertEqual(report["variants"][0]["distinct_semantic_definitions"], 2)
         self.assertEqual(report["summary"]["tasks_with_problems"], 0)
 
     def test_oracle_directory_is_not_a_source_file(self):
@@ -157,6 +159,17 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         self.assertEqual(checked["canonical_review_qualification"], {"frozen-v1": "APPROVED"})
         self.assertEqual(checked["tasks"][0]["source"], "NOT_CHECKED")
         self.assertEqual(checked["summary"]["tasks_with_problems"], 0)
+
+    def test_byte_only_frozen_variant_does_not_invent_semantic_change(self):
+        second = self.suites / "frozen-v2" / "tasks"
+        second.mkdir(parents=True)
+        (second / "locate-decision.json").write_text(json.dumps(self.task, indent=2))
+        result = audit(self.suites)
+        self.assertEqual(len(result["variants"]), 1)
+        variation = result["variants"][0]
+        self.assertEqual(variation["distinct_frozen_definitions"], 2)
+        self.assertEqual(variation["distinct_semantic_definitions"], 1)
+        self.assertEqual(variation["kind"], "BYTE_ONLY_VARIANT")
 
     def test_unassigned_archived_task_is_not_a_missing_active_review(self):
         (self.suite / "experiment.json").write_text(json.dumps({"tasks": ["other-task"]}))
