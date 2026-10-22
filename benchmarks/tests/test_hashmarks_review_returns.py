@@ -263,6 +263,26 @@ class ReviewReturnTests(unittest.TestCase):
         self.assertEqual(report["summary"]["unverified_unique_claims"], 2)
         self.assertEqual(report["summary"]["approved_oracles"], 0)
 
+    def test_non_string_decision_rejected_with_typed_error(self):
+        packet = questions()
+        data = responses(packet, [review(packet)])
+        data["reviews"][0]["decision"] = ["unique"]
+        with self.assertRaisesRegex(ReturnError, "decision"):
+            project_returns(packet, data)
+
+    def test_cli_rejects_answer_bearing_responses_inside_repository(self):
+        with tempfile.TemporaryDirectory() as root:
+            repo = Path(root)
+            answers = repo / "private-reviewer-answers.json"
+            answers.write_text('{"schema":"invalid"}')
+            with redirect_stderr(StringIO()), self.assertRaises(SystemExit) as error:
+                main([
+                    "--repository-root", str(repo),
+                    "--responses", str(answers),
+                ])
+            self.assertEqual(error.exception.code, 2)
+            self.assertTrue(answers.exists())
+
     def test_review_return_reader_rejects_duplicate_json_keys(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "private.json"
