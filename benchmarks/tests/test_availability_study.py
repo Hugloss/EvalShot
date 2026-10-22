@@ -184,6 +184,14 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertIsNone(late_start["subject_invoked"])
         self.assertEqual(late_start["started_tool_order"]["state"], "UNKNOWN")
 
+        empty_id = [json.loads(line) for line in native("codex").splitlines()]
+        empty_id[2]["item"]["id"] = ""
+        rejected = self.inspect(
+            "\n".join(json.dumps(row) for row in empty_id)
+        )
+        self.assertEqual(rejected["trace_state"], "UNKNOWN")
+        self.assertIsNone(rejected["subject_invoked"])
+
         unsupported = self.inspect(native("opencode-native"), "opencode-native")
         self.assertEqual(unsupported["started_tool_order"]["state"], "UNKNOWN")
 
