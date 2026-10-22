@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter, defaultdict
 import json
+import re
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -20,6 +21,7 @@ _REPOSITORY = "github.com/hugloss/hashmarks"
 _MEMBERSHIP = frozenset({"ASSIGNED", "UNASSIGNED", "UNKNOWN"})
 _SOURCE_VERIFIED = frozenset({"VERIFIED_PATH", "VERIFIED_COMMIT"})
 _MAX_INPUT_BYTES = 4_000_000
+_HEX64 = re.compile(r"[0-9a-f]{64}\Z")
 
 
 class CoverageError(ValueError):
@@ -67,6 +69,14 @@ def _rows(document: Mapping[str, object]) -> list[dict[str, Any]]:
         ):
             raise CoverageError(f"tasks[{index}] has invalid problem list")
         row["problems"] = sorted(set(problems))
+        semantic_digest = raw.get("task_semantic_digest")
+        if semantic_digest is not None and (
+            not isinstance(semantic_digest, str)
+            or not _HEX64.fullmatch(semantic_digest)
+        ):
+            raise CoverageError(f"tasks[{index}] has invalid canonical task digest")
+        # Old saved v1 reports are still readable, but lack semantic proof.
+        row["task_semantic_digest"] = semantic_digest
         row["oracle_path"] = raw.get("oracle_path")
         if row["oracle_path"] is not None and not isinstance(row["oracle_path"], str):
             raise CoverageError(f"tasks[{index}] has invalid oracle path")
@@ -83,6 +93,20 @@ def build_coverage(document: Mapping[str, object]) -> dict[str, Any]:
 
     matrix: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
+    # Compare full canonical meaning only when the producer supplied it.
+    # Never promote equal IDs or equal byte hashes into semantic certainty.
+    case_rows: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        case_rows[(row["commit"], row["task"])].append(row)
+    conflicting_cases: dict[tuple[str, str], list[dict[str, Any]]] = {
+        key: entries for key, entries in case_rows.items()
+        if len({r["task_semantic_digest"] for r in entries
+                if r["task_semantic_digest"] is not None}) > 1
+    }
+    assigned_case_keys = {
+        (row["commit"], row["task"]) for row in rows
+        if row["experiment_membership"] == "ASSIGNED"
+    }
 
     def nominate(kind: str, *, family: str, suite: str | None = None,
                  task: str | None = None, commit: str | None = None,
@@ -128,13 +152,26 @@ def build_coverage(document: Mapping[str, object]) -> dict[str, Any]:
                 reason="observed in inventory but absent from known assigned Hashmarks tasks",
                 next_action="Review scope and propose a separately frozen, independently reviewed case if useful",
             )
-        elif len(assigned_cases) == 1 and not membership["UNKNOWN"]:
+        elif (
+            len(assigned_cases) == 1 and not membership["UNKNOWN"]
+            and not any(case in conflicting_cases for case in assigned_cases)
+        ):
             nominate(
                 "SINGLE_ASSIGNED_TASK_FAMILY",
                 family=family,
                 reason="only one distinct assigned commit/task identity observed",
                 next_action="Investigate whether a different behavior boundary merits independent task design",
             )
+
+    for (commit, task), entries in sorted(conflicting_cases.items()):
+        families_for_case = sorted({entry["family"] for entry in entries})
+        nominate(
+            "CROSS_SUITE_SEMANTIC_VARIANT",
+            family=families_for_case[0] if len(families_for_case) == 1 else "MIXED",
+            task=task, commit=commit,
+            reason="same frozen source commit and task ID have different canonical task digests",
+            next_action="Independently compare frozen definitions; do not combine distinct meaning into one oracle",
+        )
 
     for row in sorted(rows, key=lambda x: (x["suite"], x["task"])):
         if row["experiment_membership"] != "UNASSIGNED":
@@ -147,7 +184,9 @@ def build_coverage(document: Mapping[str, object]) -> dict[str, Any]:
                 reason="unassigned task has source-audit problems: " + ", ".join(row["problems"]),
                 next_action="Independently review the frozen source mismatch; do not rewrite historical evidence",
             )
-        else:
+        elif (row["commit"], row["task"]) not in assigned_case_keys:
+            # A dormant copy of an already-assigned case is not a new
+            # evaluation opportunity. Semantic conflicts are listed above.
             nominate(
                 "UNASSIGNED_CASE_FOR_TRIAGE",
                 family=row["family"], suite=row["suite"], task=row["task"],
@@ -176,6 +215,10 @@ def build_coverage(document: Mapping[str, object]) -> dict[str, Any]:
             "unassigned_entries": sum(row["experiment_membership"] == "UNASSIGNED" for row in rows),
             "unknown_membership_entries": sum(row["experiment_membership"] == "UNKNOWN" for row in rows),
             "candidate_review_items": len(candidates),
+            "cross_suite_semantic_variants": len(conflicting_cases),
+            "semantic_identity_unavailable_entries": sum(
+                row["task_semantic_digest"] is None for row in rows
+            ),
         },
         "family_matrix": matrix,
         "candidate_review_queue": candidates,
