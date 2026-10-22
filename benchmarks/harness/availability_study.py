@@ -15,6 +15,7 @@ from typing import Any
 from benchmarks.adapters.codex import (
     _final_message,
     _metrics as codex_metrics,
+    _tracked_tool_name,
     parse_codex_jsonl,
 )
 from benchmarks.adapters.opencode_native import _metrics as opencode_metrics
@@ -69,6 +70,88 @@ def _completed_tool_order_diagnostic(
     }
 
 
+def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
+    """A repeated native start/completion ID cannot certify one call history."""
+    starts: set[str] = set()
+    completions: set[str] = set()
+    for event in events:
+        phase = event.get("type")
+        if phase not in {"item.started", "item.completed"}:
+            continue
+        item = event.get("item")
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+            return True
+        identity = item["id"]
+        members = starts if phase == "item.started" else completions
+        if identity in members:
+            return True
+        members.add(identity)
+    return False
+
+
+def _codex_started_tool_order(
+    events: list[dict[str, Any]], trace_state: str, subject: str
+) -> dict[str, Any]:
+    """Only complete, matching native start/completion pairs prove start order.
+
+    This records observable tool starts, not the model's internal decision order,
+    delivery of tool results to a model, or tool usefulness. Older completion-
+    only JSONL does not claim a start order.
+    """
+    unknown = {
+        "state": "UNKNOWN",
+        "first_started_tool": None,
+        "first_started_class": None,
+        "subject_first_started": None,
+        "subject_first_started_ordinal": None,
+    }
+    if trace_state != "COMPLETE_MCP_TELEMETRY":
+        return unknown
+    started: dict[str, str] = {}
+    completed: dict[str, str] = {}
+    order: list[str] = []
+    for event in events:
+        phase = event.get("type")
+        if phase not in {"item.started", "item.completed"}:
+            continue
+        item = event.get("item")
+        if not isinstance(item, dict):
+            return unknown
+        name = _tracked_tool_name(item)
+        if name is None:
+            continue
+        identity = item.get("id")
+        if not isinstance(identity, str) or not identity:
+            return unknown
+        if phase == "item.started":
+            if identity in started:
+                return unknown
+            started[identity] = name
+            order.append(name)
+        else:
+            if identity in completed:
+                return unknown
+            completed[identity] = name
+    if started != completed:
+        return unknown
+    first = order[0] if order else None
+    ordinal = next(
+        (i for i, name in enumerate(order, 1) if is_subject_tool(name, subject)),
+        None,
+    )
+    return {
+        "state": "OBSERVED_START_ORDER",
+        "first_started_tool": first,
+        "first_started_class": (
+            classify_tool(first, subject=subject) if first is not None else None
+        ),
+        "subject_first_started": (
+            is_subject_tool(first, subject) if first is not None else False
+        ),
+        "subject_first_started_ordinal": ordinal,
+    }
+
+
 def inspect_native_trace(
     raw: str, *, adapter: str, subject: str, terminal_complete: bool,
 ) -> dict[str, Any]:
@@ -80,6 +163,7 @@ def inspect_native_trace(
     metrics: dict[str, Any] = {}
     final = None
     state = "UNKNOWN"
+    events: list[dict[str, Any]] = []
     if adapter == "codex":
         events, errors = parse_codex_jsonl(raw.encode("utf-8"))
         final = _final_message(events)
@@ -117,7 +201,15 @@ def inspect_native_trace(
             and sum(event.get("type") == "turn.completed" for event in events) == 1
             and events[-1].get("type") == "turn.completed"
         )
-        if not errors and not malformed and not unfinished and boundaries and final and terminal_complete:
+        if (
+            not errors
+            and not malformed
+            and not unfinished
+            and not _codex_tool_lifecycle_conflict(events)
+            and boundaries
+            and final
+            and terminal_complete
+        ):
             state = "COMPLETE_MCP_TELEMETRY"
     elif adapter == "opencode-native":
         try:
@@ -176,6 +268,17 @@ def inspect_native_trace(
         "model_request_inclusion": "UNKNOWN",
         "model_attention": "UNKNOWN",
         "completed_tool_order": _completed_tool_order_diagnostic(metrics, state, subject),
+        "started_tool_order": (
+            _codex_started_tool_order(events, state, subject)
+            if adapter == "codex"
+            else {
+                "state": "UNKNOWN",
+                "first_started_tool": None,
+                "first_started_class": None,
+                "subject_first_started": None,
+                "subject_first_started_ordinal": None,
+            }
+        ),
     }
 
 
