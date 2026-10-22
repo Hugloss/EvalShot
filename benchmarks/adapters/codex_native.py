@@ -176,28 +176,55 @@ def snapshot_native_inputs(context: TrialContext, source: Path, *, copy_auth: bo
     }
 
 
-def verify_native_inputs(context: TrialContext, manifest: dict[str, Any]) -> bool:
+def native_input_integrity_reason(
+    context: TrialContext, manifest: dict[str, Any]
+) -> str | None:
+    """Classify a failed private-input seal without exposing paths or config bytes.
+
+    The same observation governs both qualification and the public boolean
+    verifier; a diagnostic must never excuse a changed admitted input.
+    """
     root = Path(context.environment["CODEX_HOME"])
-    try:
-        files = manifest["files"]
-        if (
-            manifest.get("schema") != "evalshot.native-codex-inputs.v1"
-            or not isinstance(files, dict)
-            or manifest.get("identity") != _digest(files)
-            or any(Path(name).is_absolute() or ".." in Path(name).parts for name in files)
-        ):
-            return False
-        if {path.relative_to(root).as_posix() for path in _input_paths(root)} != set(files):
-            return False
-        return all(
-            not (root / name).is_symlink()
-            and stat.S_IMODE((root / name).stat().st_mode) == evidence["mode"]
-            and hashlib.sha256((root / name).read_bytes()).hexdigest() == evidence["sha256"]
+    if not isinstance(manifest, dict):
+        return "manifest-invalid"
+    files = manifest.get("files")
+    if (
+        manifest.get("schema") != "evalshot.native-codex-inputs.v1"
+        or not isinstance(files, dict)
+        or any(
+            not isinstance(name, str)
+            or not isinstance(evidence, dict)
+            or Path(name).is_absolute()
+            or ".." in Path(name).parts
             for name, evidence in files.items()
         )
+        or manifest.get("identity") != _digest(files)
+    ):
+        return "manifest-invalid"
+    try:
+        observed = {
+            path.relative_to(root).as_posix() for path in _input_paths(root)
+        }
+        if observed != set(files):
+            return "input-membership-drift"
+        for name, evidence in files.items():
+            path = root / name
+            if path.is_symlink() or not path.is_file():
+                return "input-type-drift"
+            if stat.S_IMODE(path.stat().st_mode) != evidence.get("mode"):
+                return "input-mode-drift"
+            if hashlib.sha256(path.read_bytes()).hexdigest() != evidence.get(
+                "sha256"
+            ):
+                return "input-content-drift"
     except (OSError, ValueError, KeyError, TypeError):
-        return False
+        return "input-observation-unavailable"
+    return None
 
+
+def verify_native_inputs(context: TrialContext, manifest: dict[str, Any]) -> bool:
+    """A classified mismatch always rejects admission or the terminal result."""
+    return native_input_integrity_reason(context, manifest) is None
 
 def validate_native_launch(context: TrialContext, command: str, timeout_seconds: float) -> None:
     """Prove support for the native flags this adapter itself emits."""
