@@ -26,6 +26,60 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
 ```
 
+## Pinned-repository same-name collision investigation
+
+`hashmarks_collisions` extends the nominated-file AST check by scanning
+**all tracked Python files in the exact historical Git tree**, not merely
+the oracle-proposed file. It identifies other declarations with the same
+spelling as an unassigned candidate's function or method. It never
+concludes that same-name functions have the same behavior, nor that
+a single observed declaration proves unique semantic ownership.
+The agent is not shown these reviewer-only observations.
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_collisions \
+  --audit /tmp/hashmarks-source-audit.json \
+  --checkout /path/to/Hashmarks \
+  --output /tmp/hashmarks-collisions.json
+```
+
+This module reuses the source audit, pinned-commit Git reading and existing
+AST declaration visitor. It verifies that the Git object is a commit and
+that its tree matches the frozen task, disables Git replacement refs,
+reads tracked blobs only, and never imports repository code. The Python
+scan is bounded (at most 1,200 tracked Python files, 24 MiB total
+inspected bytes, 1 MiB per file); parse failures, nonregular entries,
+missing blobs and exceeded limits force `SCAN_INCOMPLETE` rather than
+false evidence of no alternatives. Same-name evidence is retained even
+when the rest of the scan is incomplete.
+
+The report distinguishes `SAME_NAME_ALTERNATIVES_OBSERVED`,
+`NO_OTHER_STATIC_DECLARATIONS_OBSERVED`,
+`NOMINATED_DECLARATION_NOT_OBSERVED`,
+`SCAN_INCOMPLETE`, `SOURCE_PRECONDITION_FAILED`, and identity or
+candidate-format errors. The word **observed** is deliberate: dynamic
+wiring, imported aliases, call graphs and human intent are not resolved.
+Every output contains `unique_semantic_owner_proven=false`,
+`oracle_approved=false` and `baseline_headroom_known=false`.
+
+The first real run against pinned commit
+`85453be578e8ff46b8d79b363f140a915d6804f6` completed a
+**528-file Python scan with zero unreadable/unparseable files**. It found
+`WorkspaceMapStore.paths_under` only in
+`hashmarks/codemap/repository_index_store.py` and
+`IndexingLifecycleMixin._sync_remove_stale_paths` only in
+`hashmarks/codemap/indexing_lifecycle.py`. Neither had an additional
+**exact same-name Python declaration** in that frozen tree. This is
+bounded syntax evidence, **not a unique behavioral owner certificate**.
+The unassigned `lookup-known-symbol-run-poll-delay` task stayed blocked
+by its missing source precondition.
+
+CI publishes `hashmarks-collisions.json` next to the existing source,
+coverage, review and nominated-file reports. The independent reviewer
+can now inspect alternatives before deciding which candidate, if any,
+deserves new independently frozen experiments. Previously frozen tasks,
+their oracle expectations and experiment-run behavior remain untouched.
+
 ## Pinned-source declaration observations
 
 The `hashmarks_declarations` reader checks the **nominated Python source
