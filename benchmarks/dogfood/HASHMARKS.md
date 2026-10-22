@@ -26,6 +26,56 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
 ```
 
+## Model-free coverage and candidate triage
+
+The separate \`hashmarks_coverage\` reader derives a deterministic coverage
+matrix and a **review-only** candidate queue from a saved dogfood source audit.
+It does not execute any benchmark, inspect arbitrary source through an agent,
+write a new frozen task, copy independent oracle explanations into prompts,
+or make effectiveness claims. It reuses EvalShot's canonical task identity
+serializer to bind the input report.
+
+\`\`\`sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
+  --checkout /path/to/Hashmarks --require-source --gate-assigned-only \
+  --output /tmp/hashmarks-source-audit.json
+
+uv run --no-project python -m benchmarks.dogfood.hashmarks_coverage \
+  --audit /tmp/hashmarks-source-audit.json \
+  --output /tmp/hashmarks-coverage.json
+\`\`\`
+
+The source CI publishes both JSON outputs in the same artifact. The new
+derived report preserves the parent audit's exact identity and its pass/fail
+signal, but never changes that signal. Its family matrix describes **observed**
+coverage only: assigned, unassigned and unknown-membership entries,
+distinct (commit, task) identities, modes, and source verification.
+The candidate queue uses only these provenance-backed categories:
+
+- \`DORMANT_TASK_NEEDS_REVIEW\`: an unassigned historical task has a source
+  discrepancy; investigate it independently and do not rewrite the fixture.
+- \`UNASSIGNED_CASE_FOR_TRIAGE\`: a dormant definition may warrant independent
+  scope, oracle, headroom and contamination review.
+- \`FAMILY_WITHOUT_ASSIGNED_TASK\`: a family appears in the inventory but
+  has no currently assigned Hashmarks case; this is a *scope observation*.
+- \`SINGLE_ASSIGNED_TASK_FAMILY\`: the corpus has one distinct assigned case
+  in an observed family; investigate whether independent additional cases
+  would give useful headroom.
+
+All nominations state \`review_status=PROPOSAL_ONLY\` and
+\`oracle_status=NOT_ESTABLISHED\`. A family-count observation is **not**
+a claim that the product is defective or that a test is needed. Unknown
+experiment membership is not silently converted into an unassigned candidate.
+
+The first real CI coverage report over the pinned Hashmarks source recorded
+20 task entries, 17 assigned and 3 unassigned across eight observed families.
+It generated seven independent **review items**, not seven approved tasks:
+three one-case-family observations (\`code_owners\`, \`semantics\`, \`splunk\`),
+one family with no assigned case (\`known-symbol-localization\`), two
+unassigned source-verified known-symbol definitions, and the retained dormant
+missing-path finding. These numbers describe only this frozen inventory
+and do not certify agent effectiveness.
+
 The inventory distinguishes every frozen task definition from tasks actually
 selected in the suite's `experiment.json`. `ASSIGNED` tasks participate in the
 active experiment; `UNASSIGNED` tasks are available definitions, not missing
