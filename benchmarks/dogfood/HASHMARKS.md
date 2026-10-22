@@ -64,6 +64,23 @@ The audit reads historical commit/tree objects, not the current working-tree
 file contents: uncommitted changes neither make an unavailable historical
 source valid nor make an existing historical source disappear.
 
+The source identity gate checks that each recorded `commit` resolves to an
+actual Git **commit object** and that its computed tree equals the frozen
+`repository.tree`. A bare tree object or tag cannot masquerade as a commit.
+Git replacement objects are disabled during these read-only checks so local
+`refs/replace` cannot rewrite historical source provenance. Git's
+`ls-tree -z` entries are matched by their **exact** paths and tracked-blob
+modes, not merely by Git pathspec membership; wildcard and control-character
+oracle paths are rejected. These checks establish Git object/file identity,
+not that an expected owner symbol is semantically correct, and they do not
+certify the clone's remote origin.
+
+The current runtime used for this checkpoint cannot clone GitHub repositories
+through the command-line network; therefore the strict full historical checkout
+audit remains unexecuted. The existing GitHub commit/tree API provided the
+separate historical source identity observation, which is not substituted for
+a local strict audit.
+
 The output is deterministic JSON with explicit `NOT_CHECKED` and
 `SOURCE_UNAVAILABLE` states. A missing historical object can mean a shallow
 checkout: it is not evidence the task is semantically invalid. `--require-source`
