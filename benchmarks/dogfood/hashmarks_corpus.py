@@ -233,6 +233,10 @@ def audit(
             "commit": commit,
             "tree": tree,
             "task_sha256": task_hash,
+            # Canonical semantic task identity permits the read-only coverage
+            # consumer to distinguish changed meaning from formatting-only
+            # copies across frozen suites, without reloading task sources.
+            "task_semantic_digest": digest(task),
             "oracle_path": owner_path,
             "oracle_symbol": owner_symbol,
             "review": review_status,
