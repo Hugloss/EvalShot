@@ -1615,7 +1615,7 @@ class PilotExecutionTests(unittest.TestCase):
             reason,
         )
         self.assertIn("actual='", reason)
-        self.assertIn("\n", reason)
+        self.assertIn("\\n", reason)
         self.assertIn("_iter_admitted_repository_files", reason)
 
     def test_runner_bounds_long_oracle_actual_text_preview(self) -> None:
@@ -3236,6 +3236,7 @@ class PilotExecutionTests(unittest.TestCase):
                 "",
             ),
             initial_outcome=lambda: (None, None),
+            prework_contamination=lambda: {"contaminated": False},
             generated_globs=lambda: (),
             cleanup_subject=lambda: Observation({}, ""),
         )
@@ -3251,21 +3252,6 @@ class PilotExecutionTests(unittest.TestCase):
                 mock.patch(
                     "benchmarks.harness.preflight.admit_trial",
                     return_value=nullcontext(admission),
-                ),
-                mock.patch(
-                    "benchmarks.harness.preflight.snapshot",
-                    return_value={},
-                ),
-                mock.patch(
-                    "benchmarks.harness.preflight.classify_contamination",
-                    return_value={
-                        "contaminated": False,
-                        "diff": {
-                            "added": [],
-                            "removed": [],
-                            "changed": [],
-                        },
-                    },
                 ),
                 mock.patch(
                     "benchmarks.harness.preflight.verify_bundle",
@@ -3606,6 +3592,7 @@ class PilotExecutionTests(unittest.TestCase):
                     {},
                 ),
                 initial_outcome=lambda: (None, None),
+                prework_contamination=lambda: {"contaminated": False},
             )
             stages = []
             with (
