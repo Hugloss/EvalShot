@@ -67,6 +67,20 @@ All nominations state \`review_status=PROPOSAL_ONLY\` and
 a claim that the product is defective or that a test is needed. Unknown
 experiment membership is not silently converted into an unassigned candidate.
 
+Cross-suite candidate nominations are deduplicated by the frozen source
+commit and task ID. A definition that is \`UNASSIGNED\` in one suite but
+\`ASSIGNED\` in another is **not** proposed again as a new task. Existing
+source errors remain reportable even for an unassigned duplicate. The
+producer also transports EvalShot's canonical \`task_semantic_digest\`,
+which makes equal task meaning distinguishable from byte-only formatting
+differences. If the same (commit, task ID) has multiple known semantic
+digests, the candidate queue emits \`CROSS_SUITE_SEMANTIC_VARIANT\`
+for independent review and suppresses a misleading single-case-family
+suggestion. Neither the name nor the digest resolves which definition is
+correct. Old saved audit v1 reports without semantic digests remain readable;
+the report explicitly counts their unavailable identities rather than
+assuming definitions agree.
+
 The first real CI coverage report over the pinned Hashmarks source recorded
 20 task entries, 17 assigned and 3 unassigned across eight observed families.
 It generated seven independent **review items**, not seven approved tasks:
