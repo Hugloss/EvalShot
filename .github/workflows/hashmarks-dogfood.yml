@@ -7,6 +7,7 @@ on:
       - "benchmarks/dogfood/**"
       - "benchmarks/tests/test_hashmarks_dogfood_corpus.py"
       - "benchmarks/tests/test_hashmarks_dogfood_coverage.py"
+      - "benchmarks/tests/test_hashmarks_dogfood_review_handoff.py"
   workflow_dispatch:
 
 permissions:
@@ -47,7 +48,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -66,6 +67,17 @@ jobs:
               --output "$RUNNER_TEMP/hashmarks-coverage.json"
           fi
 
+      - name: Prepare independent candidate review handoff
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/hashmarks-source-audit.json" ] &&
+             [ -f "$RUNNER_TEMP/hashmarks-coverage.json" ]; then
+            uv run --no-project python -m benchmarks.dogfood.hashmarks_review_handoff \
+              --audit "$RUNNER_TEMP/hashmarks-source-audit.json" \
+              --coverage "$RUNNER_TEMP/hashmarks-coverage.json" \
+              --output "$RUNNER_TEMP/hashmarks-review-handoff.json"
+          fi
+
       - name: Upload source audit report
         if: always()
         uses: actions/upload-artifact@v4
@@ -74,5 +86,6 @@ jobs:
           path: |
             ${{ runner.temp }}/hashmarks-source-audit.json
             ${{ runner.temp }}/hashmarks-coverage.json
+            ${{ runner.temp }}/hashmarks-review-handoff.json
           if-no-files-found: ignore
           retention-days: 7
