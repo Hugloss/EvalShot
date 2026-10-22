@@ -651,6 +651,14 @@ class CodexAgent:
                         "terminal_event": None,
                         "reason": "native Codex config changed during trial",
                         "native_input_integrity_reason": input_integrity_reason,
+                        "authority_revalidation": {
+                            "status": "failed",
+                            "reason_code": "native-input-integrity-rejection",
+                            "reason": (
+                                "native Codex input integrity violation: "
+                                + input_integrity_reason
+                            ),
+                        },
                     },
                     "",
                 )
@@ -733,6 +741,18 @@ class CodexAgent:
             "final_message": None if authority_error else _final_message(events),
             "reason": authority_error,
             "native_input_integrity_reason": input_integrity_reason,
+            "authority_revalidation": (
+                {
+                    "status": "failed",
+                    "reason_code": "native-input-integrity-rejection",
+                    "reason": (
+                        "native Codex input integrity violation: "
+                        + input_integrity_reason
+                    ),
+                }
+                if input_integrity_reason is not None
+                else None
+            ),
             "jsonl_parse_errors": parse_errors,
             "subject_server": subject_server,
             "tool_available": exposure is not None,
