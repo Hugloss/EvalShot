@@ -1771,6 +1771,32 @@ class BenchmarkStabilityReportingTests(unittest.TestCase):
         self.assertEqual(diagnostic["reason"], raw_reason[:1_000] + "…")
         self.assertNotIn("detail", diagnostic)
 
+    def test_native_input_integrity_is_not_reported_as_missing_terminal(self) -> None:
+        suite = _suite()
+        row = suite.trial_definitions()[0]
+        receipt = _receipt(suite, row, "INCOMPLETE", "a" * 64)
+        receipt["reason"] = (
+            "native Codex input integrity violation: input-content-drift"
+        )
+        receipt["diagnostic"] = {
+            "stage": "agent-execution",
+            "reason_code": "native-input-integrity-rejection",
+            "detail": "private trial configuration path must not be projected",
+        }
+        with mock.patch("benchmarks.harness.report._receipts", return_value=[receipt]):
+            report = build_report(
+                suite=suite,
+                results_root=Path("/unused"),
+                selected_definitions={str(row["definition_id"])},
+            )
+        diagnostic = report["diagnostics"][0]
+        self.assertEqual(diagnostic["primary"], "input-integrity")
+        self.assertEqual(
+            diagnostic["reason_code"], "native-input-integrity-rejection"
+        )
+        self.assertEqual(diagnostic["stage"], "agent-execution")
+        self.assertNotIn("private trial configuration path", json.dumps(diagnostic))
+
     def test_pair_exclusions_preserve_repeated_subject_conditions(self) -> None:
         original = _suite()
         experiment = copy.deepcopy(original.experiment)

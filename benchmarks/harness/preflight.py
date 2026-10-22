@@ -10,10 +10,8 @@ from typing import Any
 
 from benchmarks.harness.admission import TrialAdmissionError, admit_trial
 from benchmarks.harness.bundle import verify_bundle
-from benchmarks.harness.contamination import classify_contamination
 from benchmarks.harness.model import TrialStatus
 from benchmarks.harness.suite import SuiteDefinition
-from benchmarks.harness.workspace import snapshot
 
 
 @dataclass(frozen=True)
@@ -100,25 +98,10 @@ def preflight_trial(
             source=source,
         ) as admission:
             status, reason = admission.initial_outcome()
-            observed_state = snapshot(admission.context.workspace)
-            contamination_config = admission.task["contamination"]
-            allowed_generated = tuple(
-                sorted(
-                    set(contamination_config["allowed_generated_globs"])
-                    | set(admission.generated_globs())
-                )
-            )
-            contamination = classify_contamination(
-                before=admission.admitted_state,
-                after=observed_state,
-                allowed_change_globs=tuple(
-                    contamination_config["allowed_change_globs"]
-                ),
-                allowed_generated_globs=allowed_generated,
-            )
+            contamination = admission.prework_contamination()
             if contamination["contaminated"]:
                 status = TrialStatus.CONTAMINATED
-                reason = "preflight changed workspace outside frozen allowances"
+                reason = "participant preparation changed workspace before model work"
 
             cleanup = admission.cleanup_subject()
             cleanup_process = cleanup.payload.get("process")

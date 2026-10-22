@@ -52,6 +52,13 @@ answers, unknown oracle outcomes and baseline Hashmarks MCP contamination are
 reported per trial. A well-measured zero-invocation availability arm can qualify
 even when the historical subject-use report correctly remains `FAIL`.
 
+The assigned-trial invocation counts remain visible even when the experiment
+is unqualified, but `voluntary_adoption.rate` is then `null` and
+`rate_qualification` is `unqualified-operational-counts-only`. Only a
+qualified complete study publishes a rate, including a legitimate measured
+zero. This prevents an invalid or contaminated campaign from presenting
+operational call counts as a qualified adoption estimate.
+
 This prerequisite supplies measurement, not an effectiveness result. Freeze a
 fresh study protocol, task/oracle provenance, cost budget and sampling analysis
 before a live campaign; do not rewrite historical frozen suites to reuse their

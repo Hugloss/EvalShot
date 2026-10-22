@@ -17,6 +17,7 @@ from typing import Any, Iterator
 
 from benchmarks.adapters.codex import seed_codex_auth
 from benchmarks.adapters.registry import build_agent, build_oracle, build_subject
+from benchmarks.harness.contamination import classify_contamination
 from benchmarks.harness.identity import definition_id, digest, execution_id
 from benchmarks.harness.model import (
     Observation,
@@ -73,6 +74,20 @@ class TrialAdmission:
         # Output ownership is independent of who invokes the subject. A native
         # agent may invoke the subject's MCP tools inside the trial workspace.
         return self.subject.generated_globs()
+
+    def prework_contamination(self) -> dict[str, Any]:
+        """Check setup effects before inference against the original source seal.
+
+        Task edit allowances apply to agent work, never participant preparation.
+        Only the subject's declared disposable generated outputs are excluded.
+        Both preflight and run consume this one classification.
+        """
+        return classify_contamination(
+            before=self.admitted_state,
+            after=snapshot(self.context.workspace),
+            allowed_change_globs=(),
+            allowed_generated_globs=tuple(sorted(set(self.generated_globs()))),
+        )
 
     def post_change(
         self,

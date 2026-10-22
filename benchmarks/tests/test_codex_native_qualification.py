@@ -254,6 +254,14 @@ class NativeCodexQualificationTests(unittest.TestCase):
         self.assertFalse(result.payload["terminal_complete"])
         self.assertIsNone(result.payload["final_message"])
         self.assertIn("config changed", result.payload["reason"])
+        self.assertEqual(
+            result.payload["native_input_integrity_reason"], "input-content-drift"
+        )
+        from benchmarks.harness.runner import _agent_failure
+
+        self.assertEqual(
+            _agent_failure(result)[0], "native-input-integrity-rejection"
+        )
         self.assertEqual((self.native / "config.toml").read_text(), self.config)
 
     def test_new_native_input_membership_is_rejected_before_execution(self):
@@ -268,6 +276,54 @@ class NativeCodexQualificationTests(unittest.TestCase):
                 path.write_text("new=true\n")
                 result = agent.run(context, "Locate owner", None)
                 self.assertIn("config changed", result.payload["reason"])
+                self.assertEqual(
+                    result.payload["native_input_integrity_reason"],
+                    "input-membership-drift",
+                )
+                self.assertFalse((private / "runtime-state").exists())
+
+    def test_private_input_drift_has_bounded_failure_classifications(self):
+        from benchmarks.adapters.codex_native import (
+            native_input_integrity_reason,
+            verify_native_inputs,
+        )
+
+        for change, expected in (
+            ("content", "input-content-drift"),
+            ("mode", "input-mode-drift"),
+            ("membership", "input-membership-drift"),
+        ):
+            with self.subTest(change=change):
+                context = self.context("classified-" + change)
+                agent = CodexAgent(native_host=True)
+                self.assertTrue(agent.prepare(context, None).payload["available"])
+                private = Path(context.environment["CODEX_HOME"])
+                manifest = json.loads(
+                    (context.control_root / "codex-native-servers.json").read_text()
+                )["inputs"]
+                self.assertIsNone(native_input_integrity_reason(context, manifest))
+                self.assertTrue(verify_native_inputs(context, manifest))
+                if change == "content":
+                    (private / "config.toml").write_text("model = 'different'\n")
+                elif change == "mode":
+                    (private / "AGENTS.md").chmod(0o700)
+                else:
+                    (private / "added.config.toml").write_text("feature = true\n")
+                self.assertEqual(
+                    native_input_integrity_reason(context, manifest), expected
+                )
+                self.assertFalse(verify_native_inputs(context, manifest))
+                result = agent.run(context, "Locate owner", None)
+                self.assertEqual(
+                    result.payload["native_input_integrity_reason"], expected
+                )
+                from benchmarks.harness.runner import _agent_failure
+
+                self.assertEqual(
+                    _agent_failure(result)[0], "native-input-integrity-rejection"
+                )
+                self.assertIsNone(result.payload["terminal_event"])
+                self.assertNotIn("different", json.dumps(result.payload))
                 self.assertFalse((private / "runtime-state").exists())
 
     def test_changed_executable_is_rejected_before_execution(self):

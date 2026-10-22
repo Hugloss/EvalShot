@@ -39,6 +39,7 @@ from benchmarks.adapters.registry import (
 from benchmarks.adapters.runtime import observe_executable
 from benchmarks.config import BenchmarkConfig
 from benchmarks.harness.admission import (
+    TrialAdmission,
     TrialAdmissionError,
     admit_trial,
     harness_identity,
@@ -77,7 +78,7 @@ from benchmarks.harness.runtime_authority import (
 from benchmarks.harness.selection import SelectionError, select_definitions
 from benchmarks.harness.source import _source_cache_lock, materialize_repository
 from benchmarks.harness.suite import SuiteDefinition, SuiteError, load_suite
-from benchmarks.harness.workspace import WorkspaceError, isolated_environment
+from benchmarks.harness.workspace import WorkspaceError, isolated_environment, snapshot
 from scripts.agent_economics.bounded_process import ProcessLimits, run_bounded
 
 
@@ -2415,6 +2416,36 @@ class PilotExecutionTests(unittest.TestCase):
         self.assertTrue(result["contaminated"])
         self.assertEqual(result["unexpected"]["added"], ["unexpected.txt"])
 
+    def test_prework_contamination_ignores_agent_edit_allowances(self) -> None:
+        # Participant setup must not rewrite source or create a project
+        # environment simply because the subsequent agent could edit files.
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            workspace = root / "workspace"
+            (workspace / "src").mkdir(parents=True)
+            source = workspace / "src" / "owner.py"
+            source.write_text("def owner(): return 1\n", encoding="utf-8")
+            before = snapshot(workspace)
+            admission = SimpleNamespace(
+                context=SimpleNamespace(workspace=workspace),
+                admitted_state=before,
+                generated_globs=lambda: (".benchmark-enola/**",),
+            )
+            (workspace / ".benchmark-enola").mkdir()
+            (workspace / ".benchmark-enola" / "state.json").write_text("{}")
+            clean = TrialAdmission.prework_contamination(admission)
+            self.assertFalse(clean["contaminated"])
+            source.write_text("def owner(): return 2\n", encoding="utf-8")
+            contaminated = TrialAdmission.prework_contamination(admission)
+            self.assertTrue(contaminated["contaminated"])
+            self.assertEqual(contaminated["unexpected"]["changed"], ["src/owner.py"])
+            source.write_text("def owner(): return 1\n", encoding="utf-8")
+            (workspace / ".venv").mkdir()
+            (workspace / ".venv" / "pyvenv.cfg").write_text("unexpected")
+            contaminated = TrialAdmission.prework_contamination(admission)
+            self.assertTrue(contaminated["contaminated"])
+            self.assertIn(".venv/pyvenv.cfg", contaminated["unexpected"]["added"])
+
     def test_competing_repository_cache_generation_fails_before_git_work(
         self,
     ) -> None:
@@ -3205,6 +3236,7 @@ class PilotExecutionTests(unittest.TestCase):
                 "",
             ),
             initial_outcome=lambda: (None, None),
+            prework_contamination=lambda: {"contaminated": False},
             generated_globs=lambda: (),
             cleanup_subject=lambda: Observation({}, ""),
         )
@@ -3220,21 +3252,6 @@ class PilotExecutionTests(unittest.TestCase):
                 mock.patch(
                     "benchmarks.harness.preflight.admit_trial",
                     return_value=nullcontext(admission),
-                ),
-                mock.patch(
-                    "benchmarks.harness.preflight.snapshot",
-                    return_value={},
-                ),
-                mock.patch(
-                    "benchmarks.harness.preflight.classify_contamination",
-                    return_value={
-                        "contaminated": False,
-                        "diff": {
-                            "added": [],
-                            "removed": [],
-                            "changed": [],
-                        },
-                    },
                 ),
                 mock.patch(
                     "benchmarks.harness.preflight.verify_bundle",
@@ -3575,6 +3592,7 @@ class PilotExecutionTests(unittest.TestCase):
                     {},
                 ),
                 initial_outcome=lambda: (None, None),
+                prework_contamination=lambda: {"contaminated": False},
             )
             stages = []
             with (
