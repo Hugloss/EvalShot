@@ -299,6 +299,45 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         self.assertFalse(result["requirements"]["source_required"])
         self.assertEqual(result["tasks"][0]["source"], "NOT_CHECKED")
 
+    def test_dormant_missing_source_is_reported_without_blocking_assigned_gate(self):
+        (self.suite / "experiment.json").write_text(json.dumps({"tasks": ["other-task"]}))
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src/missing.py"
+        self._write()
+        strict = audit(self.suites, checkout=self.checkout, require_source=True)
+        self.assertFalse(strict["requirements"]["audit_passed"])
+        filtered = audit(
+            self.suites, checkout=self.checkout, require_source=True,
+            gate_assigned_only=True,
+        )
+        self.assertTrue(filtered["requirements"]["audit_passed"])
+        self.assertEqual(filtered["summary"]["tasks_with_problems"], 1)
+        self.assertEqual(filtered["summary"]["gated_tasks_with_problems"], 0)
+        self.assertEqual(filtered["summary"]["ungated_tasks_with_problems"], 1)
+        self.assertEqual(filtered["tasks"][0]["source"], "ORACLE_PATH_MISSING")
+        self.assertEqual(filtered["tasks"][0]["experiment_membership"], "UNASSIGNED")
+
+    def test_assigned_source_failure_cannot_be_bypassed_by_assigned_gate(self):
+        (self.suite / "experiment.json").write_text(json.dumps({"tasks": ["locate-decision"]}))
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src/missing.py"
+        self._write()
+        result = audit(
+            self.suites, checkout=self.checkout, require_source=True,
+            gate_assigned_only=True,
+        )
+        self.assertFalse(result["requirements"]["audit_passed"])
+        self.assertEqual(result["summary"]["gated_tasks_with_problems"], 1)
+
+    def test_unknown_membership_source_failure_fails_closed_in_assigned_gate(self):
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src/missing.py"
+        self._write()
+        result = audit(
+            self.suites, checkout=self.checkout, require_source=True,
+            gate_assigned_only=True,
+        )
+        self.assertEqual(result["tasks"][0]["experiment_membership"], "UNKNOWN")
+        self.assertFalse(result["requirements"]["audit_passed"])
+        self.assertEqual(result["summary"]["gated_tasks_with_problems"], 1)
+
     def test_non_hashmarks_task_not_in_scope(self):
         self.task["repository"]["url"] = "https://github.com/example/other.git"
         self._write()
