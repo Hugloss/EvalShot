@@ -15,6 +15,7 @@ from typing import Any
 from benchmarks.adapters.codex import (
     _final_message,
     _metrics as codex_metrics,
+    _tracked_tool_name,
     parse_codex_jsonl,
 )
 from benchmarks.adapters.opencode_native import _metrics as opencode_metrics
@@ -69,6 +70,92 @@ def _completed_tool_order_diagnostic(
     }
 
 
+def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
+    """A repeated native start/completion ID cannot certify one call history."""
+    starts: set[str] = set()
+    completions: set[str] = set()
+    for event in events:
+        phase = event.get("type")
+        if phase not in {"item.started", "item.completed"}:
+            continue
+        item = event.get("item")
+        if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+            return True
+        identity = item["id"]
+        members = starts if phase == "item.started" else completions
+        if identity in members or (
+            phase == "item.started" and identity in completions
+        ):
+            # Historical completion-only traces remain valid, but an eventual
+            # "start" arriving after its completion is not a valid chronology.
+            return True
+        members.add(identity)
+    return False
+
+
+def _codex_started_tool_order(
+    events: list[dict[str, Any]], trace_state: str, subject: str
+) -> dict[str, Any]:
+    """Only complete, matching native start/completion pairs prove start order.
+
+    This records observable tool starts, not the model's internal decision order,
+    delivery of tool results to a model, or tool usefulness. Older completion-
+    only JSONL does not claim a start order.
+    """
+    unknown = {
+        "state": "UNKNOWN",
+        "first_started_tool": None,
+        "first_started_class": None,
+        "subject_first_started": None,
+        "subject_first_started_ordinal": None,
+    }
+    if trace_state != "COMPLETE_MCP_TELEMETRY":
+        return unknown
+    started: dict[str, str] = {}
+    completed: dict[str, str] = {}
+    order: list[str] = []
+    for event in events:
+        phase = event.get("type")
+        if phase not in {"item.started", "item.completed"}:
+            continue
+        item = event.get("item")
+        if not isinstance(item, dict):
+            return unknown
+        name = _tracked_tool_name(item)
+        if name is None:
+            continue
+        identity = item.get("id")
+        if not isinstance(identity, str) or not identity:
+            return unknown
+        if phase == "item.started":
+            if identity in started:
+                return unknown
+            started[identity] = name
+            order.append(name)
+        else:
+            if identity in completed or identity not in started:
+                return unknown
+            completed[identity] = name
+    if started != completed:
+        return unknown
+    first = order[0] if order else None
+    ordinal = next(
+        (i for i, name in enumerate(order, 1) if is_subject_tool(name, subject)),
+        None,
+    )
+    return {
+        "state": "OBSERVED_START_ORDER",
+        "first_started_tool": first,
+        "first_started_class": (
+            classify_tool(first, subject=subject) if first is not None else None
+        ),
+        "subject_first_started": (
+            is_subject_tool(first, subject) if first is not None else False
+        ),
+        "subject_first_started_ordinal": ordinal,
+    }
+
+
 def inspect_native_trace(
     raw: str, *, adapter: str, subject: str, terminal_complete: bool,
 ) -> dict[str, Any]:
@@ -80,6 +167,7 @@ def inspect_native_trace(
     metrics: dict[str, Any] = {}
     final = None
     state = "UNKNOWN"
+    events: list[dict[str, Any]] = []
     if adapter == "codex":
         events, errors = parse_codex_jsonl(raw.encode("utf-8"))
         final = _final_message(events)
@@ -90,6 +178,7 @@ def inspect_native_trace(
             event.get("type") in {"item.started", "item.updated", "item.completed"}
             and (not isinstance(event.get("item"), dict)
                  or not isinstance(event["item"].get("id"), str)
+                 or not event["item"]["id"]
                  or event["item"].get("type") not in {
                      "reasoning", "agent_message", "command_execution", "file_change",
                      "mcp_tool_call", "web_search", "todo_list", "error",
@@ -117,7 +206,15 @@ def inspect_native_trace(
             and sum(event.get("type") == "turn.completed" for event in events) == 1
             and events[-1].get("type") == "turn.completed"
         )
-        if not errors and not malformed and not unfinished and boundaries and final and terminal_complete:
+        if (
+            not errors
+            and not malformed
+            and not unfinished
+            and not _codex_tool_lifecycle_conflict(events)
+            and boundaries
+            and final
+            and terminal_complete
+        ):
             state = "COMPLETE_MCP_TELEMETRY"
     elif adapter == "opencode-native":
         try:
@@ -176,6 +273,17 @@ def inspect_native_trace(
         "model_request_inclusion": "UNKNOWN",
         "model_attention": "UNKNOWN",
         "completed_tool_order": _completed_tool_order_diagnostic(metrics, state, subject),
+        "started_tool_order": (
+            _codex_started_tool_order(events, state, subject)
+            if adapter == "codex"
+            else {
+                "state": "UNKNOWN",
+                "first_started_tool": None,
+                "first_started_class": None,
+                "subject_first_started": None,
+                "subject_first_started_ordinal": None,
+            }
+        ),
     }
 
 
@@ -211,6 +319,34 @@ def _outcomes(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "success_rate": values["success"] / count if count and not values["unknown"] else None,
         "success_rate_bounds": [values["success"] / count,
                                 (values["success"] + values["unknown"]) / count] if count else None,
+    }
+
+
+def _tool_order_summary(
+    rows: list[dict[str, Any]], *, field: str, phase: str, observed_state: str
+) -> dict[str, Any]:
+    """Keep one assigned population across both passive tool-order projections."""
+    records = [row[field] for row in rows]
+    first_key = "first_" + phase + "_tool"
+    subject_key = "subject_first_" + phase
+    return {
+        "assigned_trials": len(rows),
+        subject_key: sum(row[subject_key] is True for row in records),
+        "other_tool_first_" + phase: sum(
+            row["state"] == observed_state
+            and row[first_key] is not None
+            and row[subject_key] is False
+            for row in records
+        ),
+        "no_tracked_tool": sum(
+            row["state"] == observed_state and row[first_key] is None
+            for row in records
+        ),
+        "unknown": sum(row["state"] != observed_state for row in records),
+        "claim_scope": (
+            "observed-" + phase + "-tool-order-only;"
+            "not-native-tool-choice-or-model-request-proof"
+        ),
     }
 
 
@@ -313,29 +449,14 @@ def build_availability_study(
     subject_rows = arm_rows[available_condition]
     invoked = sum(r["subject_invoked"] is True for r in subject_rows)
     unknown = sum(r["subject_invoked"] is None for r in subject_rows)
-    first_order = [r["completed_tool_order"] for r in subject_rows]
-    first_order_summary = {
-        "assigned_trials": len(subject_rows),
-        "subject_first_completed": sum(
-            row["subject_first_completed"] is True for row in first_order
-        ),
-        "other_tool_first_completed": sum(
-            row["state"] == "OBSERVED_COMPLETION_ORDER"
-            and row["first_completed_tool"] is not None
-            and row["subject_first_completed"] is False
-            for row in first_order
-        ),
-        "no_tracked_tool": sum(
-            row["state"] == "OBSERVED_COMPLETION_ORDER"
-            and row["first_completed_tool"] is None
-            for row in first_order
-        ),
-        "unknown": sum(row["state"] == "UNKNOWN" for row in first_order),
-        "claim_scope": (
-            "observed-completed-tool-order-only;"
-            "not-native-tool-choice-or-model-request-proof"
-        ),
-    }
+    first_order_summary = _tool_order_summary(
+        subject_rows, field="completed_tool_order",
+        phase="completed", observed_state="OBSERVED_COMPLETION_ORDER",
+    )
+    started_order_summary = _tool_order_summary(
+        subject_rows, field="started_tool_order",
+        phase="started", observed_state="OBSERVED_START_ORDER",
+    )
     pair_rows = []
     tainted = canonical["campaign_qualification"]["evidence_tainted"]
     by_arm = {c: {pair_key(r): r for r in rs} for c, rs in arm_rows.items()}
@@ -376,6 +497,7 @@ def build_availability_study(
             ),
         },
         "completed_tool_order_diagnostic": first_order_summary,
+        "started_tool_order_diagnostic": started_order_summary,
         "successful_return_subset_diagnostic": {
             **_outcomes([r for r in subject_rows if r["successful_return_observed"] is True]),
             "claim_scope": "post-assignment-selected-subset-descriptive-only",

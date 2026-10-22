@@ -50,6 +50,17 @@ and neither completion order nor an MCP return establishes model-request
 inclusion or actual model attention. The existing native `mcp:server/tool`
 name spelling is classified by the single shared routing owner.
 
+The new Codex start-order diagnostic is stricter: it requires a complete
+single-turn native trace, unique item start/completion identities, and matching
+tracked tool names in both phases. Duplicate IDs, start-after-completion,
+unpaired tool starts, and historical completion-only exports leave the start
+order **UNKNOWN**. OpenCode currently supplies no comparable native start-event
+sequence and therefore remains UNKNOWN for this metric. The availability study
+keeps all assigned trials when reporting observed start-first, other-first, no
+tracked tool and unknown counts. A start is a host-observed action, not proof of
+the model's internal first tool-selection decision, submitted-model-request
+inclusion, attention, or an improvement in task correctness.
+
 The admitted MCP **server catalog** is not the catalog submitted to a model.
 Likewise, a successful nonempty native tool return is not submitted-request
 inclusion, attention or comprehension. The successful-return subset is a

@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from benchmarks.harness.availability_study import (
+    _tool_order_summary,
     build_availability_study,
     inspect_native_trace,
 )
@@ -117,6 +118,129 @@ class AvailabilityStudyTests(unittest.TestCase):
                 "subject_first_completed_ordinal": None,
             },
         )
+
+    def test_codex_start_order_is_not_inferred_from_completion_order(self):
+        events = [json.loads(line) for line in native("codex").splitlines()]
+        # Hashmarks starts first but the native command completes first.
+        events[2:2] = [
+            {"type": "item.started", "item": {
+                "id": "hm-1", "type": "mcp_tool_call",
+                "server": "hashmarks", "tool": "task_evidence",
+            }},
+            {"type": "item.started", "item": {
+                "id": "cmd-1", "type": "command_execution",
+            }},
+        ]
+        events.insert(5, {"type": "item.completed", "item": {
+            "id": "hm-1", "type": "mcp_tool_call",
+            "server": "hashmarks", "tool": "task_evidence",
+            "status": "completed", "result": {"content": []},
+        }})
+        result = self.inspect("\n".join(json.dumps(row) for row in events))
+        self.assertEqual(result["trace_state"], "COMPLETE_MCP_TELEMETRY")
+        self.assertTrue(result["subject_invoked"])
+        self.assertEqual(
+            result["started_tool_order"], {
+                "state": "OBSERVED_START_ORDER",
+                "first_started_tool": "mcp:hashmarks/task_evidence",
+                "first_started_class": "subject-repository-intelligence",
+                "subject_first_started": True,
+                "subject_first_started_ordinal": 1,
+            },
+        )
+        self.assertEqual(
+            result["completed_tool_order"]["first_completed_tool"],
+            "command_execution",
+        )
+        self.assertEqual(
+            result["completed_tool_order"]["subject_first_completed_ordinal"], 2
+        )
+        self.assertEqual(result["model_request_inclusion"], "UNKNOWN")
+
+    def test_codex_missing_start_and_duplicate_item_ids_are_not_first_choice_proof(self):
+        # Historical completion-only native exports cannot prove start order.
+        baseline = self.inspect(native("codex"))
+        self.assertEqual(baseline["trace_state"], "COMPLETE_MCP_TELEMETRY")
+        self.assertEqual(baseline["started_tool_order"]["state"], "UNKNOWN")
+        self.assertFalse(baseline["subject_invoked"])
+
+        events = [json.loads(line) for line in native("codex").splitlines()]
+        duplicate = dict(events[2])
+        events.insert(3, duplicate)
+        result = self.inspect("\n".join(json.dumps(row) for row in events))
+        self.assertEqual(result["trace_state"], "UNKNOWN")
+        self.assertIsNone(result["subject_invoked"])
+        self.assertEqual(result["started_tool_order"]["state"], "UNKNOWN")
+        self.assertEqual(result["completed_tool_order"]["state"], "UNKNOWN")
+
+        reversed_lifecycle = [json.loads(line) for line in native("codex").splitlines()]
+        reversed_lifecycle.insert(3, {"type": "item.started", "item": {
+            "id": "cmd-1", "type": "command_execution",
+        }})
+        late_start = self.inspect(
+            "\n".join(json.dumps(row) for row in reversed_lifecycle)
+        )
+        self.assertEqual(late_start["trace_state"], "UNKNOWN")
+        self.assertIsNone(late_start["subject_invoked"])
+        self.assertEqual(late_start["started_tool_order"]["state"], "UNKNOWN")
+
+        empty_id = [json.loads(line) for line in native("codex").splitlines()]
+        empty_id[2]["item"]["id"] = ""
+        rejected = self.inspect(
+            "\n".join(json.dumps(row) for row in empty_id)
+        )
+        self.assertEqual(rejected["trace_state"], "UNKNOWN")
+        self.assertIsNone(rejected["subject_invoked"])
+
+        unsupported = self.inspect(native("opencode-native"), "opencode-native")
+        self.assertEqual(unsupported["started_tool_order"]["state"], "UNKNOWN")
+
+    def test_started_order_summary_separates_observed_and_unknown_assignments(self):
+        summary = _tool_order_summary(
+            [
+                {"started_tool_order": {
+                    "state": "OBSERVED_START_ORDER", "first_started_tool": "mcp:hashmarks/task_evidence",
+                    "subject_first_started": True,
+                }},
+                {"started_tool_order": {
+                    "state": "OBSERVED_START_ORDER", "first_started_tool": "command_execution",
+                    "subject_first_started": False,
+                }},
+                {"started_tool_order": {
+                    "state": "OBSERVED_START_ORDER", "first_started_tool": None,
+                    "subject_first_started": False,
+                }},
+                {"started_tool_order": {
+                    "state": "UNKNOWN", "first_started_tool": None,
+                    "subject_first_started": None,
+                }},
+            ],
+            field="started_tool_order",
+            phase="started",
+            observed_state="OBSERVED_START_ORDER",
+        )
+        self.assertEqual(summary, {
+            "assigned_trials": 4,
+            "subject_first_started": 1,
+            "other_tool_first_started": 1,
+            "no_tracked_tool": 1,
+            "unknown": 1,
+            "claim_scope": (
+                "observed-started-tool-order-only;"
+                "not-native-tool-choice-or-model-request-proof"
+            ),
+        })
+        legacy = self.report(invoked=True)
+        self.assertEqual(
+            legacy["started_tool_order_diagnostic"]["unknown"], 2
+        )
+        self.assertEqual(
+            legacy["started_tool_order_diagnostic"]["assigned_trials"], 2
+        )
+        self.assertEqual(
+            legacy["completed_tool_order_diagnostic"]["unknown"], 0
+        )
+        self.assertEqual(legacy["host_catalog_inclusion"], "UNKNOWN")
 
     def test_partial_missing_and_malformed_traces_never_prove_zero(self):
         for raw in ("", "{}", "\n".join(native().splitlines()[2:]), native() + '\n{broken', native() + '\n{"type":"turn.started"}', native() + '\n{"type":"item.started","item":{"id":"pending","type":"mcp_tool_call","server":"hashmarks","tool":"find"}}'):
