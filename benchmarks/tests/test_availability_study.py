@@ -275,6 +275,33 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
         self.assertEqual(observed["model_attention"], "UNKNOWN")
 
+    def test_native_start_requires_one_live_thread_and_turn(self):
+        started = {"type": "item.started", "item": {
+            "id": "hm", "type": "mcp_tool_call",
+            "server": "hashmarks", "tool": "task_evidence",
+        }}
+        thread = {"type": "thread.started", "thread_id": "test"}
+        turn = {"type": "turn.started"}
+        terminal = {"type": "turn.failed", "reason": "interrupted"}
+        scenarios = (
+            ([started], False),
+            ([thread, started, turn], False),
+            ([thread, turn, terminal, started], False),
+            ([thread, turn, started, terminal], True),
+            ([thread, turn, started], True),
+            ([thread, turn, turn, started], False),
+        )
+        for events, expected in scenarios:
+            with self.subTest(events=events):
+                report = self.inspect(
+                    "\n".join(json.dumps(event) for event in events),
+                    complete=False,
+                )
+                self.assertEqual(report["trace_state"], "UNKNOWN")
+                self.assertIs(report["subject_start_observed"], True if expected else None)
+                self.assertIsNone(report["subject_invoked"])
+                self.assertIsNone(report["successful_return_observed"])
+
     def test_completed_call_does_not_fabricate_native_start_or_host_delivery(self):
         observed = self.inspect(native("codex", invoked=True))
         self.assertTrue(observed["subject_invoked"])
