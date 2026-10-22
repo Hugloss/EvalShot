@@ -131,6 +131,7 @@ def project_returns(
                 or not _required_string(review["reviewer_id"], max_length=128)
                 or type(review["prior_expected_answer_access"]) is not bool
                 or type(review["source_inspected"]) is not bool
+                or not isinstance(review["decision"], str)
                 or review["decision"] not in _DECISIONS
                 or not _required_string(review["reason"])
             ):
@@ -242,6 +243,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         root = args.repository_root.resolve()
         staged = root / (args.suite or STAGED_RELATIVE)
+        if args.responses and args.responses.resolve().is_relative_to(root):
+            raise ReturnError("private reviewer returns must remain outside repository")
         if args.output:
             output = args.output.resolve()
             if output.is_relative_to(root / "benchmarks"):
