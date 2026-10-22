@@ -1,0 +1,75 @@
+{
+  "schema": "evalshot.hashmarks-native-baseline-pre-registration.v1",
+  "state": "BLOCKED_PENDING_INDEPENDENT_ORACLE_REVIEW",
+  "intent": "EXACT_TASK_CONTROL_HEADROOM_BEFORE_HASHMARKS_EFFECTIVENESS",
+  "canonical_execution_owner": "benchmarks.harness",
+  "canonical_oracle_review_owner": "benchmarks.harness.oracle_reviews",
+  "require_review_before_any_model_work": true,
+  "historical_trials_reused": false,
+  "historical_pilot_2026_10_21_qualified": false,
+  "controls": {
+    "native_agent_config": "HOST_NATIVE_UNMODIFIED",
+    "subjects": [
+      "none",
+      "hashmarks"
+    ],
+    "control_condition": "none-codex-native",
+    "assisted_condition": "hashmarks-codex-native",
+    "model_sampling_seed_proven": false,
+    "three_replicate_ids": [
+      9901,
+      9902,
+      9903
+    ],
+    "assignments": 12,
+    "random_assignment_proven": false,
+    "actual_launch_order_independently_attested": false,
+    "primary_effectiveness_claim_allowed": false
+  },
+  "source": {
+    "repository": "https://github.com/Hugloss/Hashmarks.git",
+    "commit": "85453be578e8ff46b8d79b363f140a915d6804f6",
+    "tree": "667b7066be9ef6cab6e1ce3a28a603481f07387e"
+  },
+  "task_transfers": {
+    "lookup-known-symbol-paths-under": {
+      "from": "benchmarks/suites/repository-intelligence/heldout-v1/tasks/lookup-known-symbol-paths-under.json",
+      "git_blob_sha1": "90539c468fc042daf79ceb1a4f9deabfd8c44659",
+      "independent_reviews": "NOT_PROVIDED"
+    },
+    "lookup-known-symbol-sync-remove-stale-paths": {
+      "from": "benchmarks/suites/repository-intelligence/heldout-v1/tasks/lookup-known-symbol-sync-remove-stale-paths.json",
+      "git_blob_sha1": "f02c115faf3a03f33dc9d5ffdceb6bcff7bc4e08",
+      "independent_reviews": "NOT_PROVIDED"
+    }
+  },
+  "participant_transfers": {
+    "agents/codex-native.json": {
+      "from": "benchmarks/suites/repository-intelligence/native-evidence-pilot-v1/agents/codex-native.json",
+      "git_blob_sha1": "ad166682e37bee03bad9fefded58401184082749"
+    },
+    "subjects/none.json": {
+      "from": "benchmarks/suites/repository-intelligence/native-evidence-pilot-v1/subjects/none.json",
+      "git_blob_sha1": "fb18d5f7f8134da6306c5d34e6b678c5011be3ea"
+    },
+    "subjects/hashmarks.json": {
+      "from": "benchmarks/suites/repository-intelligence/native-evidence-pilot-v1/subjects/hashmarks.json",
+      "git_blob_sha1": "6c152d3d984023265c59d382098d10c0c8684f7e"
+    }
+  },
+  "remaining_gates": [
+    "INDEPENDENT_PINNED_SOURCE_ORACLE_REVIEW",
+    "CANONICAL_ORACLE_REVIEW_VALIDATION",
+    "HOST_NATIVE_CONFIG_AND_INPUT_INTEGRITY",
+    "SOURCE_AND_SUBJECT_EXPOSURE_COMPARABILITY",
+    "COMPLETE_NATIVE_CONTROL_RECEIPTS",
+    "INDEPENDENT_CAMPAIGN_QUALIFICATION",
+    "EXACT_TASK_HEADROOM_ASSESSMENT",
+    "SEPARATE_ASSISTED_CAUSAL_CLAIM_REVIEW"
+  ],
+  "rejected_claims": [
+    "ANY_CANDIDATE_READY",
+    "AGENT_HEADROOM_ESTABLISHED",
+    "HASHMARKS_EFFECTIVENESS_ESTABLISHED"
+  ]
+}
