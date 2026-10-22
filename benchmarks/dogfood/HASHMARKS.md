@@ -64,6 +64,25 @@ The audit reads historical commit/tree objects, not the current working-tree
 file contents: uncommitted changes neither make an unavailable historical
 source valid nor make an existing historical source disappear.
 
+The `--gate-assigned-only` option makes experiment membership an explicit
+qualification boundary: `ASSIGNED` and `UNKNOWN` membership remain strict,
+while `UNASSIGNED` definitions are still scanned and their source errors
+remain visible in `tasks_with_problems` and
+`ungated_tasks_with_problems`. Only the gate decision uses
+`gated_tasks_with_problems`; without this flag **every definition** must
+pass. An unknown membership is not silently treated as dormant.
+
+The new source CI demonstrated why this matters. A full advertised-history
+Hashmarks clone did not contain the historical commit; fetching its exact
+OID made 19 of 20 frozen task source entries verifiable. The remaining
+`heldout-v1/lookup-known-symbol-run-poll-delay` is `UNASSIGNED` and
+references `ux/src/domain/fleet/runLifecycle.ts`, which is not in the
+frozen Hashmarks tree. This is retained as a source-mismatch diagnostic,
+not repaired by changing archived tasks or silently blessing the path.
+The workflow uses `--require-source --gate-assigned-only` so active
+experiments are qualified without suppressing the dormant finding.
+A separate all-definitions strict audit intentionally still fails.
+
 The source identity gate checks that each recorded `commit` resolves to an
 actual Git **commit object** and that its computed tree equals the frozen
 `repository.tree`. A bare tree object or tag cannot masquerade as a commit.
