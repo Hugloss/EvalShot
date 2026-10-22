@@ -104,6 +104,25 @@ def _completed_items(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ]
 
 
+def _tracked_tool_name(item: dict[str, Any]) -> str | None:
+    """One native tool label shared by scoring and start-order observations."""
+    item_type = item.get("type")
+    if item_type in {"command_execution", "file_change"}:
+        return str(item_type)
+    if item_type == "mcp_tool_call":
+        server = item.get("server")
+        tool = item.get("tool")
+        if (
+            isinstance(server, str)
+            and server
+            and isinstance(tool, str)
+            and tool
+        ):
+            return f"mcp:{server}/{tool}"
+        return "mcp_tool_call"
+    return None
+
+
 def _metrics(
     events: list[dict[str, Any]],
     *,
@@ -122,22 +141,8 @@ def _metrics(
     subject_ordinals: list[int] = []
     for item in items:
         item_type = item.get("type")
-        if item_type == "command_execution":
-            name = "command_execution"
-        elif item_type == "file_change":
-            name = "file_change"
-        elif item_type == "mcp_tool_call":
-            server = item.get("server")
-            tool = item.get("tool")
-            name = (
-                f"mcp:{server}/{tool}"
-                if isinstance(server, str)
-                and server
-                and isinstance(tool, str)
-                and tool
-                else "mcp_tool_call"
-            )
-        else:
+        name = _tracked_tool_name(item)
+        if name is None:
             continue
         tool_sequence.append(name)
         if (
