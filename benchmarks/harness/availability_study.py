@@ -83,7 +83,11 @@ def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
             return True
         identity = item["id"]
         members = starts if phase == "item.started" else completions
-        if identity in members:
+        if identity in members or (
+            phase == "item.started" and identity in completions
+        ):
+            # Historical completion-only traces remain valid, but an eventual
+            # "start" arriving after its completion is not a valid chronology.
             return True
         members.add(identity)
     return False
@@ -129,7 +133,7 @@ def _codex_started_tool_order(
             started[identity] = name
             order.append(name)
         else:
-            if identity in completed:
+            if identity in completed or identity not in started:
                 return unknown
             completed[identity] = name
     if started != completed:
