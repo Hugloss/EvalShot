@@ -15,6 +15,7 @@ from typing import Any
 from benchmarks.adapters.codex_native import (
     copy_native_auth,
     native_cli_argv,
+    native_input_integrity_reason,
     observe_native_config,
     snapshot_native_inputs,
     validate_native_launch,
@@ -642,11 +643,15 @@ class CodexAgent:
             )
             if _native_environment_sha256(context) != prepared.get("environment_sha256"):
                 return Observation({"terminal_event": None, "reason": "native Codex environment changed during trial"}, "")
-            if not verify_native_inputs(context, prepared.get("inputs", {})):
+            input_integrity_reason = native_input_integrity_reason(
+                context, prepared.get("inputs", {})
+            )
+            if input_integrity_reason is not None:
                 return Observation(
                     {
                         "terminal_event": None,
                         "reason": "native Codex config changed during trial",
+                        "native_input_integrity_reason": input_integrity_reason,
                     },
                     "",
                 )
@@ -695,8 +700,12 @@ class CodexAgent:
             None,
         )
         authority_error = None
+        input_integrity_reason = None
         if self.native_host:
-            if not verify_native_inputs(context, prepared.get("inputs", {})):
+            input_integrity_reason = native_input_integrity_reason(
+                context, prepared.get("inputs", {})
+            )
+            if input_integrity_reason is not None:
                 authority_error = "native Codex config changed during trial"
             if not verify_native_plugin_inputs(context, prepared.get("plugin_inputs", {})):
                 authority_error = "native Codex plugin inputs changed during trial"
@@ -724,6 +733,7 @@ class CodexAgent:
             ),
             "final_message": None if authority_error else _final_message(events),
             "reason": authority_error,
+            "native_input_integrity_reason": input_integrity_reason,
             "jsonl_parse_errors": parse_errors,
             "subject_server": subject_server,
             "tool_available": exposure is not None,
