@@ -31,6 +31,49 @@ A/B order alternates across the six task-replicate blocks (three A-first,
 three B-first). This planned counterbalance is not proof of randomized or
 independently attested actual launch order.
 
+## Answer-blinded first-pass semantic review
+
+The proposed two-task cohort now has a separate, model-free first-pass
+question exporter. It is **not** the canonical EvalShot oracle review runner,
+which may legitimately show a proposed expected owner to a later validator.
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_blind_review \
+  --repository-root . \
+  --suite benchmarks/dogfood/staged-suites/known-symbol-native-baseline-v1 \
+  --output /tmp/hashmarks-blind-review.json
+```
+
+Only give an independent reviewer the resulting
+`hashmarks-blind-review.json` and an independently provisioned checkout
+at the **pinned historical Hashmarks commit**. Do **not** mount EvalShot,
+its benchmark task JSON files, historical oracle reviews, scores, or prior
+answer-bearing dogfood reports into that reviewer workspace. The exporter
+itself reads the staging files to enforce integrity, but the **reviewer
+packet** contains only each exact prompt, source repository/tree/commit,
+task identity hash, and open review questions. It omits expected oracle
+paths, prior reasons, previously proposed owner, and approval claims.
+
+This is *answer-blinded packet preparation*, not proof that the reviewer
+is independent: someone with access to the EvalShot repository, prior task
+answers, or this conversation can still know the expected owner. A truly
+independent reviewer must disclose prior exposure, inspect the pinned source
+without oracle truth, and return source-backed alternatives or ambiguity.
+A different reviewer/validator may later compare findings with the frozen
+oracle using EvalShot's **existing** task-bound oracle-review authority.
+
+CI tests fail if the staged or original task bytes/participant definitions
+have drifted, if recorded Git blob identities mismatch, if the prompt
+accidentally embeds the expected source path, if a placeholder review appears,
+or if the output attempts to overwrite staging or active benchmark sources.
+Export is deterministic and runs no agent or benchmark trial. Its output
+goes into the **review-only** GitHub Actions artifact, never an agent trial
+workspace.
+
+All candidates still have `FIRST_PASS_UNREVIEWED` status and
+`experiment_admitted=false`. This does not approve source meaning,
+headroom, baseline performance, or tool effectiveness.
+
 ## Fail-before-work requirement
 
 `experiment.json` intentionally names
