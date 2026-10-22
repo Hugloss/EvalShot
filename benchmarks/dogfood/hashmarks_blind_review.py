@@ -17,6 +17,7 @@ from typing import Any
 
 from benchmarks.harness.identity import digest
 from benchmarks.harness.suite import (
+    SuiteDefinition,
     SuiteError,
     _validate_definition,
     load_runtime_suite,
@@ -125,6 +126,34 @@ def prepare_blind_review(
     }:
         raise BlindReviewError("native control pairing changed")
 
+    # The staged population is not a changeable experiment-design sandbox:
+    # the authority for slot expansion remains SuiteDefinition, and this
+    # handoff refuses reconfiguration of the preregistered native A/B pairing.
+    controls = protocol.get("controls")
+    expected_arms = {
+        "none-codex-native": "none",
+        "hashmarks-codex-native": "hashmarks",
+    }
+    conditions = runtime.experiment["conditions"]
+    if (
+        not isinstance(controls, dict)
+        or controls.get("assignments") != 12
+        or controls.get("three_replicate_ids") != [9901, 9902, 9903]
+        or controls.get("native_agent_config") != "HOST_NATIVE_UNMODIFIED"
+        or controls.get("primary_effectiveness_claim_allowed") is not False
+        or controls.get("model_sampling_seed_proven") is not False
+        or controls.get("random_assignment_proven") is not False
+        or len(conditions) != 2
+        or {row["id"]: row["subject"] for row in conditions} != expected_arms
+        or any(
+            set(row) != {"id", "subject", "agent", "trials", "replicate_ids"}
+            or row["trials"] != 3
+            or row["replicate_ids"] != [9901, 9902, 9903]
+            for row in conditions
+        )
+    ):
+        raise BlindReviewError("frozen native paired trial plan changed")
+
     # Ensure the canonical loader still rejects this unreviewed cohort.
     try:
         load_suite(staged)
@@ -149,6 +178,7 @@ def prepare_blind_review(
     if not isinstance(source, dict):
         raise BlindReviewError("frozen source identity unavailable")
     packets: list[dict[str, Any]] = []
+    validated_tasks: dict[str, dict[str, Any]] = {}
     forbidden_paths: list[str] = []
     for task_id in TASKS:
         source_relative = SOURCE_TASK_ROOT / f"{task_id}.json"
@@ -194,6 +224,7 @@ def prepare_blind_review(
         if expected_path.casefold() in prompt.casefold():
             raise BlindReviewError("frozen prompt exposes its oracle expected path")
         forbidden_paths.append(expected_path)
+        validated_tasks[task_id] = task
 
         packets.append({
             "packet_id": "sha256:" + digest({
@@ -218,6 +249,19 @@ def prepare_blind_review(
                 "Return decision to the existing EvalShot oracle-review authority",
             ],
         })
+
+    frozen = SuiteDefinition(
+        root=runtime.root, experiment=runtime.experiment,
+        tasks=validated_tasks, subjects=runtime.subjects, agents=runtime.agents,
+    )
+    assignments = frozen.trial_definitions()
+    if (
+        len(assignments) != 12
+        or len({slot["definition_id"] for slot in assignments}) != 12
+        or sum(slot["condition_id"] == "none-codex-native" for slot in assignments) != 6
+        or sum(slot["condition_id"] == "hashmarks-codex-native" for slot in assignments) != 6
+    ):
+        raise BlindReviewError("canonical frozen assignment expansion changed")
 
     rendered = {
         "schema": SCHEMA,
