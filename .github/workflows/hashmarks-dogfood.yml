@@ -14,6 +14,7 @@ on:
       - "benchmarks/tests/test_hashmarks_dogfood_headroom.py"
       - "benchmarks/tests/test_hashmarks_dogfood_baseline_staging.py"
       - "benchmarks/tests/test_hashmarks_blind_review.py"
+      - "benchmarks/tests/test_hashmarks_review_returns.py"
   workflow_dispatch:
 
 permissions:
@@ -54,7 +55,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging benchmarks.tests.test_hashmarks_blind_review
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging benchmarks.tests.test_hashmarks_blind_review benchmarks.tests.test_hashmarks_review_returns
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -131,6 +132,12 @@ jobs:
             --suite benchmarks/dogfood/staged-suites/known-symbol-native-baseline-v1 \
             --output "$RUNNER_TEMP/hashmarks-blind-review.json"
 
+      - name: Prepare sanitized first-pass response status without private answers
+        run: |
+          uv run --no-project python -m benchmarks.dogfood.hashmarks_review_returns \
+            --repository-root . \
+            --output "$RUNNER_TEMP/hashmarks-review-return-status.json"
+
       - name: Upload source audit report
         if: always()
         uses: actions/upload-artifact@v4
@@ -145,5 +152,6 @@ jobs:
             ${{ runner.temp }}/hashmarks-callsites.json
             ${{ runner.temp }}/hashmarks-headroom-readiness.json
             ${{ runner.temp }}/hashmarks-blind-review.json
+            ${{ runner.temp }}/hashmarks-review-return-status.json
           if-no-files-found: ignore
           retention-days: 7
