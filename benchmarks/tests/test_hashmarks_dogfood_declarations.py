@@ -112,7 +112,8 @@ class PinnedDeclarationTests(unittest.TestCase):
         self._git("-c", "user.email=case@example.invalid",
                   "-c", "user.name=Case", "commit", "-qm", "two-definitions")
         self.audit["tasks"][0]["commit"] = self._git("rev-parse", "HEAD")
-        result = observe(self.audit, checkout=self.repo)["observations"][0]
+        result = next(x for x in observe(self.audit, checkout=self.repo)["observations"]
+                      if x["task"] == "known")
         self.assertEqual(result["status"], "MULTIPLE_DECLARATIONS")
         self.assertEqual({r["qualname"] for r in result["declarations_in_candidate_file"]},
                          {"paths_under", "A.paths_under"})
@@ -127,11 +128,13 @@ class PinnedDeclarationTests(unittest.TestCase):
     def test_unsupported_extension_and_invalid_symbol_are_explicit(self):
         report = deepcopy(self.audit)
         report["tasks"][0]["oracle_path"] = "src/example.ts"
-        result = observe(report, checkout=self.repo)["observations"][0]
+        result = next(x for x in observe(report, checkout=self.repo)["observations"]
+                      if x["task"] == "known")
         self.assertEqual(result["status"], "NOT_PYTHON_CANDIDATE")
         report["tasks"][0]["oracle_path"] = "src/owner.py"
         report["tasks"][0]["oracle_symbol"] = "paths_under; unsafe"
-        result = observe(report, checkout=self.repo)["observations"][0]
+        result = next(x for x in observe(report, checkout=self.repo)["observations"]
+                      if x["task"] == "known")
         self.assertEqual(result["status"], "INVALID_SYMBOL")
 
     def test_deterministic_does_not_mutate_audit(self):
@@ -143,7 +146,8 @@ class PinnedDeclarationTests(unittest.TestCase):
 
     def test_legacy_missing_semantic_identity_stays_unknown(self):
         self.audit["tasks"][0].pop("task_semantic_digest")
-        obs = observe(self.audit, checkout=self.repo)["observations"][0]
+        obs = next(x for x in observe(self.audit, checkout=self.repo)["observations"]
+                   if x["task"] == "known")
         self.assertIsNone(obs["semantic_task_digest"])
         self.assertFalse(obs["oracle_approved"])
 
