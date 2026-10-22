@@ -193,7 +193,25 @@ class AvailabilityStudyTests(unittest.TestCase):
                 events[3]["item"] = completed
                 observed = self.inspect("\n".join(json.dumps(e) for e in events))
                 self.assertEqual(observed["trace_state"], "UNKNOWN")
-                self.assertIsNone(observed["subject_invoked"])
+                # A genuine completed subject event remains positive
+                # operational evidence even when the start/completion binding
+                # makes the whole trial unsuitable for rate qualification.
+                completed_subject = (
+                    completed["type"] == "mcp_tool_call"
+                    and completed.get("server") == "hashmarks"
+                )
+                self.assertIs(
+                    observed["subject_invoked"],
+                    True if completed_subject else None,
+                )
+                started_subject = (
+                    started["type"] == "mcp_tool_call"
+                    and started.get("server") == "hashmarks"
+                )
+                self.assertIs(
+                    observed["subject_start_observed"],
+                    True if started_subject else None,
+                )
                 self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
                 self.assertEqual(observed["completed_tool_order"]["state"], "UNKNOWN")
                 self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
