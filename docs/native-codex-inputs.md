@@ -51,7 +51,20 @@ effort is currently unreported and remains unknown.
 
 Native execution uses `--no-daemon` and `--ephemeral` as well as the existing
 workspace sandbox policy. Input membership, bytes/modes and executable identity
-are checked around execution; drift makes the trial incomplete. Model-free
+are checked around execution; drift makes the trial incomplete. A native
+input-integrity rejection carries one of the bounded, privacy-safe failure
+classes for invalid manifest, changed member set, file type, permissions, bytes,
+or unavailable observation. The runner records this via its existing typed
+failure authority and does not turn a rejected trial into a model outcome.
+
+Before inference, preflight and execution share one additional workspace
+contamination check from the frozen post-mutation snapshot. Participant setup
+may create only its subject-declared disposable generated outputs. A source
+change or an unexpected generated environment such as `.venv` is rejected
+before any model call, even if the agent's later task would permit edits to the
+same source path. This prework guard does not establish that native Codex
+project-trust initialization has been settled; that remains a separate
+qualification requirement. Model-free
 native help proves launch flag support before work. Transport-only source
 pointers are removed from the model process environment.
 Native client originator, CLI and MCP Node runtime inputs come explicitly from
