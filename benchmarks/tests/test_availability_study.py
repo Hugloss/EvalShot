@@ -257,6 +257,58 @@ class AvailabilityStudyTests(unittest.TestCase):
         exported["messages"][0]["parts"][0]["tool"] = "mcp__hashmarks__task_evidence"
         self.assertIsNone(self.inspect(json.dumps(exported), "opencode-native")["subject_invoked"])
 
+    def test_native_subject_start_survives_incomplete_return_without_inventing_success(self):
+        raw = "\n".join(json.dumps(event) for event in (
+            {"type": "thread.started", "thread_id": "fixture"},
+            {"type": "turn.started"},
+            {"type": "item.started", "item": {
+                "id": "hm-start", "type": "mcp_tool_call",
+                "server": "hashmarks", "tool": "task_evidence",
+            }},
+        ))
+        observed = self.inspect(raw, complete=False)
+        self.assertEqual(observed["trace_state"], "UNKNOWN")
+        self.assertIs(observed["subject_start_observed"], True)
+        self.assertIsNone(observed["subject_invoked"])
+        self.assertIsNone(observed["successful_return_observed"])
+        self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
+        self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
+        self.assertEqual(observed["model_attention"], "UNKNOWN")
+
+    def test_completed_call_does_not_fabricate_native_start_or_host_delivery(self):
+        observed = self.inspect(native("codex", invoked=True))
+        self.assertTrue(observed["subject_invoked"])
+        self.assertIsNone(observed["subject_start_observed"])
+        self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
+        for adapter in ("codex", "opencode-native"):
+            with self.subTest(adapter=adapter):
+                neutral = self.inspect(native(adapter), adapter)
+                self.assertIsNone(neutral["subject_start_observed"])
+        foreign = self.inspect(
+            "\n".join(json.dumps(event) for event in (
+                {"type": "thread.started", "thread_id": "fixture"},
+                {"type": "turn.started"},
+                {"type": "item.started", "item": {
+                    "id": "foreign", "type": "mcp_tool_call",
+                    "server": "unrelated", "tool": "task_evidence",
+                }},
+            )), complete=False,
+        )
+        self.assertIsNone(foreign["subject_start_observed"])
+
+    def test_start_summary_keeps_missing_start_proof_unknown(self):
+        report = self.report(invoked=True)
+        self.assertEqual(
+            report["native_subject_start_diagnostic"],
+            {
+                "assigned_trials": 2,
+                "observed_starts": 0,
+                "not_established": 2,
+                "claim_scope": "observed-native-mcp-start-only;not-adoption-or-return",
+            },
+        )
+        self.assertEqual(report["voluntary_adoption"]["invoked"], 1)
+
     def test_positive_in_partial_native_trace_is_retained(self):
         observed = self.inspect(native("opencode-native", invoked=True, opaque=True), "opencode-native")
         self.assertIs(observed["subject_invoked"], True)
