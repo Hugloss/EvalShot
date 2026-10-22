@@ -20,7 +20,6 @@ from benchmarks.adapters.codex_native import (
     snapshot_native_inputs,
     validate_native_launch,
     validate_private_state,
-    verify_native_inputs,
 )
 from benchmarks.adapters.codex_native_namespace import probe_native_namespace, verify_native_namespace
 from benchmarks.adapters.codex_native_plugins import (
