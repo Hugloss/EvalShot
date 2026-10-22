@@ -191,7 +191,16 @@ def observe_collisions(audit: Mapping[str, Any], *, checkout: Path) -> dict[str,
             "candidate_symbol": symbol,
             "task_semantic_digest": row.get("task_semantic_digest"),
             "status": status,
-            "scan_complete": scan is not None and scan["status"] == "COMPLETE",
+            "scan_complete": (
+                status not in {
+                    "SOURCE_PRECONDITION_FAILED",
+                    "NOT_PYTHON_SOURCE_CANDIDATE",
+                    "INVALID_SYMBOL",
+                    "SOURCE_IDENTITY_MISMATCH",
+                }
+                and scan is not None
+                and scan["status"] == "COMPLETE"
+            ),
             "nominated_declarations": nominated,
             "other_file_same_name_declarations": alternatives,
             "same_file_declarations": len(nominated),
