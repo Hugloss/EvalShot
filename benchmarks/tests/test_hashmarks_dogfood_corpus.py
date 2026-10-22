@@ -75,6 +75,39 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         self.assertEqual(result["tasks"][0]["source"], "INVALID_PATH")
         self.assertIn("INVALID_ORACLE_PATH", result["tasks"][0]["problems"])
 
+    def test_git_pathspec_result_must_match_exact_requested_path(self):
+        from benchmarks.dogfood import hashmarks_corpus
+
+        real_git = hashmarks_corpus._git
+
+        def wrong_git(checkout, *args):
+            if args[0] == "ls-tree":
+                return True, "100644 blob " + "a" * 40 + "\\twrong/owner.py\\0"
+            return real_git(checkout, *args)
+
+        with patch.object(hashmarks_corpus, "_git", side_effect=wrong_git):
+            row = audit(self.suites, checkout=self.checkout, require_source=True)["tasks"][0]
+        self.assertEqual(row["source"], "ORACLE_PATH_MISMATCH")
+        self.assertIn("ORACLE_PATH_MISMATCH", row["problems"])
+
+    def test_multiple_matched_tree_entries_cannot_prove_single_file(self):
+        from benchmarks.dogfood import hashmarks_corpus
+
+        real_git = hashmarks_corpus._git
+
+        def extra_git(checkout, *args):
+            if args[0] == "ls-tree":
+                entry = "100644 blob " + "a" * 40
+                return True, (
+                    entry + "\\tsrc/owner.py\\0"
+                    + entry + "\\tsrc/unexpected.py\\0"
+                )
+            return real_git(checkout, *args)
+
+        with patch.object(hashmarks_corpus, "_git", side_effect=extra_git):
+            row = audit(self.suites, checkout=self.checkout, require_source=True)["tasks"][0]
+        self.assertEqual(row["source"], "ORACLE_PATH_MISMATCH")
+
     def test_control_character_path_is_not_admissible(self):
         self.task["oracle"]["configuration"]["expected"]["path"] = "src/owner" + chr(10) + ".py"
         self._write()
