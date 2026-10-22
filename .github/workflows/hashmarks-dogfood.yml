@@ -11,6 +11,7 @@ on:
       - "benchmarks/tests/test_hashmarks_dogfood_declarations.py"
       - "benchmarks/tests/test_hashmarks_dogfood_collisions.py"
       - "benchmarks/tests/test_hashmarks_dogfood_callsites.py"
+      - "benchmarks/tests/test_hashmarks_dogfood_headroom.py"
   workflow_dispatch:
 
 permissions:
@@ -51,7 +52,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -111,6 +112,16 @@ jobs:
               --output "$RUNNER_TEMP/hashmarks-callsites.json"
           fi
 
+      - name: Audit exact-task native baseline eligibility
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/hashmarks-source-audit.json" ]; then
+            uv run --no-project python -m benchmarks.dogfood.hashmarks_headroom \
+              --audit "$RUNNER_TEMP/hashmarks-source-audit.json" \
+              --historical-pilot benchmarks/suites/repository-intelligence/native-evidence-pilot-v1/results/2026-10-21-summary.json \
+              --output "$RUNNER_TEMP/hashmarks-headroom-readiness.json"
+          fi
+
       - name: Upload source audit report
         if: always()
         uses: actions/upload-artifact@v4
@@ -123,5 +134,6 @@ jobs:
             ${{ runner.temp }}/hashmarks-declarations.json
             ${{ runner.temp }}/hashmarks-collisions.json
             ${{ runner.temp }}/hashmarks-callsites.json
+            ${{ runner.temp }}/hashmarks-headroom-readiness.json
           if-no-files-found: ignore
           retention-days: 7

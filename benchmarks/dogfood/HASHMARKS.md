@@ -26,6 +26,53 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
 ```
 
+## Frozen expectation reuse versus exact-task baseline headroom
+
+`hashmarks_headroom` audits whether a **dormant** Hashmarks candidate shares
+a pinned source-tree, oracle-nominated path and symbol with an existing
+**assigned** benchmark task. It does not equate their prompts or transfer
+performance claims: an assigned behavior-description task and a dormant
+known-symbol task can have the same expected owner but very different
+agent difficulty.
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_headroom \
+  --audit /tmp/hashmarks-source-audit.json \
+  --historical-pilot benchmarks/suites/repository-intelligence/native-evidence-pilot-v1/results/2026-10-21-summary.json \
+  --output /tmp/hashmarks-headroom-readiness.json
+```
+
+The read-only report exposes exact assigned-source analogs only when the
+candidate's source path is verified and has no audit problems. It binds each
+analogy to the frozen commit **and tree** and marks it
+`SAME_PINNED_EXPECTATION_NOT_EQUIVALENT_TASK`. A shared source
+location is *not* an equivalent prompt, a qualified oracle, or a
+reuse permission for another task's native baseline observations.
+Missing source stays `SOURCE_PRECONDITION_FAILED`; unavailable
+semantic identities stay unknown.
+
+The committed October 21, 2026, native pilot has 18 observed
+executions but `pilot_measurement_qualified=false`. Its valid
+operational diagnostics cannot be counted as task PASS/FAIL,
+baseline headroom, or a Hashmarks treatment gain. An explicitly
+qualified boolean in an aggregate summary would still not
+establish task-level headroom without the canonical EvalShot
+campaign qualification and exact task evidence. The consumer
+**never imports grades**, automatically qualifies campaigns,
+computes effectiveness, executes a model, or alters the
+grader. It intentionally emits
+`UNKNOWN_NOT_MEASURED_FOR_EXACT_TASK` for every dormant task.
+
+The next independent reviewer must decide whether to design a
+*separately frozen* native no-Hashmarks baseline for a specific,
+independently reviewed candidate, and whether that task offers
+real headroom versus a native agent already solving it. Existing
+native configuration and experiment authority remain owned by
+EvalShot's canonical harness. Do not put the retrospective
+report into agent prompts. CI publishes
+`hashmarks-headroom-readiness.json` independently from the
+source, coverage, collision and call-expression reports.
+
 ## Independent syntactic callsite observation
 
 `hashmarks_callsites` is a separate, reviewer-only dogfood diagnostic for
