@@ -313,6 +313,29 @@ def build_availability_study(
     subject_rows = arm_rows[available_condition]
     invoked = sum(r["subject_invoked"] is True for r in subject_rows)
     unknown = sum(r["subject_invoked"] is None for r in subject_rows)
+    first_order = [r["completed_tool_order"] for r in subject_rows]
+    first_order_summary = {
+        "assigned_trials": len(subject_rows),
+        "subject_first_completed": sum(
+            row["subject_first_completed"] is True for row in first_order
+        ),
+        "other_tool_first_completed": sum(
+            row["state"] == "OBSERVED_COMPLETION_ORDER"
+            and row["first_completed_tool"] is not None
+            and row["subject_first_completed"] is False
+            for row in first_order
+        ),
+        "no_tracked_tool": sum(
+            row["state"] == "OBSERVED_COMPLETION_ORDER"
+            and row["first_completed_tool"] is None
+            for row in first_order
+        ),
+        "unknown": sum(row["state"] == "UNKNOWN" for row in first_order),
+        "claim_scope": (
+            "observed-completed-tool-order-only;"
+            "not-native-tool-choice-or-model-request-proof"
+        ),
+    }
     pair_rows = []
     tainted = canonical["campaign_qualification"]["evidence_tainted"]
     by_arm = {c: {pair_key(r): r for r in rs} for c, rs in arm_rows.items()}
@@ -352,6 +375,7 @@ def build_availability_study(
                 "qualified" if qualified else "unqualified-operational-counts-only"
             ),
         },
+        "completed_tool_order_diagnostic": first_order_summary,
         "successful_return_subset_diagnostic": {
             **_outcomes([r for r in subject_rows if r["successful_return_observed"] is True]),
             "claim_scope": "post-assignment-selected-subset-descriptive-only",
