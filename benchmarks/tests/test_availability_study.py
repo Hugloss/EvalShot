@@ -150,7 +150,17 @@ class AvailabilityStudyTests(unittest.TestCase):
         report = self.report()
         self.assertTrue(report["study_measurement_qualified"])
         self.assertEqual(report["historical_subject_use_qualification"], "FAIL")
-        self.assertEqual(report["voluntary_adoption"], {"assigned_trials": 2, "invoked": 0, "not_invoked": 2, "unknown": 0, "rate": 0.0})
+        self.assertEqual(
+            report["voluntary_adoption"],
+            {
+                "assigned_trials": 2,
+                "invoked": 0,
+                "not_invoked": 2,
+                "unknown": 0,
+                "rate": 0.0,
+                "rate_qualification": "qualified",
+            },
+        )
         self.assertEqual(report["primary_availability_intention_to_treat"]["expected_pairs"], 2)
 
     def test_missing_trial_keeps_assigned_denominator_and_unknown_outcome(self):
@@ -172,6 +182,29 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertIsNone(arm["success_rate"])
         self.assertEqual(report["voluntary_adoption"]["unknown"], 1)
         self.assertIsNone(report["voluntary_adoption"]["rate"])
+
+    def test_unqualified_adoption_counts_cannot_be_reported_as_a_rate(self):
+        # A complete trace can count a call even if the experiment's
+        # independently graded answer, catalog, or authority is unqualified.
+        for reason in ("answer-mismatch", "catalog-missing", "authority-tainted"):
+            with self.subTest(reason=reason):
+                report = self.report(
+                    invoked=True,
+                    mismatch=reason == "answer-mismatch",
+                    catalog_known=reason != "catalog-missing",
+                    tainted=reason == "authority-tainted",
+                )
+                self.assertFalse(report["study_measurement_qualified"])
+                adoption = report["voluntary_adoption"]
+                self.assertEqual(adoption["assigned_trials"], 2)
+                self.assertEqual(adoption["invoked"], 1)
+                self.assertEqual(adoption["not_invoked"], 1)
+                self.assertEqual(adoption["unknown"], 0)
+                self.assertIsNone(adoption["rate"])
+                self.assertEqual(
+                    adoption["rate_qualification"],
+                    "unqualified-operational-counts-only",
+                )
 
     def test_returned_subset_cannot_replace_primary_or_become_delivered_subset(self):
         report = self.report(invoked=True)
