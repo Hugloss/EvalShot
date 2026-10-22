@@ -500,6 +500,61 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertFalse(incomplete["study_measurement_qualified"])
         self.assertEqual(incomplete["host_catalog_inclusion"], "UNKNOWN")
 
+    def test_duplicate_paired_assignments_reject_before_scoring_or_receipts(self):
+        frozen = suite()
+        original = frozen.trial_definitions()
+        for arm in ("bare", "available"):
+            with self.subTest(arm=arm):
+                duplicate = dict(
+                    next(row for row in original if row["condition_id"] == arm)
+                )
+                # Distinct definition identifiers must not hide the same
+                # semantic task/replicate slot within one frozen arm.
+                duplicate["definition_id"] = "synthetic-duplicate-" + arm
+                with patch.object(
+                    SuiteDefinition,
+                    "trial_definitions",
+                    return_value=[*original, duplicate],
+                ), patch(
+                    "benchmarks.harness.availability_study.build_report"
+                ) as grade:
+                    with self.assertRaisesRegex(
+                        ReportError, "duplicate task/replicate assignments"
+                    ):
+                        build_availability_study(
+                            suite=frozen,
+                            results_root=Path("unread-frozen-results"),
+                            baseline_condition="bare",
+                            available_condition="available",
+                        )
+                    grade.assert_not_called()
+
+    def test_duplicate_definition_ids_reject_before_receipt_projection(self):
+        frozen = suite()
+        rows = frozen.trial_definitions()
+        # Keep task/replicate pairs distinct; an identity collision across
+        # frozen arms must still reject independently of the pair-key check.
+        other = next(row for row in rows if row["condition_id"] == "available")
+        baseline = next(row for row in rows if row["condition_id"] == "bare")
+        mutated = [
+            {**row, "definition_id": baseline["definition_id"]}
+            if row is other else row
+            for row in rows
+        ]
+        with patch.object(
+            SuiteDefinition, "trial_definitions", return_value=mutated
+        ), patch("benchmarks.harness.availability_study.build_report") as grade:
+            with self.assertRaisesRegex(
+                ReportError, "duplicate trial definition identities"
+            ):
+                build_availability_study(
+                    suite=frozen,
+                    results_root=Path("unread-frozen-results"),
+                    baseline_condition="bare",
+                    available_condition="available",
+                )
+            grade.assert_not_called()
+
     def test_missing_trial_keeps_assigned_denominator_and_unknown_outcome(self):
         report = self.report(missing=True)
         arm = report["primary_availability_intention_to_treat"]["conditions"]["available"]

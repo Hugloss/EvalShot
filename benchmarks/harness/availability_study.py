@@ -435,10 +435,27 @@ def build_availability_study(
         raise ReportError("availability requires an optional-tool native configuration")
     expected = [d for d in suite.trial_definitions()
                 if d["condition_id"] in {baseline_condition, available_condition}]
+    # A receipt is keyed by definition_id. Duplicate definitions would
+    # collapse silently when the frozen selection becomes a set and receipts
+    # become a dictionary, even if the task/replicate pairs differ.
+    definition_ids = [row["definition_id"] for row in expected]
+    if len(definition_ids) != len(set(definition_ids)):
+        raise ReportError(
+            "availability conditions contain duplicate trial definition identities"
+        )
     def pair_key(row: dict[str, Any]) -> tuple[str, int]:
         return str(row["task_id"]), row.get("replicate_id", row.get("seed"))
-    assignment_sets = [{pair_key(d) for d in expected if d["condition_id"] == c}
-                       for c in (baseline_condition, available_condition)]
+    assignments = [
+        [pair_key(d) for d in expected if d["condition_id"] == name]
+        for name in (baseline_condition, available_condition)
+    ]
+    # Set equality alone can collapse duplicate frozen task/replicate slots
+    # and silently replace one receipt in the later by-arm key projection.
+    if any(len(rows) != len(set(rows)) for rows in assignments):
+        raise ReportError(
+            "availability conditions contain duplicate task/replicate assignments"
+        )
+    assignment_sets = [set(rows) for rows in assignments]
     if assignment_sets[0] != assignment_sets[1]:
         raise ReportError("availability conditions must select identical task/replicate assignments")
     selected = {d["definition_id"] for d in expected}
