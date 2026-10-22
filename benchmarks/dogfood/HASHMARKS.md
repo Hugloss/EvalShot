@@ -75,11 +75,19 @@ oracle paths are rejected. These checks establish Git object/file identity,
 not that an expected owner symbol is semantically correct, and they do not
 certify the clone's remote origin.
 
-The current runtime used for this checkpoint cannot clone GitHub repositories
-through the command-line network; therefore the strict full historical checkout
-audit remains unexecuted. The existing GitHub commit/tree API provided the
-separate historical source identity observation, which is not substituted for
-a local strict audit.
+This repository also contains a separate read-only source-qualification
+workflow: `.github/workflows/hashmarks-dogfood.yml`. On dogfood changes
+(or a manual trigger) it checks out full Hashmarks history, runs focused
+regressions, and executes `--require-source` against the full corpus. It
+publishes the deterministic JSON audit when generated. It deliberately
+does **not** use `--require-reviewed` across every historical suite:
+review approval remains the canonical experiment-specific admission gate.
+No inference configuration, scorer, or frozen task is modified.
+
+The local tool runtime used for this checkpoint cannot clone GitHub repositories
+through the command-line network; the independent CI checkout provides the
+full-history source reproduction attempt instead. GitHub commit/tree API
+observations remain separate from a successful CI strict audit.
 
 The output is deterministic JSON with explicit `NOT_CHECKED` and
 `SOURCE_UNAVAILABLE` states. A missing historical object can mean a shallow
