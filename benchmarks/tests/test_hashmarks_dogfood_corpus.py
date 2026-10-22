@@ -82,7 +82,7 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
 
         def wrong_git(checkout, *args):
             if args[0] == "ls-tree":
-                return True, "100644 blob " + "a" * 40 + "\\twrong/owner.py\\0"
+                return True, "100644 blob " + "a" * 40 + chr(9) + "wrong/owner.py" + chr(0)
             return real_git(checkout, *args)
 
         with patch.object(hashmarks_corpus, "_git", side_effect=wrong_git):
@@ -99,8 +99,8 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
             if args[0] == "ls-tree":
                 entry = "100644 blob " + "a" * 40
                 return True, (
-                    entry + "\\tsrc/owner.py\\0"
-                    + entry + "\\tsrc/unexpected.py\\0"
+                    entry + chr(9) + "src/owner.py" + chr(0)
+                    + entry + chr(9) + "src/unexpected.py" + chr(0)
                 )
             return real_git(checkout, *args)
 
