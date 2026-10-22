@@ -17,6 +17,7 @@ def row(
     suite: str, task: str, family: str, membership: str, *,
     source: str = "VERIFIED_PATH", problems: list[str] | None = None,
     commit: str = "a" * 40,
+    semantic: str | None = "c" * 64,
 ) -> dict[str, object]:
     return {
         "suite": suite,
@@ -25,6 +26,7 @@ def row(
         "mode": "read_only",
         "commit": commit,
         "task_sha256": "b" * 64,
+        "task_semantic_digest": semantic,
         "experiment_membership": membership,
         "source": source,
         "review": "MATCH",
@@ -109,6 +111,78 @@ class HashmarksCoverageTests(unittest.TestCase):
         self.assertEqual(data, before)
         self.assertEqual(len({x["id"] for x in first["candidate_review_queue"]}),
                          first["summary"]["candidate_review_items"])
+
+    def test_dormant_copy_of_assigned_case_is_not_new_trial_candidate(self):
+        document = sample()
+        document["tasks"].append(
+            row("legacy", "locate-owner", "python-localization", "UNASSIGNED")
+        )
+        document["summary"]["tasks"] += 1
+        result = build_coverage(document)
+        self.assertEqual(result["summary"]["unassigned_entries"], 3)
+        self.assertFalse(any(
+            item["kind"] == "UNASSIGNED_CASE_FOR_TRIAGE"
+            and item["task"] == "locate-owner"
+            for item in result["candidate_review_queue"]
+        ))
+        self.assertEqual(result["summary"]["cross_suite_semantic_variants"], 0)
+
+    def test_cross_suite_changed_task_meaning_requires_review_not_oracle(self):
+        document = sample()
+        document["tasks"].append(row(
+            "legacy", "locate-owner", "python-localization",
+            "UNASSIGNED", semantic="d" * 64,
+        ))
+        document["summary"]["tasks"] += 1
+        result = build_coverage(document)
+        variants = [
+            item for item in result["candidate_review_queue"]
+            if item["kind"] == "CROSS_SUITE_SEMANTIC_VARIANT"
+        ]
+        self.assertEqual(len(variants), 1)
+        self.assertEqual(variants[0]["task"], "locate-owner")
+        self.assertEqual(variants[0]["oracle_status"], "NOT_ESTABLISHED")
+        self.assertEqual(result["summary"]["cross_suite_semantic_variants"], 1)
+        self.assertFalse(any(
+            item["kind"] == "SINGLE_ASSIGNED_TASK_FAMILY"
+            and item["family"] == "python-localization"
+            for item in result["candidate_review_queue"]
+        ))
+        self.assertFalse(any(
+            item["kind"] == "UNASSIGNED_CASE_FOR_TRIAGE"
+            and item["task"] == "locate-owner"
+            for item in result["candidate_review_queue"]
+        ))
+
+    def test_byte_only_drift_does_not_claim_changed_task_meaning(self):
+        document = sample()
+        extra = row("legacy", "locate-owner", "python-localization", "UNASSIGNED")
+        extra["task_sha256"] = "f" * 64
+        document["tasks"].append(extra)
+        document["summary"]["tasks"] += 1
+        result = build_coverage(document)
+        self.assertEqual(result["summary"]["cross_suite_semantic_variants"], 0)
+        self.assertFalse(any(
+            item["kind"] == "CROSS_SUITE_SEMANTIC_VARIANT"
+            for item in result["candidate_review_queue"]
+        ))
+
+    def test_old_audit_without_semantic_digest_remains_explicitly_unknown(self):
+        document = sample()
+        for item in document["tasks"]:
+            item.pop("task_semantic_digest")
+        result = build_coverage(document)
+        self.assertEqual(result["summary"]["semantic_identity_unavailable_entries"], 5)
+        self.assertEqual(result["summary"]["cross_suite_semantic_variants"], 0)
+
+    def test_rejects_invalid_canonical_task_digest(self):
+        document = sample()
+        document["tasks"][0]["task_semantic_digest"] = "unknown"
+        with self.assertRaisesRegex(CoverageError, "canonical task digest"):
+            build_coverage(document)
+        document["tasks"][0]["task_semantic_digest"] = "g" * 64
+        with self.assertRaisesRegex(CoverageError, "canonical task digest"):
+            build_coverage(document)
 
     def test_rejects_duplicate_inventory_identity(self):
         data = sample()
