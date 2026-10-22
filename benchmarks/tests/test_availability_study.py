@@ -135,7 +135,7 @@ class AvailabilityStudyTests(unittest.TestCase):
             "server": "hashmarks", "tool": "task_evidence",
             "status": "completed", "result": {"content": []},
         }})
-        result = self.inspect("\\n".join(json.dumps(row) for row in events))
+        result = self.inspect("\n".join(json.dumps(row) for row in events))
         self.assertEqual(result["trace_state"], "COMPLETE_MCP_TELEMETRY")
         self.assertTrue(result["subject_invoked"])
         self.assertEqual(
@@ -166,7 +166,7 @@ class AvailabilityStudyTests(unittest.TestCase):
         events = [json.loads(line) for line in native("codex").splitlines()]
         duplicate = dict(events[2])
         events.insert(3, duplicate)
-        result = self.inspect("\\n".join(json.dumps(row) for row in events))
+        result = self.inspect("\n".join(json.dumps(row) for row in events))
         self.assertEqual(result["trace_state"], "UNKNOWN")
         self.assertIsNone(result["subject_invoked"])
         self.assertEqual(result["started_tool_order"]["state"], "UNKNOWN")
