@@ -50,6 +50,13 @@ and neither completion order nor an MCP return establishes model-request
 inclusion or actual model attention. The existing native `mcp:server/tool`
 name spelling is classified by the single shared routing owner.
 
+Native item-ID reuse also binds the item type and, for MCP calls, the exact
+server/tool pair across any observed start and completion. A completion with
+the same ID but a different tool type, server or operation invalidates
+complete-telemetry qualification and therefore cannot be credited as a
+confirmed absence or success. Historical completion-only exports remain
+readable without retroactively claiming start evidence.
+
 The new Codex start-order diagnostic is stricter: it requires a complete
 single-turn native trace, unique item start/completion identities, and matching
 tracked tool names in both phases. Duplicate IDs, start-after-completion,

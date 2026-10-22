@@ -157,6 +157,82 @@ class AvailabilityStudyTests(unittest.TestCase):
         )
         self.assertEqual(result["model_request_inclusion"], "UNKNOWN")
 
+    def test_codex_start_completion_item_binding_rejects_changed_tool_identity(self):
+        baseline = [json.loads(row) for row in native("codex").splitlines()]
+        for label, started, completed in (
+            (
+                "mcp-becomes-command",
+                {"id": "cmd-1", "type": "mcp_tool_call",
+                 "server": "hashmarks", "tool": "task_evidence"},
+                {"id": "cmd-1", "type": "command_execution"},
+            ),
+            (
+                "command-becomes-mcp",
+                {"id": "cmd-1", "type": "command_execution"},
+                {"id": "cmd-1", "type": "mcp_tool_call",
+                 "server": "hashmarks", "tool": "task_evidence"},
+            ),
+            (
+                "mcp-tool-changes",
+                {"id": "cmd-1", "type": "mcp_tool_call",
+                 "server": "hashmarks", "tool": "find"},
+                {"id": "cmd-1", "type": "mcp_tool_call",
+                 "server": "hashmarks", "tool": "task_evidence"},
+            ),
+            (
+                "mcp-server-changes",
+                {"id": "cmd-1", "type": "mcp_tool_call",
+                 "server": "hashmarks", "tool": "task_evidence"},
+                {"id": "cmd-1", "type": "mcp_tool_call",
+                 "server": "foreign", "tool": "task_evidence"},
+            ),
+        ):
+            with self.subTest(label=label):
+                events = json.loads(json.dumps(baseline))
+                events.insert(2, {"type": "item.started", "item": started})
+                events[3]["item"] = completed
+                observed = self.inspect("\n".join(json.dumps(e) for e in events))
+                self.assertEqual(observed["trace_state"], "UNKNOWN")
+                # A genuine completed subject event remains positive
+                # operational evidence even when the start/completion binding
+                # makes the whole trial unsuitable for rate qualification.
+                completed_subject = (
+                    completed["type"] == "mcp_tool_call"
+                    and completed.get("server") == "hashmarks"
+                )
+                self.assertIs(
+                    observed["subject_invoked"],
+                    True if completed_subject else None,
+                )
+                started_subject = (
+                    started["type"] == "mcp_tool_call"
+                    and started.get("server") == "hashmarks"
+                )
+                self.assertIs(
+                    observed["subject_start_observed"],
+                    True if started_subject else None,
+                )
+                self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
+                self.assertEqual(observed["completed_tool_order"]["state"], "UNKNOWN")
+                self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
+
+    def test_codex_matching_start_completion_allows_historical_completion_scope(self):
+        events = [json.loads(row) for row in native("codex").splitlines()]
+        events.insert(2, {"type": "item.started", "item": {
+            "id": "cmd-1", "type": "command_execution"
+        }})
+        observed = self.inspect("\n".join(json.dumps(e) for e in events))
+        self.assertEqual(observed["trace_state"], "COMPLETE_MCP_TELEMETRY")
+        self.assertFalse(observed["subject_invoked"])
+        self.assertEqual(
+            observed["started_tool_order"]["first_started_tool"],
+            "command_execution",
+        )
+        self.assertEqual(
+            observed["completed_tool_order"]["first_completed_tool"],
+            "command_execution",
+        )
+
     def test_codex_missing_start_and_duplicate_item_ids_are_not_first_choice_proof(self):
         # Historical completion-only native exports cannot prove start order.
         baseline = self.inspect(native("codex"))
