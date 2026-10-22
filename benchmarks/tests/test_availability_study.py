@@ -173,6 +173,17 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertEqual(result["started_tool_order"]["state"], "UNKNOWN")
         self.assertEqual(result["completed_tool_order"]["state"], "UNKNOWN")
 
+        reversed_lifecycle = [json.loads(line) for line in native("codex").splitlines()]
+        reversed_lifecycle.insert(3, {"type": "item.started", "item": {
+            "id": "cmd-1", "type": "command_execution",
+        }})
+        late_start = self.inspect(
+            "\n".join(json.dumps(row) for row in reversed_lifecycle)
+        )
+        self.assertEqual(late_start["trace_state"], "UNKNOWN")
+        self.assertIsNone(late_start["subject_invoked"])
+        self.assertEqual(late_start["started_tool_order"]["state"], "UNKNOWN")
+
         unsupported = self.inspect(native("opencode-native"), "opencode-native")
         self.assertEqual(unsupported["started_tool_order"]["state"], "UNKNOWN")
 
