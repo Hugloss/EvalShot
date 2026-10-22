@@ -228,6 +228,21 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         self.assertEqual(checked["tasks"][0]["source"], "NOT_CHECKED")
         self.assertEqual(checked["summary"]["tasks_with_problems"], 0)
 
+    def test_semantic_digest_reuses_evalshot_authority_and_ignores_json_whitespace(self):
+        from benchmarks.harness.identity import digest
+
+        first = audit(self.suites)["tasks"][0]
+        self.assertEqual(first["task_semantic_digest"], digest(self.task))
+        task_file = self.suite / "tasks" / "locate-decision.json"
+        task_file.write_text(json.dumps(self.task, indent=4) + "\n")
+        second = audit(self.suites)["tasks"][0]
+        self.assertNotEqual(first["task_sha256"], second["task_sha256"])
+        self.assertEqual(first["task_semantic_digest"], second["task_semantic_digest"])
+        modified = dict(self.task, prompt="changed source task meaning")
+        task_file.write_text(json.dumps(modified))
+        third = audit(self.suites)["tasks"][0]
+        self.assertNotEqual(third["task_semantic_digest"], first["task_semantic_digest"])
+
     def test_byte_only_frozen_variant_does_not_invent_semantic_change(self):
         second = self.suites / "frozen-v2" / "tasks"
         second.mkdir(parents=True)
