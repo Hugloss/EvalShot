@@ -85,6 +85,39 @@ class AvailabilityStudyTests(unittest.TestCase):
                 self.assertEqual(observed["final_answer"], ANSWER)
                 self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
 
+    def test_completed_tool_order_is_observation_not_model_tool_choice(self):
+        for adapter in ("codex", "opencode-native"):
+            with self.subTest(adapter=adapter):
+                baseline = self.inspect(native(adapter), adapter)
+                first = baseline["completed_tool_order"]
+                self.assertEqual(first["state"], "OBSERVED_COMPLETION_ORDER")
+                self.assertFalse(first["subject_first_completed"])
+                self.assertIsNone(first["subject_first_completed_ordinal"])
+                assisted = self.inspect(native(adapter, invoked=True), adapter)
+                routing = assisted["completed_tool_order"]
+                self.assertEqual(routing["state"], "OBSERVED_COMPLETION_ORDER")
+                self.assertTrue(routing["subject_first_completed"])
+                self.assertEqual(routing["subject_first_completed_ordinal"], 1)
+                self.assertEqual(
+                    routing["first_completed_class"],
+                    "subject-repository-intelligence",
+                )
+                self.assertEqual(assisted["model_request_inclusion"], "UNKNOWN")
+
+    def test_partial_trace_does_not_claim_first_tool_order(self):
+        observed = self.inspect(native("opencode-native", invoked=True, opaque=True), "opencode-native")
+        self.assertTrue(observed["subject_invoked"])
+        self.assertEqual(
+            observed["completed_tool_order"],
+            {
+                "state": "UNKNOWN",
+                "first_completed_tool": None,
+                "first_completed_class": None,
+                "subject_first_completed": None,
+                "subject_first_completed_ordinal": None,
+            },
+        )
+
     def test_partial_missing_and_malformed_traces_never_prove_zero(self):
         for raw in ("", "{}", "\n".join(native().splitlines()[2:]), native() + '\n{broken', native() + '\n{"type":"turn.started"}', native() + '\n{"type":"item.started","item":{"id":"pending","type":"mcp_tool_call","server":"hashmarks","tool":"find"}}'):
             with self.subTest(raw=raw[:30]):
