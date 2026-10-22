@@ -121,7 +121,11 @@ class CollisionEvidenceTests(unittest.TestCase):
         self.assertEqual(baseline, observe_collisions(self.audit, checkout=self.repo))
 
     def test_tree_mismatch_fails_closed(self):
-        self.audit["tasks"][0]["tree"] = "f" * 40
+        # Keep the frozen tree declaration internally consistent: a mismatch
+        # with the actual Git commit must be observed, not masked by an
+        # earlier conflict between separate task definitions.
+        for task in self.audit["tasks"]:
+            task["tree"] = "f" * 40
         report = observe_collisions(self.audit, checkout=self.repo)
         row = self._by_task(report, "paths-under")
         self.assertEqual(row["status"], "SOURCE_IDENTITY_MISMATCH")
