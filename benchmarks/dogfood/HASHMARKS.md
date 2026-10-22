@@ -26,6 +26,44 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
 ```
 
+## Pinned-source declaration observations
+
+The `hashmarks_declarations` reader checks the **nominated Python source
+file only** for concrete `def` / `async def` nodes in the pinned Git blob.
+It uses Python AST, does not import or execute source code, limits blob size,
+disables Git replacement refs, and records the source content SHA-256 plus
+qualified declaration names and line ranges.
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_declarations \
+  --audit /tmp/hashmarks-source-audit.json \
+  --checkout /path/to/Hashmarks \
+  --output /tmp/hashmarks-declarations.json
+```
+
+For each unassigned candidate the observation distinguishes
+`DECLARATION_OBSERVED`, `MULTIPLE_DECLARATIONS`,
+`DECLARATION_ABSENT`, `SOURCE_PRECONDITION_FAILED`,
+`SOURCE_UNAVAILABLE`, `SOURCE_NOT_PARSEABLE`, and
+`NOT_PYTHON_CANDIDATE`. A missing or invalid claimed symbol is also explicit.
+The result cannot establish unique ownership, runtime reachability,
+independent oracle validity or agent headroom; every row hardcodes those
+approval fields to `false`. In particular, checking the *oracle-nominated*
+file against the *oracle-nominated* symbol is a consistency observation,
+**not an independent search for the correct owner**. The source might have
+another legitimate implementation or a misleading declaration.
+
+The historical known-symbol candidates
+`lookup-known-symbol-paths-under` and
+`lookup-known-symbol-sync-remove-stale-paths` are the immediate review
+subjects. The previously observed `lookup-known-symbol-run-poll-delay`
+source mismatch must remain a failed precondition and cannot be repaired by
+this tool. CI publishes a separate `hashmarks-declarations.json` artifact
+alongside the audit, coverage report and handoff. These reports are
+**reviewer-only**; they must not be copied into evaluated agent prompts.
+An independent reviewer still owns confirmation of unique behavior,
+alternatives, and actual trial eligibility.
+
 ## Independent review handoff (not experimental qualification)
 
 The next step consumes **both** saved reports and verifies that the coverage
