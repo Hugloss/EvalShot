@@ -11,6 +11,7 @@ import argparse
 from collections import Counter, defaultdict
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import re
 import subprocess
@@ -41,6 +42,7 @@ def _git(checkout: Path, *args: str) -> tuple[bool, str]:
             ["git", "-C", str(checkout), "--no-optional-locks", *args],
             capture_output=True,
             text=True,
+            env={**os.environ, "GIT_NO_REPLACE_OBJECTS": "1"},
             timeout=15,
             check=False,
         )
@@ -51,6 +53,11 @@ def _git(checkout: Path, *args: str) -> tuple[bool, str]:
 
 def _safe_file(value: object) -> bool:
     if not isinstance(value, str) or not value or "\\" in value or ":" in value:
+        return False
+    # Git pathspecs interpret *, ?, and [] as matches, not literal paths.
+    # Control characters are not valid audit input; Git would escape them
+    # in diagnostics, confusing a proof about one exact source filename.
+    if any(c in "*?[]" or ord(c) < 32 or ord(c) == 127 for c in value):
         return False
     path = PurePosixPath(value)
     return not path.is_absolute() and all(part not in (".", "..") for part in value.split("/"))
@@ -159,31 +166,50 @@ def audit(
             else:
                 source_key = (commit, tree, owner_path if isinstance(owner_path, str) else "")
                 if source_key not in source_memo:
-                    ok, found = _git(checkout, "rev-parse", "--verify", f"{commit}^{{tree}}")
-                    if not ok:
+                    # A 40-hex tree ID can satisfy `^{tree}`, so check the
+                    # object kind before admitting a claimed Git commit.
+                    typed, object_type = _git(checkout, "cat-file", "-t", commit)
+                    if not typed:
                         source_memo[source_key] = "SOURCE_UNAVAILABLE"
-                    elif found != tree:
-                        source_memo[source_key] = "TREE_MISMATCH"
-                    elif owner_path is not None:
-                        # ls-tree preserves Git's entry mode. cat-file -e would
-                        # incorrectly accept directories and symlinks as source files.
-                        found_path, listing = _git(
-                            checkout, "ls-tree", "--full-tree", "-z", commit, "--", owner_path
-                        )
-                        if not found_path or not listing:
-                            source_memo[source_key] = "ORACLE_PATH_MISSING"
-                        else:
-                            entry = listing.split("\t", 1)[0]
-                            mode_and_type = entry.split(" ", 2)[:2]
-                            source_memo[source_key] = (
-                                "VERIFIED_PATH"
-                                if mode_and_type in (["100644", "blob"], ["100755", "blob"])
-                                else "ORACLE_PATH_NOT_FILE"
-                            )
+                    elif object_type != "commit":
+                        source_memo[source_key] = "SOURCE_NOT_COMMIT"
                     else:
-                        source_memo[source_key] = "VERIFIED_COMMIT"
+                        ok, found = _git(checkout, "rev-parse", "--verify", f"{commit}^{{tree}}")
+                        if not ok:
+                            source_memo[source_key] = "SOURCE_UNAVAILABLE"
+                        elif found != tree:
+                            source_memo[source_key] = "TREE_MISMATCH"
+                        elif owner_path is not None:
+                            # ls-tree preserves modes and emits a NUL-delimited
+                            # exact path. Merely matching a Git pathspec is NOT
+                            # evidence that the requested filename exists.
+                            found_path, listing = _git(
+                                checkout, "ls-tree", "--full-tree", "-z", commit, "--", owner_path
+                            )
+                            if not found_path or not listing:
+                                source_memo[source_key] = "ORACLE_PATH_MISSING"
+                            else:
+                                entries = [entry for entry in listing.split("\0") if entry]
+                                parsed = [entry.split("\t", 1) for entry in entries]
+                                if (
+                                    len(parsed) != 1 or len(parsed[0]) != 2
+                                    or parsed[0][1] != owner_path
+                                ):
+                                    source_memo[source_key] = "ORACLE_PATH_MISMATCH"
+                                else:
+                                    mode_and_type = parsed[0][0].split(" ", 2)[:2]
+                                    source_memo[source_key] = (
+                                        "VERIFIED_PATH"
+                                        if mode_and_type in (["100644", "blob"], ["100755", "blob"])
+                                        else "ORACLE_PATH_NOT_FILE"
+                                    )
+                        else:
+                            source_memo[source_key] = "VERIFIED_COMMIT"
                 source_status = source_memo[source_key]
-                if source_status in {"TREE_MISMATCH", "ORACLE_PATH_MISSING", "ORACLE_PATH_NOT_FILE"}:
+                if source_status in {
+                    "SOURCE_NOT_COMMIT", "TREE_MISMATCH", "ORACLE_PATH_MISSING",
+                    "ORACLE_PATH_NOT_FILE", "ORACLE_PATH_MISMATCH",
+                }:
                     problems.append(source_status)
                 if require_source and source_status == "SOURCE_UNAVAILABLE":
                     problems.append("SOURCE_UNAVAILABLE")
