@@ -7,6 +7,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from benchmarks.dogfood.hashmarks_corpus import audit
 
@@ -111,6 +112,49 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         report = audit(self.suites)
         self.assertEqual(len(report["variants"]), 1)
         self.assertEqual(report["summary"]["tasks_with_problems"], 0)
+
+    def test_oracle_directory_is_not_a_source_file(self):
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src"
+        self._write()
+        row = audit(self.suites, checkout=self.checkout)["tasks"][0]
+        self.assertEqual(row["source"], "ORACLE_PATH_NOT_FILE")
+        self.assertIn("ORACLE_PATH_NOT_FILE", row["problems"])
+
+    def test_oracle_symlink_is_not_a_source_file(self):
+        (self.checkout / "src" / "alias.py").symlink_to("owner.py")
+        self._git("add", "src/alias.py")
+        self._git("-c", "user.email=test@example.invalid", "-c", "user.name=Test", "commit", "-qm", "symlink")
+        self.task["repository"]["commit"] = self._git("rev-parse", "HEAD")
+        self.task["repository"]["tree"] = self._git("rev-parse", "HEAD^{tree}")
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src/alias.py"
+        self._write()
+        row = audit(self.suites, checkout=self.checkout)["tasks"][0]
+        self.assertEqual(row["source"], "ORACLE_PATH_NOT_FILE")
+
+    def test_invalid_oracle_path_is_not_resolved_by_git(self):
+        self.task["oracle"]["configuration"]["expected"]["path"] = "../src/owner.py"
+        self._write()
+        row = audit(self.suites, checkout=self.checkout)["tasks"][0]
+        self.assertEqual(row["source"], "INVALID_PATH")
+        self.assertIn("INVALID_ORACLE_PATH", row["problems"])
+
+    def test_canonical_review_gate_is_not_inferred_from_transcript(self):
+        with patch("benchmarks.dogfood.hashmarks_corpus._canonical_review_ready", return_value=False) as ready:
+            initial = audit(self.suites)
+            ready.assert_not_called()
+            self.assertEqual(initial["canonical_review_qualification"], "NOT_CHECKED")
+            checked = audit(self.suites, require_reviewed=True)
+            ready.assert_called_once_with(self.suite)
+            self.assertEqual(checked["canonical_review_qualification"], {"frozen-v1": "BLOCKED"})
+            self.assertIn("CANONICAL_REVIEW_NOT_APPROVED", checked["tasks"][0]["problems"])
+            self.assertEqual(checked["summary"]["tasks_with_problems"], 1)
+
+    def test_approved_canonical_review_is_distinct_from_source_proof(self):
+        with patch("benchmarks.dogfood.hashmarks_corpus._canonical_review_ready", return_value=True):
+            checked = audit(self.suites, require_reviewed=True)
+        self.assertEqual(checked["canonical_review_qualification"], {"frozen-v1": "APPROVED"})
+        self.assertEqual(checked["tasks"][0]["source"], "NOT_CHECKED")
+        self.assertEqual(checked["summary"]["tasks_with_problems"], 0)
 
     def test_non_hashmarks_task_not_in_scope(self):
         self.task["repository"]["url"] = "https://github.com/example/other.git"
