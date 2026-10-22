@@ -96,13 +96,14 @@ def audit(suites: Path, *, checkout: Path | None = None, require_source: bool = 
             if review is None:
                 review_status = "NO_TASK_REVIEW"
             else:
-                review_status = "MATCH"
+                before = len(problems)
                 if review.get("repository") != repo:
                     problems.append("REVIEW_SOURCE_MISMATCH")
                 if owner_path is not None and review.get("owner") != {
                     "path": owner_path, "symbol": owner_symbol
                 }:
                     problems.append("REVIEW_OWNER_MISMATCH")
+                review_status = "MISMATCH" if len(problems) != before else "MATCH"
 
         source_status = "NOT_CHECKED"
         if checkout is not None:
@@ -162,7 +163,7 @@ def audit(suites: Path, *, checkout: Path | None = None, require_source: bool = 
         "summary": {
             "tasks": len(records), "distinct_commits": len({r["commit"] for r in records}),
             "families": dict(sorted(families.items())), "tasks_with_problems": issues,
-            "unreviewed_tasks": sum(r["review"] != "MATCH" for r in records),
+            "unreviewed_tasks": sum(r["review"] in {"NO_REVIEW_FILE", "NO_TASK_REVIEW"} for r in records),
             "unchecked_sources": sum(r["source"] in {"NOT_CHECKED", "SOURCE_UNAVAILABLE"} for r in records),
         },
         "variants": variants,
