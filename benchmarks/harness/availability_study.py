@@ -26,10 +26,47 @@ from benchmarks.harness.campaign_authority import (
 from benchmarks.harness.identity import digest
 from benchmarks.harness.report import ReportError, _receipts, build_report
 from benchmarks.harness.suite import SuiteDefinition, load_suite
-from benchmarks.tool_routing import is_subject_tool
+from benchmarks.tool_routing import classify_tool, is_subject_tool
 
 
 SCHEMA = "evalshot.native-availability-study.v1"
+
+
+
+def _completed_tool_order_diagnostic(
+    metrics: dict[str, Any], trace_state: str, subject: str
+) -> dict[str, Any]:
+    """Observations of completed tools, not decision, request, or attention proof."""
+    unknown = {
+        "state": "UNKNOWN",
+        "first_completed_tool": None,
+        "first_completed_class": None,
+        "subject_first_completed": None,
+        "subject_first_completed_ordinal": None,
+    }
+    if trace_state != "COMPLETE_MCP_TELEMETRY":
+        return unknown
+    sequence = metrics.get("tool_sequence")
+    ordinals = metrics.get("subject_tool_call_ordinals")
+    if (
+        not isinstance(sequence, list)
+        or not all(isinstance(item, str) and item for item in sequence)
+        or not isinstance(ordinals, list)
+        or not all(type(item) is int and 1 <= item <= len(sequence) for item in ordinals)
+    ):
+        return unknown
+    first = sequence[0] if sequence else None
+    return {
+        "state": "OBSERVED_COMPLETION_ORDER",
+        "first_completed_tool": first,
+        "first_completed_class": (
+            classify_tool(first, subject=subject) if first is not None else None
+        ),
+        "subject_first_completed": (
+            is_subject_tool(first, subject) if first is not None else False
+        ),
+        "subject_first_completed_ordinal": ordinals[0] if ordinals else None,
+    }
 
 
 def inspect_native_trace(
@@ -138,6 +175,7 @@ def inspect_native_trace(
         "final_answer": final,
         "model_request_inclusion": "UNKNOWN",
         "model_attention": "UNKNOWN",
+        "completed_tool_order": _completed_tool_order_diagnostic(metrics, state, subject),
     }
 
 
