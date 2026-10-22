@@ -82,6 +82,7 @@ def audit(
     checkout: Path | None = None,
     require_source: bool = False,
     require_reviewed: bool = False,
+    gate_assigned_only: bool = False,
 ) -> dict[str, Any]:
     """Inventory real, frozen Hashmarks tasks without altering their authority."""
     if require_source and checkout is None:
@@ -270,6 +271,11 @@ def audit(
         for (commit, task_id), hashes in sorted(groups.items()) if len(hashes) > 1
     ]
     issues = sum(bool(row["problems"]) for row in records)
+    gated = [
+        row for row in records
+        if not gate_assigned_only or row["experiment_membership"] != "UNASSIGNED"
+    ]
+    gated_issues = sum(bool(row["problems"]) for row in gated)
     blocked_reviews = sorted(
         suite_name for suite_name, state in canonical_reviews.items()
         if state != "APPROVED"
@@ -278,7 +284,7 @@ def audit(
     # the subset of Hashmarks-source tasks in this inventory. A mixed-source
     # suite may have a rejected oracle elsewhere, or only dormant Hashmarks
     # tasks, yet its canonical review gate still blocks this strict audit.
-    audit_passed = issues == 0 and not blocked_reviews
+    audit_passed = gated_issues == 0 and not blocked_reviews
     return {
         "schema": "evalshot.hashmarks-dogfood-audit.v1",
         "repository": SOURCE_REPOSITORY,
@@ -286,6 +292,8 @@ def audit(
         "summary": {
             "tasks": len(records), "distinct_commits": len({r["commit"] for r in records}),
             "families": dict(sorted(families.items())), "tasks_with_problems": issues,
+            "gated_tasks_with_problems": gated_issues,
+            "ungated_tasks_with_problems": issues - gated_issues,
             "unreviewed_tasks": sum(r["review"] in {"NO_REVIEW_FILE", "NO_TASK_REVIEW"} for r in records),
             "unreviewed_assigned_tasks": sum(
                 r["experiment_membership"] == "ASSIGNED"
@@ -300,6 +308,7 @@ def audit(
         "requirements": {
             "source_required": require_source,
             "canonical_review_required": require_reviewed,
+            "gate_assigned_only": gate_assigned_only,
             "audit_passed": audit_passed,
             "blocked_review_suites": blocked_reviews,
         },
@@ -315,12 +324,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--checkout", type=Path, help="existing local Hashmarks checkout with historical commits")
     parser.add_argument("--require-source", action="store_true", help="fail if any referenced commit is unavailable")
     parser.add_argument("--require-reviewed", action="store_true", help="delegate review readiness to the canonical EvalShot validator")
+    parser.add_argument(
+        "--gate-assigned-only", action="store_true",
+        help="gate assigned and unknown-membership tasks; keep unassigned failures diagnostic",
+    )
     parser.add_argument("--output", type=Path, help="write identical JSON report to this path")
     args = parser.parse_args(argv)
     try:
         result = audit(
             args.suite_root, checkout=args.checkout, require_source=args.require_source,
             require_reviewed=args.require_reviewed,
+            gate_assigned_only=args.gate_assigned_only,
         )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         parser.error(str(exc))
