@@ -26,16 +26,54 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
 ```
 
+## Independent review handoff (not experimental qualification)
+
+The next step consumes **both** saved reports and verifies that the coverage
+queue exactly matches the source audit. This prevents a changed nomination,
+substituted source record, or incorrect candidate-approval flag from silently
+entering an independent review packet.
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_review_handoff \
+  --audit /tmp/hashmarks-source-audit.json \
+  --coverage /tmp/hashmarks-coverage.json \
+  --output /tmp/hashmarks-review-handoff.json
+```
+
+GitHub's `Hashmarks Dogfood Source Audit` workflow now preserves a third
+file, `hashmarks-review-handoff.json`, with the provenance-locked review
+requests. Every packet is marked `REQUEST_ONLY`, `experiment_ready=false`,
+`headroom_status=UNKNOWN_NOT_MEASURED`, and
+`oracle_status=NOT_ESTABLISHED`. Requests list their exact source audit
+records and the evidence that a **separate** reviewer must obtain.
+
+The independent reviewer must examine actual pinned repository source,
+challenge uniqueness/alternatives, determine whether the task offers
+meaningful non-ceiling baseline headroom, and independently qualify oracle
+evidence, native runtime comparability, contamination and model-visible
+delivery where supported. The `DORMANT_TASK_NEEDS_REVIEW` category requires
+source discrepancy resolution **before** task-design considerations;
+`CROSS_SUITE_SEMANTIC_VARIANT` requires reconciliation of meaning without
+electing an arbitrary canonical owner.
+
+The exporter cannot evaluate those requirements or accept a reviewer
+signature. The existing EvalShot suite/experiment admission and independent
+oracle validators remain the *only* owners of that authority. Never supply
+expected oracle answers, source-review rationales or candidate handoff
+metadata to the evaluated agent. An absent or unqualified baseline remains
+`UNKNOWN`, not zero headroom or a measured failure. None of these packets
+changes the active experiment population.
+
 ## Model-free coverage and candidate triage
 
-The separate \`hashmarks_coverage\` reader derives a deterministic coverage
+The separate `hashmarks_coverage` reader derives a deterministic coverage
 matrix and a **review-only** candidate queue from a saved dogfood source audit.
 It does not execute any benchmark, inspect arbitrary source through an agent,
 write a new frozen task, copy independent oracle explanations into prompts,
 or make effectiveness claims. It reuses EvalShot's canonical task identity
 serializer to bind the input report.
 
-\`\`\`sh
+```sh
 uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
   --checkout /path/to/Hashmarks --require-source --gate-assigned-only \
   --output /tmp/hashmarks-source-audit.json
@@ -43,7 +81,7 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m benchmarks.dogfood.hashmarks_coverage \
   --audit /tmp/hashmarks-source-audit.json \
   --output /tmp/hashmarks-coverage.json
-\`\`\`
+```
 
 The source CI publishes both JSON outputs in the same artifact. The new
 derived report preserves the parent audit's exact identity and its pass/fail
@@ -52,29 +90,29 @@ coverage only: assigned, unassigned and unknown-membership entries,
 distinct (commit, task) identities, modes, and source verification.
 The candidate queue uses only these provenance-backed categories:
 
-- \`DORMANT_TASK_NEEDS_REVIEW\`: an unassigned historical task has a source
+- `DORMANT_TASK_NEEDS_REVIEW`: an unassigned historical task has a source
   discrepancy; investigate it independently and do not rewrite the fixture.
-- \`UNASSIGNED_CASE_FOR_TRIAGE\`: a dormant definition may warrant independent
+- `UNASSIGNED_CASE_FOR_TRIAGE`: a dormant definition may warrant independent
   scope, oracle, headroom and contamination review.
-- \`FAMILY_WITHOUT_ASSIGNED_TASK\`: a family appears in the inventory but
+- `FAMILY_WITHOUT_ASSIGNED_TASK`: a family appears in the inventory but
   has no currently assigned Hashmarks case; this is a *scope observation*.
-- \`SINGLE_ASSIGNED_TASK_FAMILY\`: the corpus has one distinct assigned case
+- `SINGLE_ASSIGNED_TASK_FAMILY`: the corpus has one distinct assigned case
   in an observed family; investigate whether independent additional cases
   would give useful headroom.
 
-All nominations state \`review_status=PROPOSAL_ONLY\` and
-\`oracle_status=NOT_ESTABLISHED\`. A family-count observation is **not**
+All nominations state `review_status=PROPOSAL_ONLY` and
+`oracle_status=NOT_ESTABLISHED`. A family-count observation is **not**
 a claim that the product is defective or that a test is needed. Unknown
 experiment membership is not silently converted into an unassigned candidate.
 
 Cross-suite candidate nominations are deduplicated by the frozen source
-commit and task ID. A definition that is \`UNASSIGNED\` in one suite but
-\`ASSIGNED\` in another is **not** proposed again as a new task. Existing
+commit and task ID. A definition that is `UNASSIGNED` in one suite but
+`ASSIGNED` in another is **not** proposed again as a new task. Existing
 source errors remain reportable even for an unassigned duplicate. The
-producer also transports EvalShot's canonical \`task_semantic_digest\`,
+producer also transports EvalShot's canonical `task_semantic_digest`,
 which makes equal task meaning distinguishable from byte-only formatting
 differences. If the same (commit, task ID) has multiple known semantic
-digests, the candidate queue emits \`CROSS_SUITE_SEMANTIC_VARIANT\`
+digests, the candidate queue emits `CROSS_SUITE_SEMANTIC_VARIANT`
 for independent review and suppresses a misleading single-case-family
 suggestion. Neither the name nor the digest resolves which definition is
 correct. Old saved audit v1 reports without semantic digests remain readable;
@@ -84,8 +122,8 @@ assuming definitions agree.
 The first real CI coverage report over the pinned Hashmarks source recorded
 20 task entries, 17 assigned and 3 unassigned across eight observed families.
 It generated seven independent **review items**, not seven approved tasks:
-three one-case-family observations (\`code_owners\`, \`semantics\`, \`splunk\`),
-one family with no assigned case (\`known-symbol-localization\`), two
+three one-case-family observations (`code_owners`, `semantics`, `splunk`),
+one family with no assigned case (`known-symbol-localization`), two
 unassigned source-verified known-symbol definitions, and the retained dormant
 missing-path finding. These numbers describe only this frozen inventory
 and do not certify agent effectiveness.
