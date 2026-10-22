@@ -26,6 +26,47 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
 ```
 
+## Independent syntactic callsite observation
+
+`hashmarks_callsites` is a separate, reviewer-only dogfood diagnostic for
+the two source-verified unassigned Python candidates. It reuses the
+existing pinned-tree file listing, bounded blob transport, and canonical
+source audit. It inspects Python AST `Call` expressions whose callee's
+literal `Name` or `Attribute` spelling equals the frozen candidate symbol.
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_callsites \
+  --audit /tmp/hashmarks-source-audit.json \
+  --checkout /path/to/Hashmarks \
+  --output /tmp/hashmarks-callsites.json
+```
+
+The output records file, line, column, lexical Python function/class scope,
+call-expression form, and **receiver syntax**, such as `self`, `cls`,
+other named receiver, or complex expression. Receiver syntax is *not*
+runtime receiver identity. An observed `self._sync_remove_stale_paths()`
+cannot independently establish that the call resolves to a particular
+declaration. Likewise, an unqualified `paths_under()` may resolve to
+another symbol or a dynamically assigned name.
+
+`getattr(obj, "paths_under")()`, aliases, reflection, generated code,
+callable objects, dynamic dispatch, and non-Python sources are outside this
+static syntactic scope. Zero matching call expressions is **not** evidence
+that the method is unused or that its semantic owner is unique. The scan
+fails qualified negative evidence closed on unparseable tracked Python,
+missing/oversized blobs, nonregular Python paths, total-size or file-count
+bounds, and mismatched pinned commit trees. Partial positive observations
+remain visible, marked `SCAN_INCOMPLETE`.
+
+The independent source reviewer may use this as a challenge prompt: inspect
+the actual callable binding, delegation, and effect/decision boundaries.
+Neither the scanner nor EvalShot's dogfood workflow performs call graph
+inference, owner nomination, independent oracle approval, model runs, or
+headroom scoring. Reports explicitly say `runtime_target_resolved=false`,
+`semantic_owner_proven=false`, `oracle_approved=false`, and
+`baseline_headroom_established=false`. The source-review artifacts remain
+outside model-visible benchmark trial workspaces.
+
 ## Pinned-repository same-name collision investigation
 
 `hashmarks_collisions` extends the nominated-file AST check by scanning
