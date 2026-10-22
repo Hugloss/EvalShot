@@ -79,6 +79,12 @@ def audit(
         raise ValueError("--require-source requires --checkout")
     if not suites.is_dir():
         raise ValueError("suite root does not exist")
+    if checkout is not None:
+        if not checkout.is_dir():
+            raise ValueError("--checkout must name an existing directory")
+        usable, inside = _git(checkout, "rev-parse", "--is-inside-work-tree")
+        if not usable or inside != "true":
+            raise ValueError("--checkout must be a readable Git working tree")
 
     records: list[dict[str, Any]] = []
     families: Counter[str] = Counter()
@@ -221,6 +227,15 @@ def audit(
         for (commit, task_id), hashes in sorted(groups.items()) if len(hashes) > 1
     ]
     issues = sum(bool(row["problems"]) for row in records)
+    blocked_reviews = sorted(
+        suite_name for suite_name, state in canonical_reviews.items()
+        if state != "APPROVED"
+    )
+    # Review qualification belongs to EvalShot's suite validator, not to
+    # the subset of Hashmarks-source tasks in this inventory. A mixed-source
+    # suite may have a rejected oracle elsewhere, or only dormant Hashmarks
+    # tasks, yet its canonical review gate still blocks this strict audit.
+    audit_passed = issues == 0 and not blocked_reviews
     return {
         "schema": "evalshot.hashmarks-dogfood-audit.v1",
         "repository": SOURCE_REPOSITORY,
@@ -237,6 +252,13 @@ def audit(
             "unassigned_tasks": sum(r["experiment_membership"] == "UNASSIGNED" for r in records),
             "unknown_assignment_tasks": sum(r["experiment_membership"] == "UNKNOWN" for r in records),
             "unchecked_sources": sum(r["source"] in {"NOT_CHECKED", "SOURCE_UNAVAILABLE"} for r in records),
+            "blocked_review_suites": len(blocked_reviews),
+        },
+        "requirements": {
+            "source_required": require_source,
+            "canonical_review_required": require_reviewed,
+            "audit_passed": audit_passed,
+            "blocked_review_suites": blocked_reviews,
         },
         "canonical_review_qualification": canonical_reviews if require_reviewed else "NOT_CHECKED",
         "variants": variants,
@@ -264,7 +286,7 @@ def main(argv: list[str] | None = None) -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(report, encoding="utf-8")
     print(report, end="")
-    return 1 if result["summary"]["tasks_with_problems"] else 0
+    return 0 if result["requirements"]["audit_passed"] else 1
 
 
 if __name__ == "__main__":
