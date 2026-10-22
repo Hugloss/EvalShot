@@ -67,7 +67,19 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         contents = json.loads(review_file.read_text())
         contents["tasks"]["locate-decision"]["owner"]["symbol"] = "other"
         review_file.write_text(json.dumps(contents))
-        self.assertIn("REVIEW_OWNER_MISMATCH", audit(self.suites)["tasks"][0]["problems"])
+        row = audit(self.suites)["tasks"][0]
+        self.assertIn("REVIEW_OWNER_MISMATCH", row["problems"])
+        self.assertEqual(row["review"], "MISMATCH")
+
+    def test_review_source_object_key_order_is_not_semantic_drift(self):
+        review_file = self.suite / "qualification" / "oracle-reviews.json"
+        contents = json.loads(review_file.read_text())
+        old = contents["tasks"]["locate-decision"]["repository"]
+        contents["tasks"]["locate-decision"]["repository"] = {
+            "tree": old["tree"], "commit": old["commit"], "url": old["url"]
+        }
+        review_file.write_text(json.dumps(contents))
+        self.assertEqual(audit(self.suites)["tasks"][0]["review"], "MATCH")
 
     def test_review_source_drift_fails(self):
         review_file = self.suite / "qualification" / "oracle-reviews.json"
