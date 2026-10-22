@@ -13,6 +13,7 @@ on:
       - "benchmarks/tests/test_hashmarks_dogfood_callsites.py"
       - "benchmarks/tests/test_hashmarks_dogfood_headroom.py"
       - "benchmarks/tests/test_hashmarks_dogfood_baseline_staging.py"
+      - "benchmarks/tests/test_hashmarks_blind_review.py"
   workflow_dispatch:
 
 permissions:
@@ -53,7 +54,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging benchmarks.tests.test_hashmarks_blind_review
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -123,6 +124,13 @@ jobs:
               --output "$RUNNER_TEMP/hashmarks-headroom-readiness.json"
           fi
 
+      - name: Generate answer-blinded first-pass reviewer packet (no model)
+        run: |
+          uv run --no-project python -m benchmarks.dogfood.hashmarks_blind_review \
+            --repository-root . \
+            --suite benchmarks/dogfood/staged-suites/known-symbol-native-baseline-v1 \
+            --output "$RUNNER_TEMP/hashmarks-blind-review.json"
+
       - name: Upload source audit report
         if: always()
         uses: actions/upload-artifact@v4
@@ -136,5 +144,6 @@ jobs:
             ${{ runner.temp }}/hashmarks-collisions.json
             ${{ runner.temp }}/hashmarks-callsites.json
             ${{ runner.temp }}/hashmarks-headroom-readiness.json
+            ${{ runner.temp }}/hashmarks-blind-review.json
           if-no-files-found: ignore
           retention-days: 7
