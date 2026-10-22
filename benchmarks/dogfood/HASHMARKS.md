@@ -45,6 +45,25 @@ reported as active-campaign qualification defects. This source-tree inspection
 is not equivalent to a local `--require-source` audit or independent semantic
 oracle review.
 
+The `requirements` object is the machine-readable result for exactly the
+checks requested: `source_required`, `canonical_review_required`, and
+`audit_passed`. A rejected canonical suite review fails the strict audit even
+if all Hashmarks-source definitions in that suite are `UNASSIGNED` or have no
+task-local errors. Do not infer experiment qualification from
+`audit_passed=true` when source/review checks were not requested; this tool
+never establishes model-delivery, grading, or causal effectiveness.
+
+Frozen task variation is separated into `BYTE_ONLY_VARIANT` (different
+serialized bytes, same EvalShot canonical semantic task identity) and
+`SEMANTIC_VARIANT` (different canonical task content). This reuses
+`benchmarks.harness.identity.digest`; it does not establish a second
+normalization authority or rewrite historical definitions.
+
+An explicitly provided `--checkout` must be a readable Git working tree.
+The audit reads historical commit/tree objects, not the current working-tree
+file contents: uncommitted changes neither make an unavailable historical
+source valid nor make an existing historical source disappear.
+
 The output is deterministic JSON with explicit `NOT_CHECKED` and
 `SOURCE_UNAVAILABLE` states. A missing historical object can mean a shallow
 checkout: it is not evidence the task is semantically invalid. `--require-source`
