@@ -26,6 +26,25 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
 ```
 
+The inventory distinguishes every frozen task definition from tasks actually
+selected in the suite's `experiment.json`. `ASSIGNED` tasks participate in the
+active experiment; `UNASSIGNED` tasks are available definitions, not missing
+campaign assignments. `UNKNOWN` means no usable experiment membership was
+read. `unreviewed_assigned_tasks` is therefore different from the inventory-wide
+`unreviewed_tasks` count. Only the canonical EvalShot suite/review validator
+may approve a campaign, and unassigned definitions are not promoted into
+campaign failures.
+
+During the October 22 Hashmarks-source check, the historical `heldout-v1`
+source tree `667b7066be9ef6cab6e1ce3a28a603481f07387e` was accessible
+in GitHub with the inspected expected Python source paths present. In the same
+suite, `lookup-known-symbol-paths-under` and
+`lookup-known-symbol-sync-remove-stale-paths` were present as definitions but
+absent from `experiment.json`. Their missing review entries must not be
+reported as active-campaign qualification defects. This source-tree inspection
+is not equivalent to a local `--require-source` audit or independent semantic
+oracle review.
+
 The output is deterministic JSON with explicit `NOT_CHECKED` and
 `SOURCE_UNAVAILABLE` states. A missing historical object can mean a shallow
 checkout: it is not evidence the task is semantically invalid. `--require-source`
