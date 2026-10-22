@@ -22,7 +22,9 @@ replicate identities, native agent and declared context in the two selected
 conditions. Every selected arm must contain each task/replicate key **exactly
 once**. Duplicate assignment keys are rejected before reporting or scoring,
 even when both arms collapse to equal sets; a later dictionary projection must
-not silently overwrite a frozen trial slot. Codex must use `native_host=true`; forced OpenCode tool diagnostics
+not silently overwrite a frozen trial slot. Frozen trial `definition_id` values
+must also be unique, including across arms: the receipt selection uses those
+identities and must never collapse two distinct task/replicate assignments. Codex must use `native_host=true`; forced OpenCode tool diagnostics
 cannot enter this optional-availability comparison. No suite or campaign is
 created, edited, resumed or executed by the command.
 
