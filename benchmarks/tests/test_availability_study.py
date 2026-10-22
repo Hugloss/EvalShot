@@ -196,6 +196,31 @@ class AvailabilityStudyTests(unittest.TestCase):
         )
         self.assertEqual(report["primary_availability_intention_to_treat"]["expected_pairs"], 2)
 
+    def test_completed_tool_order_summary_preserves_assigned_arms_and_unknowns(self):
+        normal = self.report(invoked=True)
+        self.assertEqual(
+            normal["completed_tool_order_diagnostic"],
+            {
+                "assigned_trials": 2,
+                "subject_first_completed": 1,
+                "other_tool_first_completed": 1,
+                "no_tracked_tool": 0,
+                "unknown": 0,
+                "claim_scope": (
+                    "observed-completed-tool-order-only;"
+                    "not-native-tool-choice-or-model-request-proof"
+                ),
+            },
+        )
+        incomplete = self.report(incomplete=True, invoked=True)
+        summary = incomplete["completed_tool_order_diagnostic"]
+        self.assertEqual(summary["assigned_trials"], 2)
+        self.assertEqual(summary["subject_first_completed"], 0)
+        self.assertEqual(summary["other_tool_first_completed"], 1)
+        self.assertEqual(summary["unknown"], 1)
+        self.assertFalse(incomplete["study_measurement_qualified"])
+        self.assertEqual(incomplete["host_catalog_inclusion"], "UNKNOWN")
+
     def test_missing_trial_keeps_assigned_denominator_and_unknown_outcome(self):
         report = self.report(missing=True)
         arm = report["primary_availability_intention_to_treat"]["conditions"]["available"]
