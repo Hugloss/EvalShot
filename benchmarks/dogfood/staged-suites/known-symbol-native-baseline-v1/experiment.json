@@ -1,0 +1,123 @@
+{
+  "id": "repository-intelligence-known-symbol-native-baseline-proposal-v1",
+  "version": 1,
+  "suite": "repository-intelligence",
+  "oracle_reviews": "qualification/oracle-reviews.json",
+  "tasks": [
+    "lookup-known-symbol-paths-under",
+    "lookup-known-symbol-sync-remove-stale-paths"
+  ],
+  "conditions": [
+    {
+      "id": "none-codex-native",
+      "subject": "none",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        9901,
+        9902,
+        9903
+      ]
+    },
+    {
+      "id": "hashmarks-codex-native",
+      "subject": "hashmarks",
+      "agent": "codex-native",
+      "trials": 3,
+      "replicate_ids": [
+        9901,
+        9902,
+        9903
+      ]
+    }
+  ],
+  "scoring": {
+    "id": "known-symbol-native-baseline-diagnostic",
+    "version": 1,
+    "metrics": [
+      "task_success",
+      "semantic_gradeability",
+      "format_compliance",
+      "subject_tool_invoked",
+      "subject_mcp_calls",
+      "tool_calls",
+      "input_tokens",
+      "cached_input_tokens",
+      "output_tokens",
+      "duration_ms",
+      "contamination"
+    ]
+  },
+  "subject_exposure_contract": {
+    "require_probe_contract": true
+  },
+  "analysis_contract": {
+    "primary_observation": "native-control-exact-task-headroom",
+    "minimum_pairs": 6,
+    "minimum_replicates": 3,
+    "below_minimum": "descriptive-only",
+    "cross_agent_ranking": false
+  },
+  "execution_order": [
+    {
+      "task_id": "lookup-known-symbol-paths-under",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9901
+    },
+    {
+      "task_id": "lookup-known-symbol-paths-under",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9901
+    },
+    {
+      "task_id": "lookup-known-symbol-paths-under",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9902
+    },
+    {
+      "task_id": "lookup-known-symbol-paths-under",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9902
+    },
+    {
+      "task_id": "lookup-known-symbol-paths-under",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9903
+    },
+    {
+      "task_id": "lookup-known-symbol-paths-under",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9903
+    },
+    {
+      "task_id": "lookup-known-symbol-sync-remove-stale-paths",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9901
+    },
+    {
+      "task_id": "lookup-known-symbol-sync-remove-stale-paths",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9901
+    },
+    {
+      "task_id": "lookup-known-symbol-sync-remove-stale-paths",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9902
+    },
+    {
+      "task_id": "lookup-known-symbol-sync-remove-stale-paths",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9902
+    },
+    {
+      "task_id": "lookup-known-symbol-sync-remove-stale-paths",
+      "condition_id": "hashmarks-codex-native",
+      "replicate_id": 9903
+    },
+    {
+      "task_id": "lookup-known-symbol-sync-remove-stale-paths",
+      "condition_id": "none-codex-native",
+      "replicate_id": 9903
+    }
+  ]
+}
