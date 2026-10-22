@@ -58,6 +58,41 @@ class HashmarksDogfoodAuditTests(unittest.TestCase):
         self.assertEqual(report["tasks"][0]["review"], "MATCH")
         self.assertEqual(self._git("status", "--porcelain"), before)
 
+    def test_tree_object_cannot_masquerade_as_frozen_commit(self):
+        # Git's rev-parse <object>^{tree} accepts a tree ID, even when
+        # the task contract requires the identity of an actual commit.
+        self.task["repository"]["commit"] = self.tree
+        self._write()
+        result = audit(self.suites, checkout=self.checkout, require_source=True)
+        self.assertEqual(result["tasks"][0]["source"], "SOURCE_NOT_COMMIT")
+        self.assertIn("SOURCE_NOT_COMMIT", result["tasks"][0]["problems"])
+        self.assertFalse(result["requirements"]["audit_passed"])
+
+    def test_pathspec_wildcard_cannot_prove_different_oracle_file(self):
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src/*.py"
+        self._write()
+        result = audit(self.suites, checkout=self.checkout, require_source=True)
+        self.assertEqual(result["tasks"][0]["source"], "INVALID_PATH")
+        self.assertIn("INVALID_ORACLE_PATH", result["tasks"][0]["problems"])
+
+    def test_control_character_path_is_not_admissible(self):
+        self.task["oracle"]["configuration"]["expected"]["path"] = "src/owner\\n.py"
+        self._write()
+        result = audit(self.suites, checkout=self.checkout)
+        self.assertIn("INVALID_ORACLE_PATH", result["tasks"][0]["problems"])
+
+    def test_git_replace_refs_cannot_rewrite_pinned_source(self):
+        original = self.commit
+        (self.checkout / "src" / "owner.py").write_text("def replacement(): return False\\n")
+        self._git("add", "src/owner.py")
+        self._git("-c", "user.email=test@example.invalid", "-c", "user.name=Test", "commit", "-qm", "replacement")
+        changed = self._git("rev-parse", "HEAD")
+        self._git("replace", original, changed)
+        # A human git command would resolve the replaced commit tree.
+        result = audit(self.suites, checkout=self.checkout, require_source=True)
+        self.assertEqual(result["tasks"][0]["source"], "VERIFIED_PATH")
+        self.assertEqual(result["summary"]["tasks_with_problems"], 0)
+
     def test_no_checkout_does_not_claim_reproducibility(self):
         row = audit(self.suites)["tasks"][0]
         self.assertEqual(row["source"], "NOT_CHECKED")
