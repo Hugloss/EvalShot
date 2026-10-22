@@ -84,6 +84,7 @@ def audit(
     families: Counter[str] = Counter()
     groups: dict[tuple[str, str], set[str]] = defaultdict(set)
     source_memo: dict[tuple[str, str, str], str] = {}
+    assignment_memo: dict[Path, set[str] | None] = {}
 
     for task_path in sorted(suites.glob("*/tasks/*.json")):
         task = _read(task_path)
@@ -92,6 +93,22 @@ def audit(
             continue
         suite = task_path.parent.parent
         task_id = task.get("id")
+        if suite not in assignment_memo:
+            manifest = suite / "experiment.json"
+            if manifest.is_file():
+                selection = _read(manifest).get("tasks")
+                assignment_memo[suite] = (
+                    set(selection)
+                    if isinstance(selection, list) and all(isinstance(x, str) for x in selection)
+                    else None
+                )
+            else:
+                assignment_memo[suite] = None
+        assignments = assignment_memo[suite]
+        membership = (
+            "UNKNOWN" if assignments is None else
+            "ASSIGNED" if task_id in assignments else "UNASSIGNED"
+        )
         commit, tree = repo.get("commit"), repo.get("tree")
         expected = (task.get("oracle") or {}).get("configuration", {}).get("expected", {})
         if not isinstance(expected, dict):
@@ -172,6 +189,7 @@ def audit(
             "task": task_id,
             "family": family,
             "mode": task.get("mode"),
+            "experiment_membership": membership,
             "commit": commit,
             "tree": tree,
             "task_sha256": task_hash,
@@ -195,7 +213,7 @@ def audit(
             canonical_reviews[suite_name] = "APPROVED" if approved else "BLOCKED"
             if not approved:
                 for row in records:
-                    if row["suite"] == suite_name:
+                    if row["suite"] == suite_name and row["experiment_membership"] != "UNASSIGNED":
                         row["problems"].append("CANONICAL_REVIEW_NOT_APPROVED")
 
     variants = [
@@ -211,6 +229,13 @@ def audit(
             "tasks": len(records), "distinct_commits": len({r["commit"] for r in records}),
             "families": dict(sorted(families.items())), "tasks_with_problems": issues,
             "unreviewed_tasks": sum(r["review"] in {"NO_REVIEW_FILE", "NO_TASK_REVIEW"} for r in records),
+            "unreviewed_assigned_tasks": sum(
+                r["experiment_membership"] == "ASSIGNED"
+                and r["review"] in {"NO_REVIEW_FILE", "NO_TASK_REVIEW"}
+                for r in records
+            ),
+            "unassigned_tasks": sum(r["experiment_membership"] == "UNASSIGNED" for r in records),
+            "unknown_assignment_tasks": sum(r["experiment_membership"] == "UNKNOWN" for r in records),
             "unchecked_sources": sum(r["source"] in {"NOT_CHECKED", "SOURCE_UNAVAILABLE"} for r in records),
         },
         "canonical_review_qualification": canonical_reviews if require_reviewed else "NOT_CHECKED",
