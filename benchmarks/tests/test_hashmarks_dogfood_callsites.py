@@ -154,7 +154,10 @@ class CallsiteDogfoodTests(unittest.TestCase):
         self.assertEqual(self._candidate(report)["status"], "SCAN_INCOMPLETE")
 
     def test_conflicting_tree_identities_rejected_early(self):
-        self.audit["tasks"][0]["tree"] = "f" * 40
+        second = self._row("another-eligible", "paths_under", "src/owner.py")
+        second["tree"] = "f" * 40
+        self.audit["tasks"].append(second)
+        self.audit["summary"]["tasks"] += 1
         with self.assertRaisesRegex(ValueError, "conflicting trees"):
             observe_callsites(self.audit, checkout=self.repo)
 
