@@ -144,6 +144,11 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_review_returns \
   --output /tmp/hashmarks-review-return-status.json
 ```
 
+The CLI also **rejects** response input files located inside the
+EvalShot repository. This is a placement guard, not a proof of reviewer
+independence: the user must still maintain access controls for the
+private responses and isolate the reviewer workspace.
+
 Only a **sanitized status** is printed and saved: task/packet IDs,
 unverified decision category, exposure declaration, and explicit zero
 approval/experiment/headroom counters. The candidate source paths,
