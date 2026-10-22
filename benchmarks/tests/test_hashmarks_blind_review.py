@@ -110,6 +110,36 @@ class BlindReviewTests(unittest.TestCase):
         with self.assertRaisesRegex(SuiteError, "oracle review evidence is missing"):
             load_suite(self.stage)
 
+    def test_protocol_may_not_change_pre_registered_count(self):
+        self.protocol(lambda p: p["controls"].update({"assignments": 14}))
+        with self.assertRaisesRegex(BlindReviewError, "frozen native paired trial plan"):
+            self.render()
+
+    def test_execution_order_cannot_be_changed_to_all_control_first(self):
+        experiment = self.stage / "experiment.json"
+        data = json.loads(experiment.read_text())
+        for index in range(0, len(data["execution_order"]), 2):
+            block = data["execution_order"][index:index + 2]
+            block.sort(key=lambda row: row["condition_id"] != "none-codex-native")
+            data["execution_order"][index:index + 2] = block
+        experiment.write_text(json.dumps(data))
+        with self.assertRaisesRegex(BlindReviewError, "canonical frozen assignment"):
+            self.render()
+
+    def test_trial_replicate_reassignment_refused_even_if_manifest_is_self_consistent(self):
+        experiment = self.stage / "experiment.json"
+        data = json.loads(experiment.read_text())
+        substitutions = {9901: 9911, 9902: 9912, 9903: 9913}
+        for condition in data["conditions"]:
+            condition["replicate_ids"] = [
+                substitutions[replicate] for replicate in condition["replicate_ids"]
+            ]
+        for assigned in data["execution_order"]:
+            assigned["replicate_id"] = substitutions[assigned["replicate_id"]]
+        experiment.write_text(json.dumps(data))
+        with self.assertRaisesRegex(BlindReviewError, "frozen native paired trial plan"):
+            self.render()
+
     def test_staged_bytes_changed_are_rejected(self):
         p = self.stage / "tasks" / f"{TASKS[0]}.json"
         p.write_text(p.read_text() + "\n")
