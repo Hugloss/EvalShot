@@ -39,6 +39,17 @@ survives partial telemetry. The final native answer is joined to the answer in
 the independently graded receipt; a mismatch blocks study qualification.
 These scopes do not establish exhaustive shell or nested-agent activity.
 
+Native completion-order diagnostics record the first **completed, tracked** tool,
+its canonical class and the first completed Hashmarks-call ordinal. Complete
+traces with no tracked calls are distinct from incomplete traces with unknown
+order. The assigned availability arm additionally reports counts for
+subject-first-completed, other-tool-first-completed, no tracked tool and UNKNOWN,
+without discarding invalid or contaminated assignments. This is not a measure
+of the agent's first *decision*: parallel tools can complete out of launch order,
+and neither completion order nor an MCP return establishes model-request
+inclusion or actual model attention. The existing native `mcp:server/tool`
+name spelling is classified by the single shared routing owner.
+
 The admitted MCP **server catalog** is not the catalog submitted to a model.
 Likewise, a successful nonempty native tool return is not submitted-request
 inclusion, attention or comprehension. The successful-return subset is a

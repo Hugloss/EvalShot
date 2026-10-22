@@ -1074,6 +1074,21 @@ class TraceAndToolProbeTests(unittest.TestCase):
             SUBJECT_REPOSITORY_INTELLIGENCE,
         )
         self.assertEqual(
+            classify_tool("mcp:hashmarks/task_evidence", subject="hashmarks"),
+            SUBJECT_REPOSITORY_INTELLIGENCE,
+        )
+        self.assertTrue(
+            matches_subject_operation(
+                "mcp:hashmarks/task_evidence",
+                subject="hashmarks",
+                operation="task_evidence",
+            )
+        )
+        self.assertEqual(
+            classify_tool("mcp:other_server/task_evidence", subject="hashmarks"),
+            OTHER,
+        )
+        self.assertEqual(
             classify_tool("grep", subject="hashmarks"),
             NATIVE_SEARCH,
         )

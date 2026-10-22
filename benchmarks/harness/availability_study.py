@@ -26,10 +26,47 @@ from benchmarks.harness.campaign_authority import (
 from benchmarks.harness.identity import digest
 from benchmarks.harness.report import ReportError, _receipts, build_report
 from benchmarks.harness.suite import SuiteDefinition, load_suite
-from benchmarks.tool_routing import is_subject_tool
+from benchmarks.tool_routing import classify_tool, is_subject_tool
 
 
 SCHEMA = "evalshot.native-availability-study.v1"
+
+
+
+def _completed_tool_order_diagnostic(
+    metrics: dict[str, Any], trace_state: str, subject: str
+) -> dict[str, Any]:
+    """Observations of completed tools, not decision, request, or attention proof."""
+    unknown = {
+        "state": "UNKNOWN",
+        "first_completed_tool": None,
+        "first_completed_class": None,
+        "subject_first_completed": None,
+        "subject_first_completed_ordinal": None,
+    }
+    if trace_state != "COMPLETE_MCP_TELEMETRY":
+        return unknown
+    sequence = metrics.get("tool_sequence")
+    ordinals = metrics.get("subject_tool_call_ordinals")
+    if (
+        not isinstance(sequence, list)
+        or not all(isinstance(item, str) and item for item in sequence)
+        or not isinstance(ordinals, list)
+        or not all(type(item) is int and 1 <= item <= len(sequence) for item in ordinals)
+    ):
+        return unknown
+    first = sequence[0] if sequence else None
+    return {
+        "state": "OBSERVED_COMPLETION_ORDER",
+        "first_completed_tool": first,
+        "first_completed_class": (
+            classify_tool(first, subject=subject) if first is not None else None
+        ),
+        "subject_first_completed": (
+            is_subject_tool(first, subject) if first is not None else False
+        ),
+        "subject_first_completed_ordinal": ordinals[0] if ordinals else None,
+    }
 
 
 def inspect_native_trace(
@@ -138,6 +175,7 @@ def inspect_native_trace(
         "final_answer": final,
         "model_request_inclusion": "UNKNOWN",
         "model_attention": "UNKNOWN",
+        "completed_tool_order": _completed_tool_order_diagnostic(metrics, state, subject),
     }
 
 
@@ -275,6 +313,29 @@ def build_availability_study(
     subject_rows = arm_rows[available_condition]
     invoked = sum(r["subject_invoked"] is True for r in subject_rows)
     unknown = sum(r["subject_invoked"] is None for r in subject_rows)
+    first_order = [r["completed_tool_order"] for r in subject_rows]
+    first_order_summary = {
+        "assigned_trials": len(subject_rows),
+        "subject_first_completed": sum(
+            row["subject_first_completed"] is True for row in first_order
+        ),
+        "other_tool_first_completed": sum(
+            row["state"] == "OBSERVED_COMPLETION_ORDER"
+            and row["first_completed_tool"] is not None
+            and row["subject_first_completed"] is False
+            for row in first_order
+        ),
+        "no_tracked_tool": sum(
+            row["state"] == "OBSERVED_COMPLETION_ORDER"
+            and row["first_completed_tool"] is None
+            for row in first_order
+        ),
+        "unknown": sum(row["state"] == "UNKNOWN" for row in first_order),
+        "claim_scope": (
+            "observed-completed-tool-order-only;"
+            "not-native-tool-choice-or-model-request-proof"
+        ),
+    }
     pair_rows = []
     tainted = canonical["campaign_qualification"]["evidence_tainted"]
     by_arm = {c: {pair_key(r): r for r in rs} for c, rs in arm_rows.items()}
@@ -314,6 +375,7 @@ def build_availability_study(
                 "qualified" if qualified else "unqualified-operational-counts-only"
             ),
         },
+        "completed_tool_order_diagnostic": first_order_summary,
         "successful_return_subset_diagnostic": {
             **_outcomes([r for r in subject_rows if r["successful_return_observed"] is True]),
             "claim_scope": "post-assignment-selected-subset-descriptive-only",

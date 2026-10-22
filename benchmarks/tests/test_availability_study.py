@@ -85,6 +85,39 @@ class AvailabilityStudyTests(unittest.TestCase):
                 self.assertEqual(observed["final_answer"], ANSWER)
                 self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
 
+    def test_completed_tool_order_is_observation_not_model_tool_choice(self):
+        for adapter in ("codex", "opencode-native"):
+            with self.subTest(adapter=adapter):
+                baseline = self.inspect(native(adapter), adapter)
+                first = baseline["completed_tool_order"]
+                self.assertEqual(first["state"], "OBSERVED_COMPLETION_ORDER")
+                self.assertFalse(first["subject_first_completed"])
+                self.assertIsNone(first["subject_first_completed_ordinal"])
+                assisted = self.inspect(native(adapter, invoked=True), adapter)
+                routing = assisted["completed_tool_order"]
+                self.assertEqual(routing["state"], "OBSERVED_COMPLETION_ORDER")
+                self.assertTrue(routing["subject_first_completed"])
+                self.assertEqual(routing["subject_first_completed_ordinal"], 1)
+                self.assertEqual(
+                    routing["first_completed_class"],
+                    "subject-repository-intelligence",
+                )
+                self.assertEqual(assisted["model_request_inclusion"], "UNKNOWN")
+
+    def test_partial_trace_does_not_claim_first_tool_order(self):
+        observed = self.inspect(native("opencode-native", invoked=True, opaque=True), "opencode-native")
+        self.assertTrue(observed["subject_invoked"])
+        self.assertEqual(
+            observed["completed_tool_order"],
+            {
+                "state": "UNKNOWN",
+                "first_completed_tool": None,
+                "first_completed_class": None,
+                "subject_first_completed": None,
+                "subject_first_completed_ordinal": None,
+            },
+        )
+
     def test_partial_missing_and_malformed_traces_never_prove_zero(self):
         for raw in ("", "{}", "\n".join(native().splitlines()[2:]), native() + '\n{broken', native() + '\n{"type":"turn.started"}', native() + '\n{"type":"item.started","item":{"id":"pending","type":"mcp_tool_call","server":"hashmarks","tool":"find"}}'):
             with self.subTest(raw=raw[:30]):
@@ -162,6 +195,31 @@ class AvailabilityStudyTests(unittest.TestCase):
             },
         )
         self.assertEqual(report["primary_availability_intention_to_treat"]["expected_pairs"], 2)
+
+    def test_completed_tool_order_summary_preserves_assigned_arms_and_unknowns(self):
+        normal = self.report(invoked=True)
+        self.assertEqual(
+            normal["completed_tool_order_diagnostic"],
+            {
+                "assigned_trials": 2,
+                "subject_first_completed": 1,
+                "other_tool_first_completed": 1,
+                "no_tracked_tool": 0,
+                "unknown": 0,
+                "claim_scope": (
+                    "observed-completed-tool-order-only;"
+                    "not-native-tool-choice-or-model-request-proof"
+                ),
+            },
+        )
+        incomplete = self.report(incomplete=True, invoked=True)
+        summary = incomplete["completed_tool_order_diagnostic"]
+        self.assertEqual(summary["assigned_trials"], 2)
+        self.assertEqual(summary["subject_first_completed"], 0)
+        self.assertEqual(summary["other_tool_first_completed"], 1)
+        self.assertEqual(summary["unknown"], 1)
+        self.assertFalse(incomplete["study_measurement_qualified"])
+        self.assertEqual(incomplete["host_catalog_inclusion"], "UNKNOWN")
 
     def test_missing_trial_keeps_assigned_denominator_and_unknown_outcome(self):
         report = self.report(missing=True)
