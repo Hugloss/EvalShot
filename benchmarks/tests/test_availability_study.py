@@ -529,6 +529,32 @@ class AvailabilityStudyTests(unittest.TestCase):
                         )
                     grade.assert_not_called()
 
+    def test_duplicate_definition_ids_reject_before_receipt_projection(self):
+        frozen = suite()
+        rows = frozen.trial_definitions()
+        # Keep task/replicate pairs distinct; an identity collision across
+        # frozen arms must still reject independently of the pair-key check.
+        other = next(row for row in rows if row["condition_id"] == "available")
+        baseline = next(row for row in rows if row["condition_id"] == "bare")
+        mutated = [
+            {**row, "definition_id": baseline["definition_id"]}
+            if row is other else row
+            for row in rows
+        ]
+        with patch.object(
+            SuiteDefinition, "trial_definitions", return_value=mutated
+        ), patch("benchmarks.harness.availability_study.build_report") as grade:
+            with self.assertRaisesRegex(
+                ReportError, "duplicate trial definition identities"
+            ):
+                build_availability_study(
+                    suite=frozen,
+                    results_root=Path("unread-frozen-results"),
+                    baseline_condition="bare",
+                    available_condition="available",
+                )
+            grade.assert_not_called()
+
     def test_missing_trial_keeps_assigned_denominator_and_unknown_outcome(self):
         report = self.report(missing=True)
         arm = report["primary_availability_intention_to_treat"]["conditions"]["available"]
