@@ -58,6 +58,16 @@ missing/oversized blobs, nonregular Python paths, total-size or file-count
 bounds, and mismatched pinned commit trees. Partial positive observations
 remain visible, marked `SCAN_INCOMPLETE`.
 
+The first real dogfood run on the pinned Hashmarks tree observed
+**9** literal `paths_under` call expressions across production and test
+files, and **1** `_sync_remove_stale_paths` call expression within
+`IndexingLifecycleMixin.sync`. Both eligible Python candidates had
+complete 528-file scans with zero skipped files; `runPollDelay` remained
+`SOURCE_PRECONDITION_FAILED` and was not scanned for callsites.
+These are spelling-only AST observations, not proven edges in a call graph.
+They identify concrete candidate places for independent reviewer investigation
+and leave actual target identity and headroom unknown.
+
 The independent source reviewer may use this as a challenge prompt: inspect
 the actual callable binding, delegation, and effect/decision boundaries.
 Neither the scanner nor EvalShot's dogfood workflow performs call graph
