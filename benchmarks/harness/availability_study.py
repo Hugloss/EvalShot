@@ -178,6 +178,7 @@ def inspect_native_trace(
             event.get("type") in {"item.started", "item.updated", "item.completed"}
             and (not isinstance(event.get("item"), dict)
                  or not isinstance(event["item"].get("id"), str)
+                 or not event["item"]["id"]
                  or event["item"].get("type") not in {
                      "reasoning", "agent_message", "command_execution", "file_change",
                      "mcp_tool_call", "web_search", "todo_list", "error",
