@@ -257,6 +257,11 @@ class NativeCodexQualificationTests(unittest.TestCase):
         self.assertEqual(
             result.payload["native_input_integrity_reason"], "input-content-drift"
         )
+        from benchmarks.harness.runner import _agent_failure
+
+        self.assertEqual(
+            _agent_failure(result)[0], "native-input-integrity-rejection"
+        )
         self.assertEqual((self.native / "config.toml").read_text(), self.config)
 
     def test_new_native_input_membership_is_rejected_before_execution(self):
@@ -311,6 +316,11 @@ class NativeCodexQualificationTests(unittest.TestCase):
                 result = agent.run(context, "Locate owner", None)
                 self.assertEqual(
                     result.payload["native_input_integrity_reason"], expected
+                )
+                from benchmarks.harness.runner import _agent_failure
+
+                self.assertEqual(
+                    _agent_failure(result)[0], "native-input-integrity-rejection"
                 )
                 self.assertIsNone(result.payload["terminal_event"])
                 self.assertNotIn("different", json.dumps(result.payload))
