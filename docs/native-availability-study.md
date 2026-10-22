@@ -61,6 +61,16 @@ tracked tool and unknown counts. A start is a host-observed action, not proof of
 the model's internal first tool-selection decision, submitted-model-request
 inclusion, attention, or an improvement in task correctness.
 
+An independently observed Codex `item.started` MCP event is also reported
+as `subject_start_observed=true` even when the run never completes. A verified
+start does **not** prove a successful tool return, request inclusion, agent
+attention, or task correctness. Conversely, a completed MCP call does not
+prove a matching start event in historical completion-only exports; missing
+start evidence is `null`, not false. The assigned-population
+`native_subject_start_diagnostic` distinguishes positive observed starts from
+`not_established` with no adoption-rate claim. OpenCode exports remain
+unqualified for this Codex-specific native start observation.
+
 The admitted MCP **server catalog** is not the catalog submitted to a model.
 Likewise, a successful nonempty native tool return is not submitted-request
 inclusion, attention or comprehension. The successful-return subset is a
