@@ -317,6 +317,34 @@ def _outcomes(rows: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def _tool_order_summary(
+    rows: list[dict[str, Any]], *, field: str, phase: str, observed_state: str
+) -> dict[str, Any]:
+    """Keep one assigned population across both passive tool-order projections."""
+    records = [row[field] for row in rows]
+    first_key = "first_" + phase + "_tool"
+    subject_key = "subject_first_" + phase
+    return {
+        "assigned_trials": len(rows),
+        subject_key: sum(row[subject_key] is True for row in records),
+        "other_tool_first_" + phase: sum(
+            row["state"] == observed_state
+            and row[first_key] is not None
+            and row[subject_key] is False
+            for row in records
+        ),
+        "no_tracked_tool": sum(
+            row["state"] == observed_state and row[first_key] is None
+            for row in records
+        ),
+        "unknown": sum(row["state"] != observed_state for row in records),
+        "claim_scope": (
+            "observed-" + phase + "-tool-order-only;"
+            "not-native-tool-choice-or-model-request-proof"
+        ),
+    }
+
+
 def build_availability_study(
     *, suite: SuiteDefinition, results_root: Path,
     baseline_condition: str, available_condition: str,
@@ -416,29 +444,14 @@ def build_availability_study(
     subject_rows = arm_rows[available_condition]
     invoked = sum(r["subject_invoked"] is True for r in subject_rows)
     unknown = sum(r["subject_invoked"] is None for r in subject_rows)
-    first_order = [r["completed_tool_order"] for r in subject_rows]
-    first_order_summary = {
-        "assigned_trials": len(subject_rows),
-        "subject_first_completed": sum(
-            row["subject_first_completed"] is True for row in first_order
-        ),
-        "other_tool_first_completed": sum(
-            row["state"] == "OBSERVED_COMPLETION_ORDER"
-            and row["first_completed_tool"] is not None
-            and row["subject_first_completed"] is False
-            for row in first_order
-        ),
-        "no_tracked_tool": sum(
-            row["state"] == "OBSERVED_COMPLETION_ORDER"
-            and row["first_completed_tool"] is None
-            for row in first_order
-        ),
-        "unknown": sum(row["state"] == "UNKNOWN" for row in first_order),
-        "claim_scope": (
-            "observed-completed-tool-order-only;"
-            "not-native-tool-choice-or-model-request-proof"
-        ),
-    }
+    first_order_summary = _tool_order_summary(
+        subject_rows, field="completed_tool_order",
+        phase="completed", observed_state="OBSERVED_COMPLETION_ORDER",
+    )
+    started_order_summary = _tool_order_summary(
+        subject_rows, field="started_tool_order",
+        phase="started", observed_state="OBSERVED_START_ORDER",
+    )
     pair_rows = []
     tainted = canonical["campaign_qualification"]["evidence_tainted"]
     by_arm = {c: {pair_key(r): r for r in rs} for c, rs in arm_rows.items()}
@@ -479,6 +492,7 @@ def build_availability_study(
             ),
         },
         "completed_tool_order_diagnostic": first_order_summary,
+        "started_tool_order_diagnostic": started_order_summary,
         "successful_return_subset_diagnostic": {
             **_outcomes([r for r in subject_rows if r["successful_return_observed"] is True]),
             "claim_scope": "post-assignment-selected-subset-descriptive-only",
