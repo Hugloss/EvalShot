@@ -555,6 +555,16 @@ def run_trial(
             if status is not None:
                 stage = "admission"
                 reason_code = "admission-initial-outcome"
+            else:
+                # The earlier source seal must survive *all* preparation.
+                # Agent-edit allowances cannot excuse setup residue.
+                prework = admission.prework_contamination()
+                if prework["contaminated"]:
+                    status = TrialStatus.CONTAMINATED
+                    reason = "participant preparation changed workspace before model work"
+                    stage = "admission"
+                    reason_code = "prework-workspace-contamination"
+                    diagnostic_detail = "prework contamination found before model launch"
             if not admission.legacy_seed and status is not None:
                 raise TrialRunnerError(f"pre-model admission failed: {reason}")
 
