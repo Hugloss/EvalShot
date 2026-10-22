@@ -1,0 +1,58 @@
+name: Hashmarks Dogfood Source Audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/hashmarks-dogfood.yml"
+      - "benchmarks/dogfood/**"
+      - "benchmarks/tests/test_hashmarks_dogfood_corpus.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-identity:
+    name: Frozen Hashmarks source identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout EvalShot
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout full Hashmarks history
+        uses: actions/checkout@v4
+        with:
+          repository: Hugloss/Hashmarks
+          ref: main
+          fetch-depth: 0
+          path: .dogfood-source/Hashmarks
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+
+      - name: Install repository Python
+        run: uv python install
+
+      - name: Focused model-free regressions
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus
+
+      - name: Verify frozen Hashmarks source identities
+        run: |
+          uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
+            --suite-root benchmarks/suites/repository-intelligence \
+            --checkout .dogfood-source/Hashmarks \
+            --require-source \
+            --output "$RUNNER_TEMP/hashmarks-source-audit.json"
+
+      - name: Upload source audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashmarks-frozen-source-audit
+          path: ${{ runner.temp }}/hashmarks-source-audit.json
+          if-no-files-found: ignore
+          retention-days: 7
