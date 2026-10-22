@@ -10,6 +10,7 @@ on:
       - "benchmarks/tests/test_hashmarks_dogfood_review_handoff.py"
       - "benchmarks/tests/test_hashmarks_dogfood_declarations.py"
       - "benchmarks/tests/test_hashmarks_dogfood_collisions.py"
+      - "benchmarks/tests/test_hashmarks_dogfood_callsites.py"
   workflow_dispatch:
 
 permissions:
@@ -50,7 +51,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -100,6 +101,16 @@ jobs:
               --output "$RUNNER_TEMP/hashmarks-collisions.json"
           fi
 
+      - name: Observe pinned Python call syntax (not a call graph)
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/hashmarks-source-audit.json" ]; then
+            uv run --no-project python -m benchmarks.dogfood.hashmarks_callsites \
+              --audit "$RUNNER_TEMP/hashmarks-source-audit.json" \
+              --checkout .dogfood-source/Hashmarks \
+              --output "$RUNNER_TEMP/hashmarks-callsites.json"
+          fi
+
       - name: Upload source audit report
         if: always()
         uses: actions/upload-artifact@v4
@@ -111,5 +122,6 @@ jobs:
             ${{ runner.temp }}/hashmarks-review-handoff.json
             ${{ runner.temp }}/hashmarks-declarations.json
             ${{ runner.temp }}/hashmarks-collisions.json
+            ${{ runner.temp }}/hashmarks-callsites.json
           if-no-files-found: ignore
           retention-days: 7
