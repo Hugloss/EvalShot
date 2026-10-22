@@ -53,7 +53,7 @@ jobs:
           uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
             --suite-root benchmarks/suites/repository-intelligence \
             --checkout .dogfood-source/Hashmarks \
-            --require-source \
+            --require-source --gate-assigned-only \
             --output "$RUNNER_TEMP/hashmarks-source-audit.json"
 
       - name: Upload source audit report
