@@ -62,6 +62,18 @@ wiring, imported aliases, call graphs and human intent are not resolved.
 Every output contains `unique_semantic_owner_proven=false`,
 `oracle_approved=false` and `baseline_headroom_known=false`.
 
+The first real run against pinned commit
+`85453be578e8ff46b8d79b363f140a915d6804f6` completed a
+**528-file Python scan with zero unreadable/unparseable files**. It found
+`WorkspaceMapStore.paths_under` only in
+`hashmarks/codemap/repository_index_store.py` and
+`IndexingLifecycleMixin._sync_remove_stale_paths` only in
+`hashmarks/codemap/indexing_lifecycle.py`. Neither had an additional
+**exact same-name Python declaration** in that frozen tree. This is
+bounded syntax evidence, **not a unique behavioral owner certificate**.
+The unassigned `lookup-known-symbol-run-poll-delay` task stayed blocked
+by its missing source precondition.
+
 CI publishes `hashmarks-collisions.json` next to the existing source,
 coverage, review and nominated-file reports. The independent reviewer
 can now inspect alternatives before deciding which candidate, if any,
