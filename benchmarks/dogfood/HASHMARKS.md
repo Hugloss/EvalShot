@@ -20,7 +20,7 @@ uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
 
 # Strict reproducibility check, requires historical Git objects locally.
 uv run --no-project python -m benchmarks.dogfood.hashmarks_corpus \
-  --checkout /path/to/Hashmarks --require-source \
+  --checkout /path/to/Hashmarks --require-source --require-reviewed \
   --output /tmp/evalshot-hashmarks-source-audit.json
 
 uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_corpus
@@ -28,8 +28,14 @@ uv run --no-project python -m unittest benchmarks.tests.test_hashmarks_dogfood_c
 
 The output is deterministic JSON with explicit `NOT_CHECKED` and
 `SOURCE_UNAVAILABLE` states. A missing historical object can mean a shallow
-checkout: it is not evidence the task is semantically invalid. The strict mode
-rejects it rather than silently passing a reproducibility requirement. Review
+checkout: it is not evidence the task is semantically invalid. `--require-source`
+rejects unavailable source instead of silently passing reproducibility. A
+verified oracle path must be an ordinary tracked Git blob; directories,
+symlinks, and other non-file entries are not accepted as proof that the cited
+source file exists. `--require-reviewed` delegates independent oracle review
+approval to EvalShot's existing suite loader and review validator. The
+inventory's simple transcription match is **not** independent approval.
+Without that flag, canonical review qualification remains `NOT_CHECKED`. Review
 files are never copied into prompts or materialized agent workspaces by this
 command. A file's existence does **not** prove the referenced symbol or oracle
 is correct; semantic ownership still requires an independent source review.
