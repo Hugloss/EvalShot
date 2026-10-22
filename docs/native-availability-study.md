@@ -19,7 +19,10 @@ uv run --no-project python -m benchmarks.harness.availability_study \
 The schema is `evalshot.native-availability-study.v1`. The command reuses bundle,
 campaign, scoring and runtime-comparability checks. It requires matching tasks,
 replicate identities, native agent and declared context in the two selected
-conditions. Codex must use `native_host=true`; forced OpenCode tool diagnostics
+conditions. Every selected arm must contain each task/replicate key **exactly
+once**. Duplicate assignment keys are rejected before reporting or scoring,
+even when both arms collapse to equal sets; a later dictionary projection must
+not silently overwrite a frozen trial slot. Codex must use `native_host=true`; forced OpenCode tool diagnostics
 cannot enter this optional-availability comparison. No suite or campaign is
 created, edited, resumed or executed by the command.
 
