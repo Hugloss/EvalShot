@@ -254,7 +254,27 @@ candidate path syntax and required source evidence. An intentionally incomplete
 approved oracle. No reviewer identities, paths or rationales are printed by
 successful validation, and the response is not written inside the kit.
 The same `validate_returns` function is consumed by EvalShot's private intake
-and by the offline kit, preventing parallel interpretations. Source existence
+and by the offline kit, preventing parallel interpretations.
+
+After the review has passed structural validation, `check_review.py` also
+checks that each claimed source file, Python function/method declaration
+and positive evidence line number exists in the **manifest-verified pinned
+source snapshot**. It uses the same portable `check_references` implementation
+that EvalShot's private, historical Git-backed citation checker uses,
+packaged byte-for-byte as `source_contract.py` and bound by
+`source_contract_sha256`. The Git-backed caller continues to own
+commit/tree authority; the offline caller uses the independently verified
+received kit. Neither implementation executes source code.
+
+The result is explicitly `UNTRUSTED_FIRST_PASS_SOURCE_EXISTENCE_ONLY`;
+`SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF` means the citation bytes
+exist, not that the reviewer found a valid behavioral owner. Missing
+source files, absent Python declarations, invalid syntax, or nonexistent
+line numbers retain distinct negative statuses. An unable-to-review
+decision cannot be reported as positive source evidence. Status output
+never includes candidate paths, reviewer names, rationales or source
+observations, and always reports zero oracle approvals.
+ Source existence
 and semantic ownership remain separate responsibilities, with independent
 approval reserved to EvalShot's canonical oracle review owner.
 

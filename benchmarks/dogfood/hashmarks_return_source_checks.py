@@ -9,7 +9,6 @@ candidate paths, reviewer IDs, or rationales in the resulting report.
 from __future__ import annotations
 
 import argparse
-import ast
 import json
 from pathlib import Path
 from typing import Any, Mapping
@@ -17,9 +16,8 @@ from typing import Any, Mapping
 from benchmarks.dogfood.hashmarks_blind_review import STAGED_RELATIVE, prepare_blind_review
 from benchmarks.dogfood.hashmarks_collisions import _commit_tree
 from benchmarks.dogfood.hashmarks_corpus import _safe_file
-from benchmarks.dogfood.hashmarks_declarations import (
-    _Declarations, _git_bytes, _source_bytes,
-)
+from benchmarks.dogfood.hashmarks_declarations import _git_bytes, _source_bytes
+from benchmarks.dogfood.hashmarks_review_source_contract import check_references
 from benchmarks.dogfood.hashmarks_review_returns import (
     ReturnError, _read_json, project_returns,
 )
@@ -56,40 +54,11 @@ def _frozen_regular_source(checkout: Path, commit: str, path: str) -> bytes | No
 def _validate_one_return(
     *, checkout: Path, commit: str, response: Mapping[str, Any],
 ) -> tuple[str, int]:
-    """No observable return contains sensitive reviewer-supplied details."""
-    cache: dict[str, bytes | None] = {}
-    count = 0
-
-    def source(path: str) -> bytes | None:
-        if path not in cache:
-            cache[path] = _frozen_regular_source(checkout, commit, path)
-        return cache[path]
-
-    for location in response["candidate_locations"]:
-        content = source(location["path"])
-        count += 1
-        if content is None:
-            return "PINNED_CANDIDATE_FILE_UNAVAILABLE", count
-        if location["path"].endswith(".py"):
-            try:
-                parsed = ast.parse(content.decode("utf-8"), filename=location["path"])
-                inspector = _Declarations(location["symbol"])
-                inspector.visit(parsed)
-            except (SyntaxError, UnicodeError, ValueError, RecursionError):
-                return "CANDIDATE_PYTHON_NOT_PARSEABLE", count
-            if not inspector.matches:
-                return "CANDIDATE_DECLARATION_NOT_OBSERVED", count
-
-    for evidence in response["source_evidence"]:
-        content = source(evidence["path"])
-        count += 1
-        if content is None:
-            return "PINNED_EVIDENCE_FILE_UNAVAILABLE", count
-        # Byte lines are sufficient for existence, without pretending a
-        # natural-language "observation" is verified by its line number.
-        if evidence["line"] > len(content.splitlines()):
-            return "PINNED_EVIDENCE_LINE_ABSENT", count
-    return "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF", count
+    """Use the portable check with Git-verified regular historical blobs."""
+    return check_references(
+        response,
+        lambda path: _frozen_regular_source(checkout, commit, path),
+    )
 
 
 def verify_source_references(
