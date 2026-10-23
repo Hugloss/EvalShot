@@ -9,7 +9,7 @@ from typing import Any, Mapping
 
 RETURNS_SCHEMA = "evalshot.hashmarks-external-first-pass-returns.v1"
 _DECISIONS = frozenset({"unique", "ambiguous", "invalid", "unable_to_review"})
-_SYMBOL = re.compile(r"[A-Za-z_][A-Za-z_0-9]*\\Z")
+_SYMBOL = re.compile(r"[A-Za-z_][A-Za-z_0-9]*\Z")
 
 
 class ReturnError(ValueError):
@@ -17,7 +17,7 @@ class ReturnError(ValueError):
 
 
 def _safe_file(value: object) -> bool:
-    if not isinstance(value, str) or not value or "\\\\" in value or ":" in value:
+    if not isinstance(value, str) or not value or "\\" in value or ":" in value:
         return False
     if any(c in "*?[]" or ord(c) < 32 or ord(c) == 127 for c in value):
         return False
