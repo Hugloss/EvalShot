@@ -22,7 +22,10 @@ _SHA40 = re.compile(r"[0-9a-f]{40}\Z")
 _MAX_SOURCE_FILES = 1200
 _MAX_SOURCE_BYTES = 32 * 1024 * 1024
 _MAX_METADATA_BYTES = 200_000
-_ROOT_ITEMS = {"manifest.json", "questions.json", "source", "verify.py", "start_review.py"}
+_ROOT_ITEMS = {
+    "manifest.json", "questions.json", "source",
+    "verify.py", "start_review.py", "REVIEW.md",
+}
 
 
 class KitVerificationError(ValueError):
@@ -89,7 +92,8 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         manifest.get("schema") != SCHEMA
         or manifest.get("qualification") != "HANDOFF_SOURCE_SNAPSHOT_ONLY"
         or manifest.get("workspace_members") != [
-            "manifest.json", "questions.json", "source/", "verify.py", "start_review.py"
+            "manifest.json", "questions.json", "source/",
+            "verify.py", "start_review.py", "REVIEW.md"
         ]
         or type(manifest.get("reviewer_independence_attested")) is not bool
         or manifest["reviewer_independence_attested"] is not False
@@ -104,6 +108,7 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         or not _SHA256.fullmatch(str(manifest.get("questions_sha256")))
         or not _SHA256.fullmatch(str(manifest.get("verifier_sha256")))
         or not _SHA256.fullmatch(str(manifest.get("review_starter_sha256")))
+        or not _SHA256.fullmatch(str(manifest.get("review_protocol_sha256")))
         or not isinstance(manifest.get("packet_digest"), str)
         or not manifest["packet_digest"].startswith("sha256:")
 
@@ -123,6 +128,12 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
     starter = _regular_bytes(root / "start_review.py", max_size=_MAX_METADATA_BYTES)
     if hashlib.sha256(starter).hexdigest() != manifest["review_starter_sha256"]:
         raise KitVerificationError("review starter changed after source export")
+
+    review_protocol = _regular_bytes(root / "REVIEW.md", max_size=_MAX_METADATA_BYTES)
+    if hashlib.sha256(review_protocol).hexdigest() != manifest["review_protocol_sha256"]:
+        raise KitVerificationError("reviewer protocol differs from manifest")
+    # This is deliberately content-integrity validation, not a semantic
+    # approval or an interpretation of the instructions.
 
     questions, raw_questions = _read_object(root / "questions.json")
     if hashlib.sha256(raw_questions).hexdigest() != manifest["questions_sha256"]:
