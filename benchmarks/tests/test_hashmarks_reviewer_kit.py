@@ -115,7 +115,7 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(result["native_trials_executed"], 0)
         self.assertEqual(
             {p.name for p in self.out.iterdir()},
-            {"questions.json", "source", "manifest.json", "verify.py"},
+            {"questions.json", "source", "manifest.json", "verify.py", "start_review.py"},
         )
         self.assertFalse((self.out / ".git").exists())
         self.assertFalse((self.out / "source/.git").exists())
@@ -244,6 +244,93 @@ class PinnedReviewerKitTests(unittest.TestCase):
         manifest["canonical_oracle_approved"] = True
         manifest_path.write_text(json.dumps(manifest))
         with self.assertRaisesRegex(KitVerificationError, "unsafe kit manifest"):
+            verify_kit(self.out)
+
+    def test_offline_review_starter_is_validly_bound_but_cannot_self_approve(self):
+        from benchmarks.dogfood.hashmarks_review_returns import (
+            ReturnError, project_returns,
+        )
+        producer = self.build()
+        private = self.workspace / "private-review-starter.json"
+        completed = subprocess.run([
+            sys.executable, str(self.out / "start_review.py"),
+            "--root", str(self.out),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+            "--output", str(private),
+        ], cwd=self.workspace, capture_output=True, text=True,
+           env={"PATH": "/usr/bin:/bin"})
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertTrue(private.is_file())
+        self.assertEqual(private.stat().st_mode & 0o777, 0o600)
+        self.assertFalse((self.out / "reviewer-answers.json").exists())
+        data = json.loads(private.read_text())
+        packet = json.loads((self.out / "questions.json").read_text())
+        manifest = json.loads((self.out / "manifest.json").read_text())
+        self.assertEqual(data["blinded_packet_identity"], manifest["packet_digest"])
+        self.assertEqual(len(data["reviews"]), 2)
+        self.assertEqual({r["packet_id"] for r in data["reviews"]},
+                         {q["packet_id"] for q in packet["packets"]})
+        for r in data["reviews"]:
+            self.assertEqual(r["decision"], "NOT_REVIEWED_REPLACE_BEFORE_SUBMISSION")
+            self.assertIsNone(r["prior_expected_answer_access"])
+            self.assertIsNone(r["source_inspected"])
+            self.assertEqual(r["candidate_locations"], [])
+            self.assertEqual(r["source_evidence"], [])
+        with self.assertRaisesRegex(ReturnError, "decision"):
+            project_returns(packet, data)
+        self.assertFalse(json.loads(completed.stdout)["oracle_approved"])
+
+    def test_starter_rejects_output_inside_received_kit(self):
+        producer = self.build()
+        destination = self.out / "review.json"
+        run = subprocess.run([
+            sys.executable, str(self.out / "start_review.py"),
+            "--root", str(self.out),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+            "--output", str(destination),
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertFalse(destination.exists())
+
+    def test_starter_rejects_wrong_producer_manifest_digest(self):
+        self.build()
+        destination = self.workspace / "private-draft.json"
+        run = subprocess.run([
+            sys.executable, str(self.out / "start_review.py"),
+            "--root", str(self.out),
+            "--expect-manifest-sha256", "0" * 64,
+            "--output", str(destination),
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertFalse(destination.exists())
+
+    def test_starter_does_not_overwrite_existing_private_review(self):
+        producer = self.build()
+        destination = self.workspace / "private-draft.json"
+        destination.write_text("reviewer-private-contents")
+        run = subprocess.run([
+            sys.executable, str(self.out / "start_review.py"),
+            "--root", str(self.out),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+            "--output", str(destination),
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertNotEqual(run.returncode, 0)
+        self.assertEqual(destination.read_text(), "reviewer-private-contents")
+
+    def test_recipient_rejects_changed_or_missing_starter_script(self):
+        self.build()
+        script = self.out / "start_review.py"
+        script.write_text(script.read_text() + "\\n# tampered\\n")
+        with self.assertRaisesRegex(KitVerificationError, "starter changed"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_forged_packet_digest_even_with_manifest_rewritten(self):
+        self.build()
+        manifest = self.out / "manifest.json"
+        record = json.loads(manifest.read_text())
+        record["packet_digest"] = "sha256:" + "0" * 64
+        manifest.write_text(json.dumps(record))
+        with self.assertRaisesRegex(KitVerificationError, "packet identity"):
             verify_kit(self.out)
 
     def test_worktree_modified_and_untracked_files_do_not_enter_kit(self):
