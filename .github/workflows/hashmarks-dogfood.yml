@@ -160,6 +160,9 @@ jobs:
           name: hashmarks-blinded-reviewer-kit
           path: ${{ runner.temp }}/hashmarks-reviewer-kit/
           if-no-files-found: error
+          # Frozen Git source includes tracked dotfiles (.gitattributes, etc.).
+          # Omitting hidden files would make the external reviewer kit incomplete.
+          include-hidden-files: true
           retention-days: 7
 
       - name: Upload source audit report
