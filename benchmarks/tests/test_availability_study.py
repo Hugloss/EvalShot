@@ -14,6 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from benchmarks.harness.availability_study import (
+    _completed_tool_order_diagnostic,
     _tool_order_summary,
     build_availability_study,
     inspect_native_trace,
@@ -104,6 +105,52 @@ class AvailabilityStudyTests(unittest.TestCase):
                     "subject-repository-intelligence",
                 )
                 self.assertEqual(assisted["model_request_inclusion"], "UNKNOWN")
+
+    def test_completed_subject_ordinals_must_match_canonical_tool_sequence(self):
+        sequence = [
+            "command_execution",
+            "mcp:hashmarks/task_evidence",
+            "mcp:other/find",
+            "mcp:hashmarks/source_observation",
+        ]
+        valid = {
+            "tool_sequence": sequence,
+            "subject_tool_call_ordinals": [2, 4],
+        }
+        qualified = _completed_tool_order_diagnostic(
+            valid, "COMPLETE_MCP_TELEMETRY", "hashmarks"
+        )
+        self.assertEqual(qualified["state"], "OBSERVED_COMPLETION_ORDER")
+        self.assertEqual(qualified["subject_first_completed_ordinal"], 2)
+        self.assertIs(qualified["subject_first_completed"], False)
+
+        for ordinals in ([], [2], [4, 2], [2, 2], [2, 3], [1, 4], [2, 4, 4]):
+            with self.subTest(ordinals=ordinals):
+                invalid = _completed_tool_order_diagnostic(
+                    {**valid, "subject_tool_call_ordinals": ordinals},
+                    "COMPLETE_MCP_TELEMETRY", "hashmarks",
+                )
+                self.assertEqual(invalid["state"], "UNKNOWN")
+                self.assertIsNone(invalid["subject_first_completed"])
+                self.assertIsNone(invalid["subject_first_completed_ordinal"])
+        self.assertEqual(
+            _completed_tool_order_diagnostic(
+                valid, "UNKNOWN", "hashmarks"
+            )["state"],
+            "UNKNOWN",
+        )
+
+    def test_completed_zero_calls_must_be_supported_by_exact_sequence_correspondence(self):
+        clean = _completed_tool_order_diagnostic(
+            {
+                "tool_sequence": ["command_execution", "mcp:other/find"],
+                "subject_tool_call_ordinals": [],
+            },
+            "COMPLETE_MCP_TELEMETRY", "hashmarks",
+        )
+        self.assertEqual(clean["state"], "OBSERVED_COMPLETION_ORDER")
+        self.assertIs(clean["subject_first_completed"], False)
+        self.assertIsNone(clean["subject_first_completed_ordinal"])
 
     def test_partial_trace_does_not_claim_first_tool_order(self):
         observed = self.inspect(native("opencode-native", invoked=True, opaque=True), "opencode-native")
