@@ -71,34 +71,36 @@ def _completed_tool_order_diagnostic(
 
 
 def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
-    """Require stable tool identity for a native item ID across its lifecycle.
+    """Require stable item/tool identity through starts, updates and completions.
 
-    Historical completion-only traces remain valid evidence of completion,
-    but a started ID cannot complete as a different item type or MCP tool.
+    Historical completion-only traces remain valid evidence of completion.
+    Updates may occur without a visible start but cannot rewrite an item ID's
+    type, MCP server, or operation, nor follow a completion.
     """
-    starts: dict[str, tuple[object, str | None]] = {}
+    identities: dict[str, tuple[object, str | None]] = {}
     completions: set[str] = set()
     for event in events:
         phase = event.get("type")
-        if phase not in {"item.started", "item.completed"}:
+        if phase not in {"item.started", "item.updated", "item.completed"}:
             continue
         item = event.get("item")
         if not isinstance(item, dict) or not isinstance(item.get("id"), str):
             return True
         identity = item["id"]
+        kind = (item.get("type"), _tracked_tool_name(item))
+        if identity in identities and identities[identity] != kind:
+            return True
         if phase == "item.started":
-            if identity in starts or identity in completions:
+            if identity in identities:
                 return True
-            starts[identity] = (item.get("type"), _tracked_tool_name(item))
+        elif phase == "item.updated":
+            if identity in completions:
+                return True
         else:
             if identity in completions:
                 return True
-            if identity in starts and starts[identity] != (
-                item.get("type"),
-                _tracked_tool_name(item),
-            ):
-                return True
             completions.add(identity)
+        identities[identity] = kind
     return False
 
 

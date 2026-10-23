@@ -233,6 +233,49 @@ class AvailabilityStudyTests(unittest.TestCase):
             "command_execution",
         )
 
+    def test_codex_item_updates_must_keep_native_mcp_operation_identity(self):
+        original = [json.loads(line) for line in native(invoked=True).splitlines()]
+        base = {"id": "hm-1", "type": "mcp_tool_call",
+                "server": "hashmarks", "tool": "task_evidence"}
+        for label, update in (
+            ("operation-drift", {**base, "tool": "find"}),
+            ("server-drift", {**base, "server": "other"}),
+            ("item-type-drift", {"id": "hm-1", "type": "command_execution"}),
+        ):
+            with self.subTest(label=label):
+                events = json.loads(json.dumps(original))
+                events.insert(2, {"type": "item.started", "item": base})
+                events.insert(3, {"type": "item.updated", "item": update})
+                result = self.inspect("\n".join(json.dumps(e) for e in events))
+                self.assertEqual(result["trace_state"], "UNKNOWN")
+                self.assertIs(result["subject_invoked"], True)
+                self.assertIs(result["subject_start_observed"], True)
+                self.assertIs(result["successful_return_observed"], True)
+                self.assertEqual(result["completed_tool_order"]["state"], "UNKNOWN")
+                self.assertEqual(result["started_tool_order"]["state"], "UNKNOWN")
+                self.assertEqual(result["model_request_inclusion"], "UNKNOWN")
+
+    def test_codex_matching_updates_are_valid_but_postcompletion_updates_are_not(self):
+        events = [json.loads(line) for line in native(invoked=True).splitlines()]
+        base = {"id": "hm-1", "type": "mcp_tool_call",
+                "server": "hashmarks", "tool": "task_evidence"}
+        events.insert(2, {"type": "item.started", "item": base})
+        events.insert(3, {"type": "item.updated", "item": base})
+        observed = self.inspect("\n".join(json.dumps(e) for e in events))
+        self.assertEqual(observed["trace_state"], "COMPLETE_MCP_TELEMETRY")
+        self.assertIs(observed["subject_invoked"], True)
+        # The historical command in this fixture has only a completion.
+        # Matching MCP updates can qualify telemetry, but cannot turn that
+        # missing command-start record into observed native start ordering.
+        self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
+        self.assertIs(observed["subject_start_observed"], True)
+
+        events.insert(5, {"type": "item.updated", "item": base})
+        invalid = self.inspect("\n".join(json.dumps(e) for e in events))
+        self.assertEqual(invalid["trace_state"], "UNKNOWN")
+        self.assertIs(invalid["subject_invoked"], True)
+        self.assertEqual(invalid["started_tool_order"]["state"], "UNKNOWN")
+
     def test_codex_missing_start_and_duplicate_item_ids_are_not_first_choice_proof(self):
         # Historical completion-only native exports cannot prove start order.
         baseline = self.inspect(native("codex"))
