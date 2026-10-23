@@ -13,7 +13,11 @@ import argparse
 import json
 import os
 from pathlib import Path
+import sys
 
+# A received kit is an exact, manifest-bound allowlist. Importing verify.py
+# must not create __pycache__ and invalidate its own transport verification.
+sys.dont_write_bytecode = True
 from verify import KitVerificationError, verify_kit, _read_object
 
 RETURNS_SCHEMA = "evalshot.hashmarks-external-first-pass-returns.v1"
