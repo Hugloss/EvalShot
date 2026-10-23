@@ -261,6 +261,12 @@ def inspect_native_trace(
             not errors
             and not malformed
             and not unfinished
+            # An explicit terminal/error event cannot be erased by an
+            # eventual turn.completed marker in the same native trace.
+            and not any(
+                event.get("type") in {"turn.failed", "error"}
+                for event in events
+            )
             and not _codex_tool_lifecycle_conflict(events)
             and boundaries
             and final
