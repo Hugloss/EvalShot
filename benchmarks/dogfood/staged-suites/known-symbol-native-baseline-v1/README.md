@@ -232,6 +232,32 @@ The proper next step is still an independent semantic review followed
 by EvalShot's canonical private-response and oracle validation. This
 handoff adds **no oracle approvals, model trials, or native headroom**.
 
+## Portable offline validation of a private reviewer response
+
+The received kit includes `check_review.py` and `review_contract.py`,
+copied from EvalShot's **single** stdlib-only return-shape contract. The kit
+manifest binds both files by SHA-256, and `verify.py` checks them before use.
+A reviewer can validate its privately completed response without any EvalShot
+checkout or copy of oracle expectations:
+
+```sh
+python3 /path/to/kit/check_review.py \
+  --root /path/to/kit \
+  --responses /private/completed-review.json \
+  --expect-manifest-sha256 <producer-manifest-digest>
+```
+
+This is a structural preflight only: exact question/task/source identity,
+legal provisional decision types, declaration of prior expected-answer access,
+candidate path syntax and required source evidence. An intentionally incomplete
+`start_review.py` skeleton must be rejected; `unique` never becomes an
+approved oracle. No reviewer identities, paths or rationales are printed by
+successful validation, and the response is not written inside the kit.
+The same `validate_returns` function is consumed by EvalShot's private intake
+and by the offline kit, preventing parallel interpretations. Source existence
+and semantic ownership remain separate responsibilities, with independent
+approval reserved to EvalShot's canonical oracle review owner.
+
 ## External first-pass findings: private answers, sanitized status
 
 The separate `hashmarks_review_returns` consumer accepts **untrusted
