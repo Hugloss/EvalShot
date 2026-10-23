@@ -164,6 +164,59 @@ that existing authority. Do not copy the return-intake results into
 `qualification/oracle-reviews.json`, unfreeze the staged cohort or
 claim native baseline headroom on their basis.
 
+## Source-existence checks for private first-pass citations
+
+The optional `hashmarks_return_source_checks` diagnostic provides the next
+non-authoritative review backstop. The previous `hashmarks_review_returns`
+reader only validates source-citation **shape**. This diagnostic reads
+the **frozen historical Git commit** to check exact tracked regular files,
+candidate Python declarations, and cited source line existence.
+
+```sh
+# CI / no private responses: must retain AWAITING_FIRST_PASS
+uv run --no-project python -m benchmarks.dogfood.hashmarks_return_source_checks \
+  --repository-root . \
+  --checkout /path/to/pinned/Hashmarks \
+  --output /tmp/hashmarks-return-source-status.json
+
+# Only on a private reviewer intake machine, never GitHub Actions
+uv run --no-project python -m benchmarks.dogfood.hashmarks_return_source_checks \
+  --repository-root . \
+  --checkout /path/to/pinned/Hashmarks \
+  --responses /private/outside-evalshot/reviewer-answers.json \
+  --output /tmp/hashmarks-return-source-status.json
+```
+
+This uses **the existing strict return validator** for exact blinded packet,
+task digest, source commit/tree and declared review decision. Git replacement
+objects are disabled, the historical commit must be an actual commit with
+the frozen tree, and each referenced path must resolve to the **exact**
+regular tracked blob, not a symlink, arbitrary working-tree file or wildcard
+pathspec. Python function/method declarations are checked using the existing
+AST declaration visitor, while evidence line numbers are bounded by the
+pinned blob's line count. Non-Python source file *presence* can be checked,
+but non-Python symbol semantics are not inferred. Missing or oversized blobs
+and unparseable Python cannot pass a Python declaration check.
+
+A verified Git path and line mean only that **the cited source locations
+exist**. A natural-language reviewer's observation might still be wrong;
+an observed method spelling is not proof of the runtime target, behavioral
+owner, or oracle correctness. `SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF`
+is intentionally not an approval or a "verified independent reviewer" state.
+`PINNED_SOURCE_IDENTITY_UNAVAILABLE`, source-file, declaration and line
+mismatches retain distinct negative status codes.
+
+**Privacy rule:** Reviewer responses must remain outside EvalShot. No CI run
+receives private reviewer answers. The output never contains source paths,
+reviewer names, candidate owner strings, or reviewer source observations.
+It publishes only coarse status/counters and continues to carry zero
+canonical oracle approvals, zero verified independent reviewers, and zero
+native baseline measurements.
+
+The existing `benchmarks.harness.oracle_reviews` remains the only canonical
+source-review/approval owner; this diagnostic cannot issue or modify its
+review records and cannot launch or unblock the staged A/B campaign.
+
 ## Fail-before-work requirement
 
 `experiment.json` intentionally names
