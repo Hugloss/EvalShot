@@ -54,6 +54,14 @@ def _completed_tool_order_diagnostic(
         or not all(isinstance(item, str) and item for item in sequence)
         or not isinstance(ordinals, list)
         or not all(type(item) is int and 1 <= item <= len(sequence) for item in ordinals)
+        # Recheck adapter-supplied ordinals against the same canonical routing
+        # classifier used for the displayed tool names. Ordinals that disagree
+        # with the observed completion sequence cannot qualify as first-tool
+        # evidence, including false zero, duplicates and reordered calls.
+        or ordinals != [
+            i for i, name in enumerate(sequence, 1)
+            if is_subject_tool(name, subject)
+        ]
     ):
         return unknown
     first = sequence[0] if sequence else None
