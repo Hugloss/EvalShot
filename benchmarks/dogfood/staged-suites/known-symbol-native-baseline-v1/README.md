@@ -278,6 +278,52 @@ observations, and always reports zero oracle approvals.
 and semantic ownership remain separate responsibilities, with independent
 approval reserved to EvalShot's canonical oracle review owner.
 
+## Two-return private disagreement review (no semantic promotion)
+
+The kit contains an optional `compare_reviews.py` for comparing **two
+distinct private reviewer return files** against the **same** frozen
+questions and historical source manifest:
+
+```sh
+python3 /path/to/kit/compare_reviews.py \
+  --root /path/to/kit \
+  --response-a /private/first-review.json \
+  --response-b /private/second-review.json \
+  --expect-manifest-sha256 <digest-from-producer> \
+  --output /private/sanitized-comparison.json
+```
+
+Both input files must be complete, independently returned first-pass
+declarations, not the intentionally incomplete `start_review.py` skeleton.
+Each is processed by the **same** `check_review.check` pipeline that already
+validates the frozen packet identity, source-reference syntax, and **manifest
+bound source existence**. The comparison introduces no second grader and no
+new interpretation of source-reference validity.
+
+The comparator retains uncertainty rather than averaging opinions: one
+missing response, duplicate self-declared reviewer identity, declared prior
+expected-answer access, missing source evidence, ambiguity, invalidity,
+unable-to-review, two different proposed owners, and two matching candidate
+names all receive **distinct review-only states**. Matching candidates are
+reported as `SAME_CANDIDATE_UNVERIFIED`, *not* independent agreement, because
+any reviewer can copy another review or reuse earlier answers. No automated
+winner, grade or oracle approval is produced.
+
+All proposed owner paths, symbol names, reviewer IDs, rationales and cited
+source text stay in the **private input files**. The optional new output
+cannot overwrite either response or enter the downloaded source kit. It
+contains only task IDs, untrusted review states, coarse counts and explicit
+negative approval/independence flags. Never upload either private response
+file to GitHub Actions or an evaluated agent workspace. The new comparator
+is bound into the kit manifest by `comparison_sha256`, and the standalone
+recipient verifier rejects its removal or modification.
+
+Even after two source-checked matching claims, EvalShot's canonical
+`benchmarks.harness.oracle_reviews` remains the **only** owner of
+independent oracle acceptance. This helper cannot authenticate reviewer
+identity, validate semantic uniqueness, unfreeze the staged experiment or
+establish native baseline headroom.
+
 ## External first-pass findings: private answers, sanitized status
 
 The separate `hashmarks_review_returns` consumer accepts **untrusted
