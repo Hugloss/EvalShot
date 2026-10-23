@@ -96,7 +96,8 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         or manifest.get("workspace_members") != [
             "manifest.json", "questions.json", "source/",
             "verify.py", "start_review.py", "REVIEW.md",
-            "review_contract.py", "check_review.py", "source_contract.py"
+            "review_contract.py", "check_review.py", "source_contract.py",
+            "compare_reviews.py"
         ]
         or type(manifest.get("reviewer_independence_attested")) is not bool
         or manifest["reviewer_independence_attested"] is not False
