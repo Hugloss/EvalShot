@@ -412,6 +412,34 @@ class AvailabilityStudyTests(unittest.TestCase):
         )
         self.assertEqual(report["voluntary_adoption"]["invoked"], 1)
 
+    def test_native_failure_signal_cannot_be_hidden_by_later_turn_completion(self):
+        for signal in ("turn.failed", "error"):
+            for invoked in (False, True):
+                with self.subTest(signal=signal, invoked=invoked):
+                    events = [
+                        json.loads(row)
+                        for row in native("codex", invoked=invoked).splitlines()
+                    ]
+                    events.insert(-1, {"type": signal, "message": "native failure"})
+                    observed = self.inspect(
+                        "\n".join(json.dumps(event) for event in events)
+                    )
+                    self.assertEqual(observed["trace_state"], "UNKNOWN")
+                    self.assertIs(
+                        observed["subject_invoked"], True if invoked else None
+                    )
+                    self.assertIs(
+                        observed["successful_return_observed"],
+                        True if invoked else None,
+                    )
+                    self.assertEqual(
+                        observed["completed_tool_order"]["state"], "UNKNOWN"
+                    )
+                    self.assertEqual(
+                        observed["started_tool_order"]["state"], "UNKNOWN"
+                    )
+                    self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
+
     def test_positive_in_partial_native_trace_is_retained(self):
         observed = self.inspect(native("opencode-native", invoked=True, opaque=True), "opencode-native")
         self.assertIs(observed["subject_invoked"], True)
