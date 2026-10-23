@@ -42,6 +42,11 @@ invocations. An absent, malformed, unfinished or unsupported trace, or opaque
 OpenCode `execute` metadata, cannot establish zero. A positive direct invocation
 survives partial telemetry. The final native answer is joined to the answer in
 the independently graded receipt; a mismatch blocks study qualification.
+Native `turn.failed` and `error` events also invalidate complete-telemetry
+qualification, even if a later `turn.completed` appears in that same trace.
+Directly observed positive Hashmarks calls/returns remain operational diagnostics,
+but a failure-bearing trace cannot establish **zero** use, clean tool ordering,
+or a qualified study result.
 These scopes do not establish exhaustive shell or nested-agent activity.
 
 Native completion-order diagnostics record the first **completed, tracked** tool,
