@@ -33,6 +33,8 @@ def check_references(
         return cache[path]
 
     locations, evidence = response["candidate_locations"], response["source_evidence"]
+    if response["decision"] == "unable_to_review":
+        return "UNABLE_TO_REVIEW_NO_SOURCE_CHECK", 0
     if len(locations) + len(evidence) > MAX_REFERENCES:
         raise ValueError("bounded first-pass source references exceeded")
     for location in locations:
