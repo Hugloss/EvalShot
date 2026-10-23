@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from contextlib import redirect_stderr
+from io import StringIO
 import json
 from pathlib import Path
 import subprocess
@@ -10,7 +12,7 @@ import tempfile
 import unittest
 
 from benchmarks.dogfood.hashmarks_return_source_checks import (
-    verify_source_references,
+    main, verify_source_references,
 )
 from benchmarks.tests.test_hashmarks_review_returns import questions, review, responses
 
@@ -214,6 +216,34 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
     def test_non_git_checkout_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "Git working tree"):
             verify_source_references(self.packet, None, checkout=Path(self.temp.name))
+
+    def test_cli_refuses_private_answers_stored_in_evalshot_checkout(self):
+        # This is checked before attempting any reviewer or source material.
+        root = Path(self.temp.name) / "EvalShot"
+        root.mkdir()
+        answers = root / "private-reviewer-answers.json"
+        answers.write_text('{"schema":"invalid"}')
+        with redirect_stderr(StringIO()), self.assertRaises(SystemExit) as error:
+            main([
+                "--repository-root", str(root),
+                "--checkout", str(self.repo),
+                "--responses", str(answers),
+            ])
+        self.assertEqual(error.exception.code, 2)
+        self.assertTrue(answers.exists())
+
+    def test_cli_refuses_writing_source_status_under_evalshot_checkout(self):
+        root = Path(self.temp.name) / "EvalShot"
+        root.mkdir()
+        target = root / "source-status.json"
+        with redirect_stderr(StringIO()), self.assertRaises(SystemExit) as error:
+            main([
+                "--repository-root", str(root),
+                "--checkout", str(self.repo),
+                "--output", str(target),
+            ])
+        self.assertEqual(error.exception.code, 2)
+        self.assertFalse(target.exists())
 
     def test_determinism_and_source_input_non_mutation(self):
         incoming = responses(self.packet, [self.assertion()])
