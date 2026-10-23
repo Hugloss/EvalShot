@@ -15,6 +15,7 @@ on:
       - "benchmarks/tests/test_hashmarks_dogfood_baseline_staging.py"
       - "benchmarks/tests/test_hashmarks_blind_review.py"
       - "benchmarks/tests/test_hashmarks_review_returns.py"
+      - "benchmarks/tests/test_hashmarks_return_source_checks.py"
   workflow_dispatch:
 
 permissions:
@@ -55,7 +56,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging benchmarks.tests.test_hashmarks_blind_review benchmarks.tests.test_hashmarks_review_returns
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging benchmarks.tests.test_hashmarks_blind_review benchmarks.tests.test_hashmarks_review_returns benchmarks.tests.test_hashmarks_return_source_checks
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -138,6 +139,13 @@ jobs:
             --repository-root . \
             --output "$RUNNER_TEMP/hashmarks-review-return-status.json"
 
+      - name: Check pinned source identity for pending private reviewer citations
+        run: |
+          uv run --no-project python -m benchmarks.dogfood.hashmarks_return_source_checks \
+            --repository-root . \
+            --checkout .dogfood-source/Hashmarks \
+            --output "$RUNNER_TEMP/hashmarks-return-source-status.json"
+
       - name: Upload source audit report
         if: always()
         uses: actions/upload-artifact@v4
@@ -153,5 +161,6 @@ jobs:
             ${{ runner.temp }}/hashmarks-headroom-readiness.json
             ${{ runner.temp }}/hashmarks-blind-review.json
             ${{ runner.temp }}/hashmarks-review-return-status.json
+            ${{ runner.temp }}/hashmarks-return-source-status.json
           if-no-files-found: ignore
           retention-days: 7
