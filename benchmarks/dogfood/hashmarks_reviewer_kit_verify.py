@@ -25,7 +25,6 @@ _MAX_METADATA_BYTES = 200_000
 _ROOT_ITEMS = {
     "manifest.json", "questions.json", "source",
     "verify.py", "start_review.py", "REVIEW.md",
-            "review_contract.py", "check_review.py",
     "review_contract.py", "check_review.py",
 }
 
@@ -95,7 +94,8 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         or manifest.get("qualification") != "HANDOFF_SOURCE_SNAPSHOT_ONLY"
         or manifest.get("workspace_members") != [
             "manifest.json", "questions.json", "source/",
-            "verify.py", "start_review.py", "REVIEW.md"
+            "verify.py", "start_review.py", "REVIEW.md",
+            "review_contract.py", "check_review.py"
         ]
         or type(manifest.get("reviewer_independence_attested")) is not bool
         or manifest["reviewer_independence_attested"] is not False
