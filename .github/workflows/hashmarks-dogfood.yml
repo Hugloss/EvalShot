@@ -211,3 +211,14 @@ jobs:
           python3 "$RUNNER_TEMP/received-reviewer-kit/verify.py" \
             --root "$RUNNER_TEMP/received-reviewer-kit" \
             --expect-manifest-sha256 "${{ needs.source-identity.outputs.manifest_sha256 }}"
+
+      - name: Prepare intentionally incomplete private reviewer response without checkout
+        shell: bash
+        run: |
+          python3 "$RUNNER_TEMP/received-reviewer-kit/start_review.py" \
+            --root "$RUNNER_TEMP/received-reviewer-kit" \
+            --expect-manifest-sha256 "${{ needs.source-identity.outputs.manifest_sha256 }}" \
+            --output "$RUNNER_TEMP/unreviewed-private-starter.json"
+          python3 -c 'import json,sys; x=json.load(open(sys.argv[1])); assert len(x["reviews"]) == 2; assert all(r["decision"] == "NOT_REVIEWED_REPLACE_BEFORE_SUBMISSION" and r["source_inspected"] is None for r in x["reviews"])' "$RUNNER_TEMP/unreviewed-private-starter.json"
+          test ! -e "$RUNNER_TEMP/received-reviewer-kit/unreviewed-private-starter.json"
+          rm "$RUNNER_TEMP/unreviewed-private-starter.json"
