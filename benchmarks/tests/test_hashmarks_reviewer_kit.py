@@ -115,7 +115,7 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(result["native_trials_executed"], 0)
         self.assertEqual(
             {p.name for p in self.out.iterdir()},
-            {"questions.json", "source", "manifest.json", "verify.py", "start_review.py"},
+            {"questions.json", "source", "manifest.json", "verify.py", "start_review.py", "REVIEW.md"},
         )
         self.assertFalse((self.out / ".git").exists())
         self.assertFalse((self.out / "source/.git").exists())
@@ -143,6 +143,58 @@ class PinnedReviewerKitTests(unittest.TestCase):
         manifest = json.loads((self.out / "manifest.json").read_text())
         self.assertIn(".gitattributes", manifest["source_sha256_by_path"])
         self.assertNotIn(".git", manifest["source_sha256_by_path"])
+
+    def test_instructions_include_review_procedure_without_oracle_answers(self):
+        self.build()
+        guidance = (self.out / "REVIEW.md").read_text(encoding="utf-8")
+        self.assertIn("Identify other plausible owners", guidance)
+        self.assertIn("prior_expected_answer_access", guidance)
+        self.assertIn("ambiguous", guidance)
+        self.assertIn("unable_to_review", guidance)
+        self.assertIn("benchmarks.harness.oracle_reviews", guidance)
+        self.assertNotIn("WorkspaceMapStore.paths_under", guidance)
+        self.assertNotIn("IndexingLifecycleMixin._sync_remove_stale_paths", guidance)
+        self.assertNotIn("hashmarks/codemap/repository_index_store.py", guidance)
+        self.assertNotIn("hashmarks/codemap/indexing_lifecycle.py", guidance)
+        for task_id in TASKS:
+            original = json.loads((self.stage / "tasks" / f"{task_id}.json").read_text())
+            expected = original["oracle"]["configuration"]["expected"]
+            self.assertNotIn(expected["path"], guidance)
+        self.assertEqual(
+            (self.out / "REVIEW.md").read_bytes(),
+            (ROOT / "benchmarks/dogfood/hashmarks_reviewer_protocol.md").read_bytes(),
+        )
+        self.assertFalse(json.loads((self.out / "manifest.json").read_text())[
+            "canonical_oracle_approved"
+        ])
+
+    def test_recipient_rejects_modified_or_missing_reviewer_protocol(self):
+        for mutation in ("modify", "remove"):
+            with self.subTest(mutation=mutation):
+                output = self.workspace / f"handoff-{mutation}"
+                self.build(destination=output)
+                guide = output / "REVIEW.md"
+                if mutation == "modify":
+                    guide.write_text(guide.read_text() + "\\n# forged oracle result\\n")
+                else:
+                    guide.unlink()
+                with self.assertRaises(KitVerificationError):
+                    verify_kit(output)
+
+    def test_manifest_binds_reviewer_protocol_bytes(self):
+        result = self.build()
+        self.assertEqual(result["native_trials_executed"], 0)
+        manifest = json.loads((self.out / "manifest.json").read_text())
+        self.assertEqual(
+            hashlib.sha256((self.out / "REVIEW.md").read_bytes()).hexdigest(),
+            manifest["review_protocol_sha256"],
+        )
+        receipt = verify_kit(
+            self.out, expected_manifest_sha256=result["manifest_sha256"]
+        )
+        self.assertEqual(receipt["qualification"], "TRANSPORT_BYTES_VERIFIED_ONLY")
+        self.assertFalse(receipt["oracle_approved"])
+        self.assertFalse(receipt["reviewer_independence_attested"])
 
     def test_manifest_file_digests_bind_exported_bytes(self):
         self.build()

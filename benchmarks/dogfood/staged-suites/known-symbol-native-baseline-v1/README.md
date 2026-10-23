@@ -116,7 +116,7 @@ and no baseline, oracle approval, owner proof or Hashmarks uplift is
 created by generating the kit.
 
 The dedicated GitHub Actions workflow uploads a separate
-`hashmarks-blinded-reviewer-kit` artifact with only five top-level items: `questions.json`, `manifest.json`, `source/`, `verify.py`, and `start_review.py`.
+`hashmarks-blinded-reviewer-kit` artifact with exactly six top-level items: `questions.json`, `manifest.json`, `source/`, `verify.py`, `start_review.py`, and `REVIEW.md`.
 Its upload explicitly **includes tracked dotfiles** such as
 `.gitattributes` and `.gitignore`: omitting hidden Git-tracked files
 would violate the manifest's complete pinned-tree inventory.
@@ -131,9 +131,11 @@ EvalShot's canonical `benchmarks.harness.oracle_reviews` holds approval.
 
 ## Recipient-side verification of the downloaded reviewer kit
 
-The handoff now contains **four**, and only four, top-level components:
-`questions.json`, `manifest.json`, `source/` and **`verify.py`**.
-The last file is a copied, standard-library-only recipient verifier.
+The handoff has exactly six top-level components:
+`questions.json`, `manifest.json`, `source/`, `verify.py`,
+`start_review.py`, and `REVIEW.md`.
+`verify.py` is the copied, standard-library-only recipient verifier.
+`REVIEW.md` contains the source-only first-pass review protocol.
 It does **not** import, install or require EvalShot, Git, Hashmarks or
 the native agent. It never executes code from the source snapshot.
 
@@ -147,7 +149,7 @@ python3 /path/to/received-kit/verify.py \
 ```
 
 The producer outputs the manifest digest. The verifier checks that digest,
-the question file digest, the verifier's own recorded digest, pinned
+the question file digest, the verifier/starter/instructions digests, pinned
 question source identities, a **complete** SHA-256 inventory including
 tracked dotfiles, and an exact top-level allowlist. It rejects modified
 or missing files, unexpected source files, symlinks, unsafe paths,
@@ -164,6 +166,28 @@ authenticate the producer outside the trusted GitHub workflow, prove that
 a human/agent has no prior answer exposure, approve an oracle, or prove
 native agent headroom. The existing EvalShot canonical reviewer still
 owns any future approval.
+
+## Reviewer-facing protocol — evidence before decisions
+
+The kit includes a self-contained `REVIEW.md` that a separate source-review
+agent can read **without an EvalShot checkout**. It describes how to challenge
+a candidate's claimed semantic ownership: start from each exact blinded
+question, inspect the pinned source and relevant callers/tests, actively
+seek plausible alternative owners or delegation paths, and cite positive
+source line numbers. It distinguishes `unique`, `ambiguous`, `invalid`,
+and `unable_to_review` and requires disclosure of any prior answer exposure.
+
+The guide does **not** disclose the frozen expected locations or previous
+reviewer rationale, and does not execute the agent or select its tools.
+Its original bytes are bound to `manifest.json` by
+`review_protocol_sha256`; the downloaded verifier rejects a missing or
+modified guide. CI verifies the complete kit after artifact download.
+
+A guide is not a security sandbox or proof that the reviewer is actually
+independent. Only the reviewer can truthfully disclose previous exposure,
+and only EvalShot's canonical oracle-review authority can decide whether
+source evidence is independently sufficient for approval. This guide
+does not mark any task or experiment ready.
 
 ## Offline private reviewer response starter
 
