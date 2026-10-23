@@ -93,7 +93,12 @@ attestation is synthesized from exports or checksums.
 
 Missing catalog proof, missing assignments, incomplete telemetry, unjoined
 answers, unknown oracle outcomes and baseline Hashmarks MCP contamination are
-reported per trial. A well-measured zero-invocation availability arm can qualify
+reported per trial. A verified Codex `item.started` for Hashmarks in the
+**bare control** is explicitly classified as
+`baseline-subject-start-contamination`, even when the command was interrupted
+and there is no observed completion. This is operational evidence of a start,
+not of a tool return, model-request inclusion, or model attention. Complete
+subject invocation contamination remains separately reported. A well-measured zero-invocation availability arm can qualify
 even when the historical subject-use report correctly remains `FAIL`.
 
 The assigned-trial invocation counts remain visible even when the experiment

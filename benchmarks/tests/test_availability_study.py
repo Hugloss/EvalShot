@@ -418,7 +418,7 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertIs(observed["successful_return_observed"], True)
         self.assertEqual(observed["trace_state"], "UNKNOWN")
 
-    def report(self, *, missing=False, invoked=False, catalog_known=True, mismatch=False, tainted=False, incomplete=False):
+    def report(self, *, missing=False, invoked=False, catalog_known=True, mismatch=False, tainted=False, incomplete=False, baseline_started=False):
         frozen = suite()
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -446,6 +446,24 @@ class AvailabilityStudyTests(unittest.TestCase):
                     receipts[-1]["execution"]["agent_terminal"] = None
                     receipts[-1]["execution"]["agent_answer"] = None
                     (directory / "trace.jsonl").write_text("")
+                if baseline_started and not has_subject and i == 0:
+                    # A positive native start is retained on an incomplete
+                    # *control* trial, even though no completion can prove
+                    # a returned MCP result or model delivery.
+                    events = (
+                        {"type": "thread.started", "thread_id": "control"},
+                        {"type": "turn.started"},
+                        {"type": "item.started", "item": {
+                            "id": "unexpected", "type": "mcp_tool_call",
+                            "server": "hashmarks", "tool": "task_evidence",
+                        }},
+                    )
+                    (directory / "trace.jsonl").write_text(
+                        "\n".join(json.dumps(event) for event in events)
+                    )
+                    receipts[-1]["status"] = "INCOMPLETE"
+                    receipts[-1]["execution"]["agent_terminal"] = None
+                    receipts[-1]["execution"]["agent_answer"] = None
             manifest = {"campaign_id": "frozen-test-campaign", "subject_tool_catalog_proofs": [catalog()] if catalog_known else [],
                         "suite_identity": campaign_suite_identity(frozen),
                         "selected_definitions": [d["definition_id"] for d in frozen.trial_definitions()]}
@@ -574,6 +592,20 @@ class AvailabilityStudyTests(unittest.TestCase):
         self.assertIsNone(arm["success_rate"])
         self.assertEqual(report["voluntary_adoption"]["unknown"], 1)
         self.assertIsNone(report["voluntary_adoption"]["rate"])
+
+    def test_bare_control_subject_start_is_contamination_even_without_a_return(self):
+        report = self.report(baseline_started=True)
+        self.assertFalse(report["study_measurement_qualified"])
+        bare = next(row for row in report["trials"] if row["condition_id"] == "bare"
+                    and "baseline-subject-start-contamination" in row["issues"])
+        self.assertIs(bare["subject_start_observed"], True)
+        self.assertIsNone(bare["subject_invoked"])
+        self.assertIsNone(bare["successful_return_observed"])
+        self.assertIn("native-mcp-telemetry-incomplete", bare["issues"])
+        self.assertNotIn("baseline-subject-contamination", bare["issues"])
+        self.assertEqual(report["host_catalog_inclusion"], "UNKNOWN")
+        self.assertIsNone(report["voluntary_adoption"]["rate"])
+        self.assertFalse(report["causal_effect_proven"])
 
     def test_unqualified_adoption_counts_cannot_be_reported_as_a_rate(self):
         # A complete trace can count a call even if the experiment's
