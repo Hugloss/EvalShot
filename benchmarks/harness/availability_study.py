@@ -209,6 +209,19 @@ def _codex_subject_start_observed(
     return None
 
 
+def _codex_items_within_turn(events: list[dict[str, Any]]) -> bool:
+    """Native item telemetry must occur after turn start and before its end."""
+    turn_start = next(
+        (i for i, event in enumerate(events) if event.get("type") == "turn.started"),
+        None,
+    )
+    return turn_start is not None and all(
+        turn_start < i < len(events) - 1
+        for i, event in enumerate(events)
+        if event.get("type") in {"item.started", "item.updated", "item.completed"}
+    )
+
+
 def inspect_native_trace(
     raw: str, *, adapter: str, subject: str, terminal_complete: bool,
 ) -> dict[str, Any]:
@@ -271,6 +284,7 @@ def inspect_native_trace(
             )
             and not _codex_tool_lifecycle_conflict(events)
             and boundaries
+            and _codex_items_within_turn(events)
             and final
             and terminal_complete
         ):

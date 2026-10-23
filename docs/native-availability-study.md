@@ -60,6 +60,13 @@ and neither completion order nor an MCP return establishes model-request
 inclusion or actual model attention. The existing native `mcp:server/tool`
 name spelling is classified by the single shared routing owner.
 
+Codex item events must also occur strictly between the one admitted
+`turn.started` boundary and its terminal `turn.completed` marker. A tool
+event before the turn begins cannot count toward complete native telemetry,
+even if the trace eventually includes a final answer and clean terminal marker.
+Directly observed positive subject completions still remain operational
+diagnostics, never proof of model delivery or a qualified study.
+
 Native item-ID reuse also binds the item type and, for MCP calls, the exact
 server/tool pair across **starts, updates and completions**. Updates must not
 rewrite an already observed item identity or appear after its completion. A completion with

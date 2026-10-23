@@ -455,6 +455,36 @@ class AvailabilityStudyTests(unittest.TestCase):
         )
         self.assertEqual(report["voluntary_adoption"]["invoked"], 1)
 
+    def test_codex_items_outside_native_turn_never_qualify_complete_telemetry(self):
+        for subject in (False, True):
+            with self.subTest(subject=subject):
+                events = [json.loads(row) for row in native(invoked=subject).splitlines()]
+                # The exported item has a valid native name but occurs before
+                # turn.started; a final turn.completed cannot rescue the scope.
+                item = events.pop(2)
+                events.insert(1, item)
+                observed = self.inspect("\n".join(json.dumps(e) for e in events))
+                self.assertEqual(observed["trace_state"], "UNKNOWN")
+                self.assertIs(
+                    observed["subject_invoked"], True if subject else None
+                )
+                self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
+                self.assertEqual(
+                    observed["completed_tool_order"]["state"], "UNKNOWN"
+                )
+                self.assertEqual(observed["model_request_inclusion"], "UNKNOWN")
+
+        events = [json.loads(row) for row in native(invoked=True).splitlines()]
+        events.insert(1, {"type": "item.started", "item": {
+            "id": "hm-1", "type": "mcp_tool_call",
+            "server": "hashmarks", "tool": "task_evidence",
+        }})
+        observed = self.inspect("\n".join(json.dumps(e) for e in events))
+        self.assertEqual(observed["trace_state"], "UNKNOWN")
+        self.assertIsNone(observed["subject_start_observed"])
+        self.assertIs(observed["subject_invoked"], True)
+        self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
+
     def test_native_failure_signal_cannot_be_hidden_by_later_turn_completion(self):
         for signal in ("turn.failed", "error"):
             for invoked in (False, True):
