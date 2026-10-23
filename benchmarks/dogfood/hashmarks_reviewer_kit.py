@@ -213,6 +213,10 @@ def prepare_reviewer_kit(
         checker_bytes = Path(__file__).with_name("hashmarks_review_return_offline.py").read_bytes()
         (working / "review_contract.py").write_bytes(contract_bytes)
         (working / "check_review.py").write_bytes(checker_bytes)
+        source_contract_bytes = Path(__file__).with_name(
+            "hashmarks_review_source_contract.py"
+        ).read_bytes()
+        (working / "source_contract.py").write_bytes(source_contract_bytes)
         manifest = {
             "schema": SCHEMA,
             "qualification": "HANDOFF_SOURCE_SNAPSHOT_ONLY",
@@ -225,13 +229,14 @@ def prepare_reviewer_kit(
             "workspace_members": [
                 "manifest.json", "questions.json", "source/",
                 "verify.py", "start_review.py", "REVIEW.md",
-                "review_contract.py", "check_review.py",
+                "review_contract.py", "check_review.py", "source_contract.py",
             ],
             "verifier_sha256": hashlib.sha256(verifier_bytes).hexdigest(),
             "review_starter_sha256": hashlib.sha256(starter_bytes).hexdigest(),
             "review_protocol_sha256": hashlib.sha256(protocol_bytes).hexdigest(),
             "review_contract_sha256": hashlib.sha256(contract_bytes).hexdigest(),
             "offline_checker_sha256": hashlib.sha256(checker_bytes).hexdigest(),
+            "source_contract_sha256": hashlib.sha256(source_contract_bytes).hexdigest(),
             "reviewer_independence_attested": False,
             "canonical_oracle_approved": False,
             "native_trial_executed": False,
