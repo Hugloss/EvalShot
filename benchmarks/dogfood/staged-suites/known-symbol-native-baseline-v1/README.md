@@ -117,6 +117,10 @@ created by generating the kit.
 
 The dedicated GitHub Actions workflow uploads a separate
 `hashmarks-blinded-reviewer-kit` artifact with only those three items.
+Its upload explicitly **includes tracked dotfiles** such as
+`.gitattributes` and `.gitignore`: omitting hidden Git-tracked files
+would violate the manifest's complete pinned-tree inventory.
+The snapshot never contains a `.git` directory.
 Do **not** give the reviewer the broader `hashmarks-frozen-source-audit`
 artifact, which intentionally contains oracle-proposed locations and other
 answer-bearing reports. Keep any reviewer returns private and **outside**
