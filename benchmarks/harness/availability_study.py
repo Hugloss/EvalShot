@@ -78,7 +78,6 @@ def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
     type, MCP server, or operation, nor follow a completion.
     """
     identities: dict[str, tuple[object, str | None]] = {}
-    starts: set[str] = set()
     completions: set[str] = set()
     for event in events:
         phase = event.get("type")
@@ -94,7 +93,6 @@ def _codex_tool_lifecycle_conflict(events: list[dict[str, Any]]) -> bool:
         if phase == "item.started":
             if identity in identities:
                 return True
-            starts.add(identity)
         elif phase == "item.updated":
             if identity in completions:
                 return True
