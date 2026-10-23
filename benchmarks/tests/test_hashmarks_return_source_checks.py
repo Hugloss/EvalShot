@@ -159,7 +159,25 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
         self.assertEqual(
             self.status(result), "PINNED_SOURCE_IDENTITY_UNAVAILABLE",
         )
-        self.assertEqual(result["summary"]["unavailable_or_disputed_source"], 1)
+        # Both tasks claim one commit but inconsistent frozen trees; neither
+        # may inherit a valid identity from the other.
+        self.assertEqual(result["summary"]["unavailable_or_disputed_source"], 2)
+        self.assertEqual(
+            self.status(result, index=1), "PINNED_SOURCE_IDENTITY_UNAVAILABLE"
+        )
+
+    def test_conflicting_shared_tree_blocks_all_private_source_claims(self):
+        self.packet["packets"][1]["repository"]["tree"] = "0" * 40
+        first = self.assertion(index=0)
+        second = self.assertion(index=1)
+        result = self.check([first, second])
+        self.assertEqual(
+            [row["source_reference_status"] for row in result["tasks"]],
+            ["PINNED_SOURCE_IDENTITY_UNAVAILABLE"] * 2,
+        )
+        self.assertEqual(result["summary"]["pinned_references_exist"], 0)
+        self.assertEqual(result["summary"]["unavailable_or_disputed_source"], 2)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
 
     def test_absent_frozen_commit_is_not_qualified(self):
         self.packet["packets"][0]["repository"]["commit"] = "f" * 40
