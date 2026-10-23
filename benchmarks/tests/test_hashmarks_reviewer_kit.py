@@ -126,6 +126,20 @@ class PinnedReviewerKitTests(unittest.TestCase):
             expected = task["oracle"]["configuration"]["expected"]["path"]
             self.assertNotIn(expected, (self.out / "questions.json").read_text())
 
+    def test_tracked_dotfile_is_preserved_and_accounted_for(self):
+        (self.hashmarks / ".gitattributes").write_text(
+            "# pinned Git attribute source must survive artifact packaging\\n",
+            encoding="utf-8",
+        )
+        self.freeze("tracked dotfile")
+        self.update_source_pin()
+        report = self.build()
+        self.assertEqual(report["source_files"], 4)
+        self.assertTrue((self.out / "source/.gitattributes").is_file())
+        manifest = json.loads((self.out / "manifest.json").read_text())
+        self.assertIn(".gitattributes", manifest["source_sha256_by_path"])
+        self.assertNotIn(".git", manifest["source_sha256_by_path"])
+
     def test_manifest_file_digests_bind_exported_bytes(self):
         self.build()
         manifest = json.loads((self.out / "manifest.json").read_text())
