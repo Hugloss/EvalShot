@@ -116,7 +116,7 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(
             {p.name for p in self.out.iterdir()},
             {"questions.json", "source", "manifest.json", "verify.py", "start_review.py", "REVIEW.md",
-             "review_contract.py", "check_review.py"},
+             "review_contract.py", "check_review.py", "source_contract.py"},
         )
         self.assertFalse((self.out / ".git").exists())
         self.assertFalse((self.out / "source/.git").exists())
@@ -196,6 +196,109 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(receipt["qualification"], "TRANSPORT_BYTES_VERIFIED_ONLY")
         self.assertFalse(receipt["oracle_approved"])
         self.assertFalse(receipt["reviewer_independence_attested"])
+
+    def _private_claim_check(self, *, path="hashmarks/store.py", symbol="lookup",
+                             line=2, decision="unique"):
+        producer = self.build()
+        target = self.workspace / "private-reviewed-claims.json"
+        packet = json.loads((self.out / "questions.json").read_text())
+        manifest = json.loads((self.out / "manifest.json").read_text())
+        q = packet["packets"][0]
+        claim = {
+            "packet_id": q["packet_id"],
+            "task_digest": q["task_digest"],
+            "reviewer_id": "fictional-test-reviewer",
+            "source_commit": q["repository"]["commit"],
+            "source_tree": q["repository"]["tree"],
+            "decision": decision,
+            "prior_expected_answer_access": False,
+            "source_inspected": True,
+            "candidate_locations": [{"path": path, "symbol": symbol}],
+            "reason": "synthetic fixture review only",
+            "source_evidence": [
+                {"path": "hashmarks/store.py", "line": line,
+                 "observation": "synthetic test source observation"}
+            ],
+        }
+        if decision == "ambiguous":
+            claim["candidate_locations"].append(
+                {"path": "hashmarks/store.py", "symbol": "nonexistent"}
+            )
+        target.write_text(json.dumps({
+            "schema": "evalshot.hashmarks-external-first-pass-returns.v1",
+            "blinded_packet_identity": manifest["packet_digest"],
+            "reviews": [claim],
+        }))
+        process = subprocess.run([
+            sys.executable, str(self.out / "check_review.py"),
+            "--root", str(self.out), "--responses", str(target),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+        ], cwd=self.workspace, capture_output=True, text=True)
+        return process, target
+
+    def test_offline_private_citation_exists_but_is_never_semantic_approval(self):
+        process, private = self._private_claim_check()
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["status"], "UNTRUSTED_FIRST_PASS_SOURCE_EXISTENCE_ONLY")
+        self.assertEqual(result["references_exist"], 1)
+        self.assertEqual(result["source_check_disagreements"], 0)
+        self.assertEqual(result["review_statuses"][0]["source_reference_status"],
+                         "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+        self.assertFalse(result["semantic_owner_proven"])
+        self.assertFalse(result["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+        self.assertNotIn("fictional-test-reviewer", process.stdout)
+        self.assertTrue(private.is_file())
+        self.assertFalse((self.out / "__pycache__").exists())
+        verify_kit(self.out)
+
+    def test_offline_missing_candidate_source_is_diagnostic_not_success(self):
+        process, private = self._private_claim_check(path="hashmarks/missing.py")
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["references_exist"], 0)
+        self.assertEqual(result["source_check_disagreements"], 1)
+        self.assertEqual(result["review_statuses"][0]["source_reference_status"],
+                         "PINNED_CANDIDATE_FILE_UNAVAILABLE")
+        self.assertFalse(result["approved_oracles"])
+
+    def test_offline_wrong_python_declaration_is_not_proven(self):
+        process, _ = self._private_claim_check(symbol="wrong_name")
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["review_statuses"][0]["source_reference_status"],
+                         "CANDIDATE_DECLARATION_NOT_OBSERVED")
+
+    def test_offline_source_line_out_of_bounds_is_not_proven(self):
+        process, _ = self._private_claim_check(line=10000)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["review_statuses"][0]["source_reference_status"],
+                         "PINNED_EVIDENCE_LINE_ABSENT")
+
+    def test_offline_ambiguous_claim_preserves_unresolved_alternative(self):
+        process, _ = self._private_claim_check(decision="ambiguous")
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["review_statuses"][0]["source_reference_status"],
+                         "CANDIDATE_DECLARATION_NOT_OBSERVED")
+        self.assertFalse(result["reviewer_independence_verified"])
+        self.assertFalse(result["semantic_owner_proven"])
+
+    def test_offline_source_contract_matches_canonical_file(self):
+        self.build()
+        self.assertEqual(
+            (self.out / "source_contract.py").read_bytes(),
+            (ROOT / "benchmarks/dogfood/hashmarks_review_source_contract.py").read_bytes(),
+        )
+        self.assertEqual(
+            hashlib.sha256((self.out / "source_contract.py").read_bytes()).hexdigest(),
+            json.loads((self.out / "manifest.json").read_text())["source_contract_sha256"],
+        )
+        (self.out / "source_contract.py").write_text("# tampered")
+        with self.assertRaises(KitVerificationError):
+            verify_kit(self.out)
 
     def test_offline_shared_contract_rejects_incomplete_review_skeleton(self):
         producer = self.build()
