@@ -205,6 +205,10 @@ def prepare_reviewer_kit(
             "hashmarks_reviewer_return_starter.py"
         ).read_bytes()
         (working / "start_review.py").write_bytes(starter_bytes)
+        protocol_bytes = Path(__file__).with_name(
+            "hashmarks_reviewer_protocol.md"
+        ).read_bytes()
+        (working / "REVIEW.md").write_bytes(protocol_bytes)
         manifest = {
             "schema": SCHEMA,
             "qualification": "HANDOFF_SOURCE_SNAPSHOT_ONLY",
@@ -214,9 +218,13 @@ def prepare_reviewer_kit(
             "questions_sha256": hashlib.sha256(packet_bytes).hexdigest(),
             "source_files": len(hashes),
             "source_sha256_by_path": hashes,
-            "workspace_members": ["manifest.json", "questions.json", "source/", "verify.py", "start_review.py"],
+            "workspace_members": [
+                "manifest.json", "questions.json", "source/",
+                "verify.py", "start_review.py", "REVIEW.md",
+            ],
             "verifier_sha256": hashlib.sha256(verifier_bytes).hexdigest(),
             "review_starter_sha256": hashlib.sha256(starter_bytes).hexdigest(),
+            "review_protocol_sha256": hashlib.sha256(protocol_bytes).hexdigest(),
             "reviewer_independence_attested": False,
             "canonical_oracle_approved": False,
             "native_trial_executed": False,
