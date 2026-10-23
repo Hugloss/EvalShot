@@ -195,6 +195,12 @@ def prepare_reviewer_kit(
             checkout=checkout, commit=commit, destination=source_root
         )
         (working / "questions.json").write_bytes(packet_bytes)
+        # Give the reviewer a standalone verifier. They must not need to
+        # checkout EvalShot or execute any untrusted pinned source module.
+        verifier_bytes = Path(__file__).with_name(
+            "hashmarks_reviewer_kit_verify.py"
+        ).read_bytes()
+        (working / "verify.py").write_bytes(verifier_bytes)
         manifest = {
             "schema": SCHEMA,
             "qualification": "HANDOFF_SOURCE_SNAPSHOT_ONLY",
@@ -204,7 +210,8 @@ def prepare_reviewer_kit(
             "questions_sha256": hashlib.sha256(packet_bytes).hexdigest(),
             "source_files": len(hashes),
             "source_sha256_by_path": hashes,
-            "workspace_members": ["manifest.json", "questions.json", "source/"],
+            "workspace_members": ["manifest.json", "questions.json", "source/", "verify.py"],
+            "verifier_sha256": hashlib.sha256(verifier_bytes).hexdigest(),
             "reviewer_independence_attested": False,
             "canonical_oracle_approved": False,
             "native_trial_executed": False,
@@ -214,10 +221,10 @@ def prepare_reviewer_kit(
                 "are included. Declare any prior answer exposure independently."
             ),
         }
-        (working / "manifest.json").write_text(
-            json.dumps(manifest, sort_keys=True, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        manifest_bytes = (
+            json.dumps(manifest, sort_keys=True, indent=2) + "\n"
+        ).encode("utf-8")
+        (working / "manifest.json").write_bytes(manifest_bytes)
         try:
             working.rename(output)
         except OSError as exc:
@@ -235,6 +242,7 @@ def prepare_reviewer_kit(
         "owner_oracle_approved": False,
         "reviewer_independence_attested": False,
         "native_trials_executed": 0,
+        "manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
     }
 
 

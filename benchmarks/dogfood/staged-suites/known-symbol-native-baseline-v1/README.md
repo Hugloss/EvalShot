@@ -116,7 +116,7 @@ and no baseline, oracle approval, owner proof or Hashmarks uplift is
 created by generating the kit.
 
 The dedicated GitHub Actions workflow uploads a separate
-`hashmarks-blinded-reviewer-kit` artifact with only those three items.
+`hashmarks-blinded-reviewer-kit` artifact with only those four top-level items.
 Its upload explicitly **includes tracked dotfiles** such as
 `.gitattributes` and `.gitignore`: omitting hidden Git-tracked files
 would violate the manifest's complete pinned-tree inventory.
@@ -128,6 +128,42 @@ both repositories. The existing `hashmarks_review_returns` and
 `hashmarks_return_source_checks` readers can validate return shape and
 source-citation existence afterward, but cannot approve the oracle. Only
 EvalShot's canonical `benchmarks.harness.oracle_reviews` holds approval.
+
+## Recipient-side verification of the downloaded reviewer kit
+
+The handoff now contains **four**, and only four, top-level components:
+`questions.json`, `manifest.json`, `source/` and **`verify.py`**.
+The last file is a copied, standard-library-only recipient verifier.
+It does **not** import, install or require EvalShot, Git, Hashmarks or
+the native agent. It never executes code from the source snapshot.
+
+After downloading and extracting the artifact to an otherwise empty
+directory, the recipient can verify the exact delivered files:
+
+```sh
+python3 /path/to/received-kit/verify.py \
+  --root /path/to/received-kit \
+  --expect-manifest-sha256 <manifest-sha256-from-the-producing-run>
+```
+
+The producer outputs the manifest digest. The verifier checks that digest,
+the question file digest, the verifier's own recorded digest, pinned
+question source identities, a **complete** SHA-256 inventory including
+tracked dotfiles, and an exact top-level allowlist. It rejects modified
+or missing files, unexpected source files, symlinks, unsafe paths,
+overly large inputs, changed question status, and false approval flags.
+The received kit must not contain an EvalShot checkout or any previous
+answer-bearing dogfood reports.
+
+The dedicated workflow now has a **second, checkout-free recipient job**.
+It downloads **only** `hashmarks-blinded-reviewer-kit` and runs the
+standalone verifier using a manifest digest passed from the producer job.
+This is an independently executed *artifact transport test*, **not an
+independently performed semantic source review**. The verifier cannot
+authenticate the producer outside the trusted GitHub workflow, prove that
+a human/agent has no prior answer exposure, approve an oracle, or prove
+native agent headroom. The existing EvalShot canonical reviewer still
+owns any future approval.
 
 ## External first-pass findings: private answers, sanitized status
 

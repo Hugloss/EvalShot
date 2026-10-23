@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -17,6 +18,9 @@ from benchmarks.dogfood.hashmarks_blind_review import (
 )
 from benchmarks.dogfood.hashmarks_reviewer_kit import (
     ReviewerKitError, prepare_reviewer_kit,
+)
+from benchmarks.dogfood.hashmarks_reviewer_kit_verify import (
+    KitVerificationError, verify_kit,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -111,7 +115,7 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(result["native_trials_executed"], 0)
         self.assertEqual(
             {p.name for p in self.out.iterdir()},
-            {"questions.json", "source", "manifest.json"},
+            {"questions.json", "source", "manifest.json", "verify.py"},
         )
         self.assertFalse((self.out / ".git").exists())
         self.assertFalse((self.out / "source/.git").exists())
@@ -157,6 +161,90 @@ class PinnedReviewerKitTests(unittest.TestCase):
             manifest["questions_sha256"],
             hashlib.sha256((self.out / "questions.json").read_bytes()).hexdigest(),
         )
+
+    def test_standalone_verifier_runs_without_evalshot_checkout(self):
+        producer = self.build()
+        command = subprocess.run([
+            sys.executable, str(self.out / "verify.py"), "--root", str(self.out),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+        ], cwd=self.workspace, capture_output=True, text=True,
+           env={"PATH": "/usr/bin:/bin"})
+        self.assertEqual(command.returncode, 0, command.stderr)
+        result = json.loads(command.stdout)
+        self.assertEqual(result["qualification"], "TRANSPORT_BYTES_VERIFIED_ONLY")
+        self.assertEqual(result["source_files"], 3)
+        self.assertEqual(result["blinded_questions"], 2)
+        self.assertIs(result["oracle_approved"], False)
+        self.assertIs(result["reviewer_independence_attested"], False)
+
+    def test_recipient_rejects_modified_source_bytes(self):
+        self.build()
+        (self.out / "source/hashmarks/store.py").write_text("def forged(): pass\\n")
+        with self.assertRaisesRegex(KitVerificationError, "inventory"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_new_rogue_source_file(self):
+        self.build()
+        (self.out / "source/surprise.py").write_text("def leaked(): pass\\n")
+        with self.assertRaisesRegex(KitVerificationError, "unexpected source"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_missing_tracked_dotfile(self):
+        (self.hashmarks / ".gitignore").write_text("secrets/\\n")
+        self.freeze("tracked hidden member")
+        self.update_source_pin()
+        self.build()
+        (self.out / "source/.gitignore").unlink()
+        with self.assertRaisesRegex(KitVerificationError, "omitted tracked"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_tampered_manifest_with_producer_digest(self):
+        result = self.build()
+        manifest = self.out / "manifest.json"
+        manifest.write_text(manifest.read_text().replace(
+            "HANDOFF_SOURCE_SNAPSHOT_ONLY", "OTHER_QUALIFICATION"
+        ))
+        with self.assertRaisesRegex(KitVerificationError, "producer-supplied digest"):
+            verify_kit(self.out, expected_manifest_sha256=result["manifest_sha256"])
+
+    def test_recipient_rejects_modified_blinded_question(self):
+        self.build()
+        packet = self.out / "questions.json"
+        packet.write_text(packet.read_text().replace(
+            "FIRST_PASS_UNREVIEWED", "UNVERIFIED_APPROVED"
+        ))
+        with self.assertRaisesRegex(KitVerificationError, "questions bytes"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_changed_verifier(self):
+        self.build()
+        script = self.out / "verify.py"
+        script.write_text(script.read_text() + "\\n# modified verifier\\n")
+        with self.assertRaisesRegex(KitVerificationError, "verifier changed"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_symlink_substitution(self):
+        self.build()
+        target = self.out / "source/hashmarks/store.py"
+        target.unlink()
+        target.symlink_to(self.hashmarks / "hashmarks/store.py")
+        with self.assertRaisesRegex(KitVerificationError, "unsafe material"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_extra_root_answer_file(self):
+        self.build()
+        (self.out / "oracle-answers.json").write_text("{}")
+        with self.assertRaisesRegex(KitVerificationError, "unexpected"):
+            verify_kit(self.out)
+
+    def test_recipient_rejects_bad_manifest_attestation(self):
+        self.build()
+        manifest_path = self.out / "manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["canonical_oracle_approved"] = True
+        manifest_path.write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(KitVerificationError, "unsafe kit manifest"):
+            verify_kit(self.out)
 
     def test_worktree_modified_and_untracked_files_do_not_enter_kit(self):
         (self.hashmarks / "hashmarks/store.py").write_text("def changed(): pass\n")

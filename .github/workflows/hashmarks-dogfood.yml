@@ -25,6 +25,8 @@ permissions:
 jobs:
   source-identity:
     name: Frozen Hashmarks source identity
+    outputs:
+      manifest_sha256: ${{ steps.build_reviewer_kit.outputs.manifest_sha256 }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -148,11 +150,14 @@ jobs:
             --output "$RUNNER_TEMP/hashmarks-return-source-status.json"
 
       - name: Prepare isolated answer-blinded reviewer kit (no model)
+        id: build_reviewer_kit
         run: |
           uv run --no-project python -m benchmarks.dogfood.hashmarks_reviewer_kit \
             --repository-root . \
             --checkout .dogfood-source/Hashmarks \
             --output-dir "$RUNNER_TEMP/hashmarks-reviewer-kit"
+          sha="$(sha256sum "$RUNNER_TEMP/hashmarks-reviewer-kit/manifest.json" | cut -d ' ' -f 1)"
+          echo "manifest_sha256=$sha" >> "$GITHUB_OUTPUT"
 
       - name: Upload isolated reviewer kit (separate from answer-bearing audits)
         uses: actions/upload-artifact@v4
@@ -183,3 +188,26 @@ jobs:
             ${{ runner.temp }}/hashmarks-return-source-status.json
           if-no-files-found: ignore
           retention-days: 7
+
+  recipient-verify:
+    name: Verify downloaded reviewer kit without EvalShot checkout
+    needs: source-identity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Download only blinded reviewer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: hashmarks-blinded-reviewer-kit
+          path: ${{ runner.temp }}/received-reviewer-kit
+
+      - name: Verify received bytes, contents and independent workspace boundary
+        shell: bash
+        run: |
+          test ! -e benchmarks
+          test ! -e .git
+          python3 "$RUNNER_TEMP/received-reviewer-kit/verify.py" \
+            --root "$RUNNER_TEMP/received-reviewer-kit" \
+            --expect-manifest-sha256 "${{ needs.source-identity.outputs.manifest_sha256 }}"
