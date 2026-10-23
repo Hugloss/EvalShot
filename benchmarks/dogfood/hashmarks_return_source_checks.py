@@ -114,16 +114,25 @@ def verify_source_references(
     # Do not blindly trust the returned commit/tree. The untrusted reviewer
     # must match the blinded packet, and Git commit/tree identity must agree
     # with the historical objects without refs/replace.
-    verified_commits: dict[str, bool] = {}
+    # Resolve the whole commit/tree authority once before examining any
+    # private citation. Otherwise a later conflicting task could invalidate
+    # the commit after an earlier task had already been marked verified.
+    expected_trees: dict[str, str | None] = {}
+    for question in questions.values():
+        commit = question["repository"]["commit"]
+        tree = question["repository"]["tree"]
+        if commit not in expected_trees:
+            expected_trees[commit] = tree
+        elif expected_trees[commit] != tree:
+            expected_trees[commit] = None
+    verified_commits = {
+        commit: expected_tree is not None and _commit_tree(checkout, commit) == expected_tree
+        for commit, expected_tree in expected_trees.items()
+    }
     cases: list[dict[str, Any]] = []
     for row in sanitized["tasks"]:
         question = questions[row["packet_id"]]
         commit = question["repository"]["commit"]
-        tree = question["repository"]["tree"]
-        if commit not in verified_commits:
-            verified_commits[commit] = _commit_tree(checkout, commit) == tree
-        elif _commit_tree(checkout, commit) != tree:
-            verified_commits[commit] = False
         claim = private.get(row["packet_id"])
         if not verified_commits[commit]:
             status = "PINNED_SOURCE_IDENTITY_UNAVAILABLE"
