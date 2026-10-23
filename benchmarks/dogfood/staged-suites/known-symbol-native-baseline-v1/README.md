@@ -74,6 +74,57 @@ All candidates still have `FIRST_PASS_UNREVIEWED` status and
 `experiment_admitted=false`. This does not approve source meaning,
 headroom, baseline performance, or tool effectiveness.
 
+## Isolated reviewer source kit — no EvalShot oracle files
+
+The `hashmarks_reviewer_kit` exporter now materializes an **external,
+answer-blinded review handoff directory**. This is the missing transport
+boundary before engaging a genuinely independent source reviewer.
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_reviewer_kit \
+  --repository-root . \
+  --checkout /path/to/Hashmarks-with-frozen-commit \
+  --output-dir /tmp/hashmarks-reviewer-kit-unique
+```
+
+The destination must be **new**, outside EvalShot and the Hashmarks checkout.
+No existing destination is overwritten. The output contains exactly:
+
+| Item | Meaning |
+| --- | --- |
+| `questions.json` | Existing validated question-only blinded packet |
+| `source/` | Read-only-purpose copy of every regular tracked file in the pinned historical Git tree (no `.git`) |
+| `manifest.json` | Pinned commit/tree, packet digest, file counts and independent SHA-256 content inventory |
+
+The exporter reuses EvalShot's existing blinded question generator and
+historical Git commit/tree verifier. Each regular source entry is checked
+against Git's own blob identity; `git archive` omissions or substitutions
+are rejected. It refuses symlinks, submodules and unsafe tracked paths,
+bounded source/archive sizes, conflicting pins, modified benchmark source
+copies, a preexisting output directory, and any output location inside
+the source repositories. Failure leaves no published reviewer kit.
+
+**Git source completeness and byte identity do not prove independence.**
+The generated handoff can be given to a distinct reviewer with no prior
+oracle exposure. It is *not* a sandbox, access-control boundary, reviewer
+identity proof, or guarantee against remembering answers from a previous
+session. The reviewer should run in a clean environment using **only**
+this directory and must declare previous answer access. The exporter
+runs no agent and collects no semantic answers. The two tasks remain
+`FIRST_PASS_UNREVIEWED`, the planned native A/B trial remains blocked,
+and no baseline, oracle approval, owner proof or Hashmarks uplift is
+created by generating the kit.
+
+The dedicated GitHub Actions workflow uploads a separate
+`hashmarks-blinded-reviewer-kit` artifact with only those three items.
+Do **not** give the reviewer the broader `hashmarks-frozen-source-audit`
+artifact, which intentionally contains oracle-proposed locations and other
+answer-bearing reports. Keep any reviewer returns private and **outside**
+both repositories. The existing `hashmarks_review_returns` and
+`hashmarks_return_source_checks` readers can validate return shape and
+source-citation existence afterward, but cannot approve the oracle. Only
+EvalShot's canonical `benchmarks.harness.oracle_reviews` holds approval.
+
 ## External first-pass findings: private answers, sanitized status
 
 The separate `hashmarks_review_returns` consumer accepts **untrusted
