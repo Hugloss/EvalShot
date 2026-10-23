@@ -264,10 +264,11 @@ class AvailabilityStudyTests(unittest.TestCase):
         observed = self.inspect("\n".join(json.dumps(e) for e in events))
         self.assertEqual(observed["trace_state"], "COMPLETE_MCP_TELEMETRY")
         self.assertIs(observed["subject_invoked"], True)
-        self.assertEqual(
-            observed["started_tool_order"]["first_started_tool"],
-            "mcp:hashmarks/task_evidence",
-        )
+        # The historical command in this fixture has only a completion.
+        # Matching MCP updates can qualify telemetry, but cannot turn that
+        # missing command-start record into observed native start ordering.
+        self.assertEqual(observed["started_tool_order"]["state"], "UNKNOWN")
+        self.assertIs(observed["subject_start_observed"], True)
 
         events.insert(5, {"type": "item.updated", "item": base})
         invalid = self.inspect("\n".join(json.dumps(e) for e in events))
