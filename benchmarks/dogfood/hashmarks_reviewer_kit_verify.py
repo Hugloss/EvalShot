@@ -26,6 +26,7 @@ _ROOT_ITEMS = {
     "manifest.json", "questions.json", "source",
     "verify.py", "start_review.py", "REVIEW.md",
     "review_contract.py", "check_review.py", "source_contract.py",
+    "compare_reviews.py",
 }
 
 
@@ -114,6 +115,7 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         or not _SHA256.fullmatch(str(manifest.get("review_contract_sha256")))
         or not _SHA256.fullmatch(str(manifest.get("offline_checker_sha256")))
         or not _SHA256.fullmatch(str(manifest.get("source_contract_sha256")))
+        or not _SHA256.fullmatch(str(manifest.get("comparison_sha256")))
         or not isinstance(manifest.get("packet_digest"), str)
         or not manifest["packet_digest"].startswith("sha256:")
 
@@ -144,6 +146,7 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         ("review_contract.py", "review_contract_sha256"),
         ("check_review.py", "offline_checker_sha256"),
         ("source_contract.py", "source_contract_sha256"),
+        ("compare_reviews.py", "comparison_sha256"),
     ):
         raw = _regular_bytes(root / member, max_size=_MAX_METADATA_BYTES)
         if hashlib.sha256(raw).hexdigest() != manifest[field]:
