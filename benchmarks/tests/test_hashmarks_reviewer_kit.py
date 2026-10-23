@@ -116,7 +116,7 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(
             {p.name for p in self.out.iterdir()},
             {"questions.json", "source", "manifest.json", "verify.py", "start_review.py", "REVIEW.md",
-             "review_contract.py", "check_review.py", "source_contract.py"},
+             "review_contract.py", "check_review.py", "source_contract.py", "compare_reviews.py"},
         )
         self.assertFalse((self.out / ".git").exists())
         self.assertFalse((self.out / "source/.git").exists())
@@ -297,6 +297,177 @@ class PinnedReviewerKitTests(unittest.TestCase):
             json.loads((self.out / "manifest.json").read_text())["source_contract_sha256"],
         )
         (self.out / "source_contract.py").write_text("# tampered")
+        with self.assertRaises(KitVerificationError):
+            verify_kit(self.out)
+
+    def _compare_two_private_reviews(
+        self, *, decision_a="unique", decision_b="unique",
+        candidate_a=("hashmarks/store.py", "lookup"),
+        candidate_b=("hashmarks/store.py", "lookup"),
+        exposure_a=False, exposure_b=False,
+        reviewer_a="reviewer-one", reviewer_b="reviewer-two",
+        subset_b=False,
+    ):
+        producer = self.build()
+        manifest = json.loads((self.out / "manifest.json").read_text())
+        packet = json.loads((self.out / "questions.json").read_text())
+        question = packet["packets"][0]
+
+        def make_response(reviewer, decision, candidate, exposure, path):
+            item = {
+                "packet_id": question["packet_id"],
+                "task_digest": question["task_digest"],
+                "reviewer_id": reviewer,
+                "source_commit": question["repository"]["commit"],
+                "source_tree": question["repository"]["tree"],
+                "decision": decision,
+                "prior_expected_answer_access": exposure,
+                "source_inspected": decision != "unable_to_review",
+                "candidate_locations": (
+                    [] if decision == "unable_to_review" else [
+                        {"path": candidate[0], "symbol": candidate[1]}
+                    ]
+                ),
+                "reason": "private synthetic test reason",
+                "source_evidence": (
+                    [] if decision == "unable_to_review" else [{
+                        "path": "hashmarks/store.py",
+                        "line": 2,
+                        "observation": "private synthetic evidence",
+                    }]
+                ),
+            }
+            if decision == "ambiguous":
+                item["candidate_locations"].append(
+                    {"path": "README.md", "symbol": "alternative"}
+                )
+            path.write_text(json.dumps({
+                "schema": "evalshot.hashmarks-external-first-pass-returns.v1",
+                "blinded_packet_identity": manifest["packet_digest"],
+                "reviews": [item],
+            }))
+            return path
+
+        first = make_response(
+            reviewer_a, decision_a, candidate_a, exposure_a,
+            self.workspace / "private-first.json",
+        )
+        second = make_response(
+            reviewer_b, decision_b, candidate_b, exposure_b,
+            self.workspace / "private-second.json",
+        )
+        if subset_b:
+            second.write_text(json.dumps({
+                "schema": "evalshot.hashmarks-external-first-pass-returns.v1",
+                "blinded_packet_identity": manifest["packet_digest"],
+                "reviews": [],
+            }))
+        run = subprocess.run([
+            sys.executable, str(self.out / "compare_reviews.py"),
+            "--root", str(self.out),
+            "--response-a", str(first),
+            "--response-b", str(second),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+        ], cwd=self.workspace, capture_output=True, text=True)
+        return run, first, second
+
+    def test_two_matching_review_claims_do_not_establish_independence(self):
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        case = report["cases"][0]
+        self.assertEqual(case["state"], "SAME_CANDIDATE_UNVERIFIED")
+        self.assertEqual(report["summary"]["same_candidate_unverified"], 1)
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+        self.assertFalse(case["reviewer_independence_verified"])
+        self.assertFalse(case["semantic_owner_proven"])
+        self.assertNotIn("reviewer-one", run.stdout)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertNotIn("private synthetic", run.stdout)
+        self.assertTrue(first.exists())
+        self.assertTrue(second.exists())
+        self.assertFalse((self.out / "__pycache__").exists())
+        verify_kit(self.out)
+
+    def test_two_competing_claimed_source_owners_preserve_disagreement(self):
+        run, _, _ = self._compare_two_private_reviews(
+            candidate_b=("README.md", "alternative"),
+        )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(report["cases"][0]["state"], "COMPETING_CANDIDATES_DISAGREE")
+        self.assertEqual(report["summary"]["conflicts_or_incomplete"], 2)
+        self.assertFalse(report["cases"][0]["canonical_oracle_approved"])
+        self.assertNotIn("README.md", run.stdout)
+
+    def test_ambiguous_review_does_not_get_overridden_by_unique(self):
+        run, _, _ = self._compare_two_private_reviews(decision_b="ambiguous")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(
+            json.loads(run.stdout)["cases"][0]["state"],
+            "AMBIGUITY_REPORTED_NO_AUTOMATIC_RESOLUTION",
+        )
+
+    def test_declared_prior_exposure_is_preserved(self):
+        run, _, _ = self._compare_two_private_reviews(exposure_b=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(
+            json.loads(run.stdout)["cases"][0]["state"],
+            "PRIOR_EXPECTED_ANSWER_ACCESS_DECLARED",
+        )
+
+    def test_same_declared_reviewer_is_not_counted_twice(self):
+        run, _, _ = self._compare_two_private_reviews(reviewer_b="reviewer-one")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(
+            json.loads(run.stdout)["cases"][0]["state"],
+            "DUPLICATE_DECLARED_REVIEWER",
+        )
+
+    def test_incomplete_pair_does_not_manufacture_agreement(self):
+        run, _, _ = self._compare_two_private_reviews(subset_b=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(
+            json.loads(run.stdout)["cases"][0]["state"],
+            "INCOMPLETE_TWO_REVIEWER_COVERAGE",
+        )
+
+    def test_invalid_pinned_source_citation_remains_disputed(self):
+        run, _, _ = self._compare_two_private_reviews(
+            candidate_b=("hashmarks/missing.py", "lookup"),
+        )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(
+            json.loads(run.stdout)["cases"][0]["state"],
+            "SOURCE_REFERENCE_DISPUTED",
+        )
+
+    def test_unable_to_review_remains_unresolved(self):
+        run, _, _ = self._compare_two_private_reviews(decision_b="unable_to_review")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(
+            json.loads(run.stdout)["cases"][0]["state"],
+            "UNABLE_TO_REVIEW_NO_AUTOMATIC_RESOLUTION",
+        )
+
+    def test_comparison_does_not_accept_same_private_file_twice(self):
+        run, first, _ = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        verified = json.loads((self.out / "manifest.json").read_text())
+        bad = subprocess.run([
+            sys.executable, str(self.out / "compare_reviews.py"),
+            "--root", str(self.out),
+            "--response-a", str(first), "--response-b", str(first),
+            "--expect-manifest-sha256",
+            hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest(),
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertNotEqual(bad.returncode, 0)
+        self.assertNotIn("private synthetic", bad.stdout)
+
+    def test_comparison_script_tamper_is_rejected_by_recipient(self):
+        self.build()
+        comparer = self.out / "compare_reviews.py"
+        comparer.write_text(comparer.read_text() + "\n# modified\n")
         with self.assertRaises(KitVerificationError):
             verify_kit(self.out)
 
