@@ -116,7 +116,7 @@ and no baseline, oracle approval, owner proof or Hashmarks uplift is
 created by generating the kit.
 
 The dedicated GitHub Actions workflow uploads a separate
-`hashmarks-blinded-reviewer-kit` artifact with only those four top-level items.
+`hashmarks-blinded-reviewer-kit` artifact with only five top-level items: `questions.json`, `manifest.json`, `source/`, `verify.py`, and `start_review.py`.
 Its upload explicitly **includes tracked dotfiles** such as
 `.gitattributes` and `.gitignore`: omitting hidden Git-tracked files
 would violate the manifest's complete pinned-tree inventory.
@@ -164,6 +164,49 @@ authenticate the producer outside the trusted GitHub workflow, prove that
 a human/agent has no prior answer exposure, approve an oracle, or prove
 native agent headroom. The existing EvalShot canonical reviewer still
 owns any future approval.
+
+## Offline private reviewer response starter
+
+The downloaded reviewer kit now includes a standalone
+`start_review.py`. It needs **only** `verify.py`, `questions.json`,
+`manifest.json`, and the frozen `source/` files already in the kit;
+it does not import or check out EvalShot.
+
+After verifying the kit, generate an **incomplete, private** response
+file **outside** the downloaded kit:
+
+```sh
+python3 /path/to/received-kit/start_review.py \
+  --root /path/to/received-kit \
+  --expect-manifest-sha256 <digest-from-producing-GitHub-run> \
+  --output /private/reviewer-findings.json
+```
+
+The starter pre-populates each frozen question's `packet_id`,
+`task_digest`, `source_commit`, and `source_tree`, together with
+the exact `blinded_packet_identity` required by the existing
+EvalShot private-return consumer. It never inserts an expected owner.
+
+For **both** tasks, the other fields deliberately remain invalid and
+unreviewed: `reviewer_id=""`, `decision="NOT_REVIEWED_REPLACE_BEFORE_SUBMISSION"`,
+`prior_expected_answer_access=null`, `source_inspected=null`,
+`candidate_locations=[]`, `reason=""`, `source_evidence=[]`.
+The canonical return validator **rejects this skeleton**. The reviewer
+must independently inspect `source/`, disclose prior-answer exposure,
+record defensible alternatives and precise source citations, and choose
+a meaningful decision before submitting privately. Do not treat the
+starter as a completed review or as an authenticated reviewer identity.
+
+The starter refuses an output path inside the kit, an existing output
+file, or a missing/mismatched producer manifest digest. It writes a
+new file with mode `0600` and does not print answer content. The
+checkout-free recipient CI job exercises the starter, asserts it is
+still incomplete, and deletes its temporary placeholder. No real
+responses are produced or uploaded to GitHub Actions.
+
+The proper next step is still an independent semantic review followed
+by EvalShot's canonical private-response and oracle validation. This
+handoff adds **no oracle approvals, model trials, or native headroom**.
 
 ## External first-pass findings: private answers, sanitized status
 
