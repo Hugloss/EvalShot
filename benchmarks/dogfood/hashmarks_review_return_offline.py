@@ -7,6 +7,7 @@ import sys
 sys.dont_write_bytecode = True
 from verify import verify_kit, _read_object, KitVerificationError
 from review_contract import validate_returns, ReturnError
+from source_contract import check_references
 
 
 def check(root: Path, responses: Path, digest: str) -> dict:
@@ -21,9 +22,40 @@ def check(root: Path, responses: Path, digest: str) -> dict:
     if payload.get("blinded_packet_identity") != manifest.get("packet_digest"):
         raise ReturnError("review returns do not match the exact blinded packet")
     checked = validate_returns(question, payload)
+    # The received kit's bytes were checked against the exact producer
+    # manifest above. Do not read current-worktree files or trust unlisted
+    # paths. Semantic meaning and reviewer provenance remain unverified.
+    indexed = {row["packet_id"]: row for row in question["packets"]}
+    cases = []
+    for packet_id, response in checked.items():
+        source_bytes = lambda path: (
+            (root / "source" / path).read_bytes()
+            if path in manifest["source_sha256_by_path"] else None
+        )
+        status, count = check_references(response, source_bytes)
+        cases.append({
+            "task_id": indexed[packet_id]["task_id"],
+            "source_reference_status": status,
+            "references_checked": count,
+            "source_claim_authenticated": False,
+            "reviewer_identity_verified": False,
+            "semantic_owner_proven": False,
+            "canonical_oracle_approved": False,
+        })
     return {
-        "status": "UNTRUSTED_FIRST_PASS_SHAPE_VALIDATED_ONLY",
+        "status": "UNTRUSTED_FIRST_PASS_SOURCE_EXISTENCE_ONLY",
         "responses_received": len(checked),
+        "references_exist": sum(
+            row["source_reference_status"] == "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF"
+            for row in cases
+        ),
+        "source_check_disagreements": sum(
+            row["source_reference_status"] not in {
+                "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+                "UNABLE_TO_REVIEW_NO_SOURCE_CHECK",
+            } for row in cases
+        ),
+        "review_statuses": cases,
         "approved_oracles": 0,
         "reviewer_independence_verified": False,
         "semantic_owner_proven": False,
