@@ -74,6 +74,96 @@ All candidates still have `FIRST_PASS_UNREVIEWED` status and
 `experiment_admitted=false`. This does not approve source meaning,
 headroom, baseline performance, or tool effectiveness.
 
+## External first-pass findings: private answers, sanitized status
+
+The separate `hashmarks_review_returns` consumer accepts **untrusted
+reviewer declarations** tied to exact `packet_id`, task digest and pinned
+Git commit/tree. It does **not** attest reviewer independence, authenticate
+the source, verify semantics, select an owner, or issue an oracle approval.
+
+Without external input CI emits a safe status report showing both tasks
+still `AWAITING_FIRST_PASS`:
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_review_returns \
+  --repository-root . \
+  --output /tmp/hashmarks-review-return-status.json
+```
+
+For a real review, a distinct reviewer must use only the answer-blinded
+packet and pinned source checkout. Keep that reviewer's **private**
+response *outside* EvalShot, GitHub artifacts and evaluated agent
+workspaces. The handoff schema is
+`evalshot.hashmarks-external-first-pass-returns.v1`:
+
+```json
+{
+  "schema": "evalshot.hashmarks-external-first-pass-returns.v1",
+  "blinded_packet_identity": "sha256:<digest of entire blinded packet>",
+  "reviews": [
+    {
+      "packet_id": "<packet ID copied from blinded question>",
+      "task_digest": "<frozen task digest from question>",
+      "reviewer_id": "<independent reviewer declaration>",
+      "source_commit": "<pinned commit from question>",
+      "source_tree": "<pinned tree from question>",
+      "decision": "unique",
+      "prior_expected_answer_access": false,
+      "source_inspected": true,
+      "candidate_locations": [
+        {"path": "<reviewer-discovered path>", "symbol": "<symbol>"}
+      ],
+      "reason": "<reviewer's confidential semantic reasoning>",
+      "source_evidence": [
+        {
+          "path": "<source path>",
+          "line": 1,
+          "observation": "<bounded source-backed observation>"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Decisions may be `unique`, `ambiguous`, `invalid`, or
+`unable_to_review`. An ambiguous result must declare at least two
+distinct locations. A unique *claim* must declare exactly one location.
+The consumer rejects duplicate keys, stale task/packet identity, altered
+source pins, contradictory observation fields and malformed evidence.
+`prior_expected_answer_access=true` remains explicit even if the
+reviewer calls the oracle unique. A claim of no prior access is **not
+independent attestation**.
+
+The user-controlled offline command is:
+
+```sh
+uv run --no-project python -m benchmarks.dogfood.hashmarks_review_returns \
+  --repository-root . \
+  --responses /private/outside-evalshot/reviewer-answers.json \
+  --output /tmp/hashmarks-review-return-status.json
+```
+
+The CLI also **rejects** response input files located inside the
+EvalShot repository. This is a placement guard, not a proof of reviewer
+independence: the user must still maintain access controls for the
+private responses and isolate the reviewer workspace.
+
+Only a **sanitized status** is printed and saved: task/packet IDs,
+unverified decision category, exposure declaration, and explicit zero
+approval/experiment/headroom counters. The candidate source paths,
+reviewer identities, rationales and evidence contents are **never
+re-emitted**. CI intentionally provides **no response file**, so no
+answer-bearing review is processed or uploaded automatically.
+
+The canonical EvalShot `benchmarks.harness.oracle_reviews` is still
+the **only** approval authority. A distinct qualified review process must
+independently verify the source, reviewer provenance, alternatives and
+semantic truth, and create the real task-bound review evidence through
+that existing authority. Do not copy the return-intake results into
+`qualification/oracle-reviews.json`, unfreeze the staged cohort or
+claim native baseline headroom on their basis.
+
 ## Fail-before-work requirement
 
 `experiment.json` intentionally names
