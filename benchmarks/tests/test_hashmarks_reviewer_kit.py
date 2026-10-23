@@ -261,6 +261,11 @@ class PinnedReviewerKitTests(unittest.TestCase):
            env={"PATH": "/usr/bin:/bin"})
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertTrue(private.is_file())
+        self.assertFalse((self.out / "__pycache__").exists())
+        self.assertEqual(
+            verify_kit(self.out, expected_manifest_sha256=producer["manifest_sha256"])["qualification"],
+            "TRANSPORT_BYTES_VERIFIED_ONLY",
+        )
         self.assertEqual(private.stat().st_mode & 0o777, 0o600)
         self.assertFalse((self.out / "reviewer-answers.json").exists())
         data = json.loads(private.read_text())
