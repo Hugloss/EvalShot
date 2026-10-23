@@ -13,6 +13,7 @@ import hashlib
 from io import BytesIO
 import json
 import os
+import shutil
 from pathlib import Path
 import subprocess
 import tarfile
@@ -184,10 +185,10 @@ def prepare_reviewer_kit(
     packet_bytes = (
         json.dumps(questions, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
     ).encode("utf-8")
-    with tempfile.TemporaryDirectory(
+    working = Path(tempfile.mkdtemp(
         prefix=".reviewer-kit-staging-", dir=output.parent
-    ) as scratch:
-        working = Path(scratch)
+    ))
+    try:
         source_root = working / "source"
         source_root.mkdir()
         hashes = _extract_snapshot(
@@ -221,6 +222,9 @@ def prepare_reviewer_kit(
             working.rename(output)
         except OSError as exc:
             raise ReviewerKitError("cannot publish external reviewer kit") from exc
+    finally:
+        if working.exists():
+            shutil.rmtree(working)
     return {
         "schema": SCHEMA,
         "qualification": "HANDOFF_PREPARED_NOT_INDEPENDENT_REVIEWED",
