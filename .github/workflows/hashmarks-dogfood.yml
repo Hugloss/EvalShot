@@ -16,6 +16,7 @@ on:
       - "benchmarks/tests/test_hashmarks_blind_review.py"
       - "benchmarks/tests/test_hashmarks_review_returns.py"
       - "benchmarks/tests/test_hashmarks_return_source_checks.py"
+      - "benchmarks/tests/test_hashmarks_reviewer_kit.py"
   workflow_dispatch:
 
 permissions:
@@ -56,7 +57,7 @@ jobs:
         run: uv python install
 
       - name: Focused model-free regressions
-        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging benchmarks.tests.test_hashmarks_blind_review benchmarks.tests.test_hashmarks_review_returns benchmarks.tests.test_hashmarks_return_source_checks
+        run: uv run --no-project python -m unittest -q benchmarks.tests.test_hashmarks_dogfood_corpus benchmarks.tests.test_hashmarks_dogfood_coverage benchmarks.tests.test_hashmarks_dogfood_review_handoff benchmarks.tests.test_hashmarks_dogfood_declarations benchmarks.tests.test_hashmarks_dogfood_collisions benchmarks.tests.test_hashmarks_dogfood_callsites benchmarks.tests.test_hashmarks_dogfood_headroom benchmarks.tests.test_hashmarks_dogfood_baseline_staging benchmarks.tests.test_hashmarks_blind_review benchmarks.tests.test_hashmarks_review_returns benchmarks.tests.test_hashmarks_return_source_checks benchmarks.tests.test_hashmarks_reviewer_kit
 
       - name: Verify frozen Hashmarks source identities
         run: |
@@ -145,6 +146,21 @@ jobs:
             --repository-root . \
             --checkout .dogfood-source/Hashmarks \
             --output "$RUNNER_TEMP/hashmarks-return-source-status.json"
+
+      - name: Prepare isolated answer-blinded reviewer kit (no model)
+        run: |
+          uv run --no-project python -m benchmarks.dogfood.hashmarks_reviewer_kit \
+            --repository-root . \
+            --checkout .dogfood-source/Hashmarks \
+            --output-dir "$RUNNER_TEMP/hashmarks-reviewer-kit"
+
+      - name: Upload isolated reviewer kit (separate from answer-bearing audits)
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashmarks-blinded-reviewer-kit
+          path: ${{ runner.temp }}/hashmarks-reviewer-kit/
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Upload source audit report
         if: always()
