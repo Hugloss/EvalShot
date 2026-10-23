@@ -50,7 +50,13 @@ or a qualified study result.
 These scopes do not establish exhaustive shell or nested-agent activity.
 
 Native completion-order diagnostics record the first **completed, tracked** tool,
-its canonical class and the first completed Hashmarks-call ordinal. Complete
+its canonical class and the first completed Hashmarks-call ordinal.
+An adapter-supplied list of subject ordinals is admitted only if it exactly
+equals the positions of subject-classified tools in the observed completion
+sequence. Missing, duplicate, out-of-order or foreign ordinals make the
+completion-order diagnostic **UNKNOWN**, even if the broader native trace
+was otherwise complete. The same existing routing classifier owns the
+correspondence; this check does not establish host/model tool decisions. Complete
 traces with no tracked calls are distinct from incomplete traces with unknown
 order. The assigned availability arm additionally reports counts for
 subject-first-completed, other-tool-first-completed, no tracked tool and UNKNOWN,
