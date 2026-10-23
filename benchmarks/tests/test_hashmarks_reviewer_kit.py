@@ -115,7 +115,8 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(result["native_trials_executed"], 0)
         self.assertEqual(
             {p.name for p in self.out.iterdir()},
-            {"questions.json", "source", "manifest.json", "verify.py", "start_review.py", "REVIEW.md"},
+            {"questions.json", "source", "manifest.json", "verify.py", "start_review.py", "REVIEW.md",
+             "review_contract.py", "check_review.py"},
         )
         self.assertFalse((self.out / ".git").exists())
         self.assertFalse((self.out / "source/.git").exists())
@@ -195,6 +196,32 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(receipt["qualification"], "TRANSPORT_BYTES_VERIFIED_ONLY")
         self.assertFalse(receipt["oracle_approved"])
         self.assertFalse(receipt["reviewer_independence_attested"])
+
+    def test_offline_shared_contract_rejects_incomplete_review_skeleton(self):
+        producer = self.build()
+        draft = self.workspace / "private-review-draft.json"
+        subprocess.run([
+            sys.executable, str(self.out / "start_review.py"),
+            "--root", str(self.out), "--output", str(draft),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+        ], cwd=self.workspace, check=True, capture_output=True, text=True)
+        output = subprocess.run([
+            sys.executable, str(self.out / "check_review.py"),
+            "--root", str(self.out), "--responses", str(draft),
+            "--expect-manifest-sha256", producer["manifest_sha256"],
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertNotEqual(output.returncode, 0)
+        self.assertNotIn("candidate_locations", output.stdout)
+        self.assertNotIn("oracle_approved\": true", output.stdout)
+        self.assertFalse((self.out / "__pycache__").exists())
+        verify_kit(self.out, expected_manifest_sha256=producer["manifest_sha256"])
+
+    def test_offline_checker_tampering_is_refused(self):
+        self.build()
+        path = self.out / "review_contract.py"
+        path.write_text(path.read_text() + "\\n# altered\\n")
+        with self.assertRaises(KitVerificationError):
+            verify_kit(self.out)
 
     def test_manifest_file_digests_bind_exported_bytes(self):
         self.build()
