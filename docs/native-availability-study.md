@@ -61,7 +61,8 @@ inclusion or actual model attention. The existing native `mcp:server/tool`
 name spelling is classified by the single shared routing owner.
 
 Native item-ID reuse also binds the item type and, for MCP calls, the exact
-server/tool pair across any observed start and completion. A completion with
+server/tool pair across **starts, updates and completions**. Updates must not
+rewrite an already observed item identity or appear after its completion. A completion with
 the same ID but a different tool type, server or operation invalidates
 complete-telemetry qualification and therefore cannot be credited as a
 confirmed absence or success. Historical completion-only exports remain
