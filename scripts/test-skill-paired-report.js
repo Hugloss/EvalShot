@@ -31,4 +31,24 @@ assert.equal(unqualified.comparisons[0].skill.qualification, 'UNKNOWN');
 assert.equal(compareReceipts([{ id: 'unknown', arm: 'baseline' }]).ignored_receipts.length, 1);
 assert.throws(() => compareReceipts([receipt('baseline'), receipt('baseline')]), /duplicate receipt/);
 assert.throws(() => compareReceipts(null), /receipts must be an array/);
+const bound = {
+  repository_sha256: 'repo-1', task_sha256: 'task-1', skill_revision: 'skill-1',
+  runtime_config_sha256: 'runtime-1', oracle_revision: 'oracle-1', replicate_id: 'rep-1',
+};
+const authorityMatch = compareReceipts([
+  receipt('baseline', { experimentalAuthority: bound }),
+  receipt('skill', { experimentalAuthority: { ...bound } }),
+]);
+assert.equal(authorityMatch.comparisons[0].authority.repository_sha256, 'MATCH');
+assert.equal(authorityMatch.comparisons[0].comparability, 'DESCRIPTIVE_ONLY');
+const authorityMismatch = compareReceipts([
+  receipt('baseline', { experimentalAuthority: bound }),
+  receipt('skill', { experimentalAuthority: { ...bound, repository_sha256: 'repo-2' } }),
+]);
+assert.equal(authorityMismatch.comparable_pairs, 0);
+assert.equal(authorityMismatch.not_comparable_pairs, 1);
+assert.deepEqual(authorityMismatch.comparisons[0].mismatched_authority, ['repository_sha256']);
+const missingAuthority = compareReceipts([receipt('baseline'), receipt('skill')]);
+assert.equal(missingAuthority.comparisons[0].authority.repository_sha256, 'UNKNOWN');
+assert.equal(missingAuthority.comparisons[0].comparability, 'DESCRIPTIVE_ONLY');
 process.stdout.write('skill paired report regressions PASS\n');
