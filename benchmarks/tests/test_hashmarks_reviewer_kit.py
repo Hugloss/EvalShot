@@ -557,6 +557,90 @@ assert result["approved_oracles"] == 0
         self.assertNotIn("hashmarks/store.py", run.stdout)
         self.assertTrue(first.exists() and second.exists())
 
+    def test_offline_for_target_after_declared_owner_is_unqualified(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "for lookup in records:\n"
+            "    pass\n", encoding="utf-8",
+        )
+        self.freeze("for target shadows function")
+        self.update_source_pin()
+        run, private = self._private_claim_check(line=1)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["references_exist"], 0)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertFalse(result["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertNotIn("fictional-test-reviewer", run.stdout)
+        self.assertTrue(private.exists())
+        verify_kit(self.out)
+
+    def test_offline_except_alias_can_shadow_class_method(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "    try:\n"
+            "        execute()\n"
+            "    except RuntimeError as lookup:\n"
+            "        pass\n", encoding="utf-8",
+        )
+        self.freeze("exception alias may shadow class method")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=2)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertFalse(result["semantic_owner_proven"])
+
+    def test_offline_prior_with_alias_is_overwritten_by_later_method(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    with resource as lookup:\n"
+            "        pass\n"
+            "    def lookup(self):\n"
+            "        return 1\n", encoding="utf-8",
+        )
+        self.freeze("later declaration shadows earlier with alias")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=4)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["references_exist"], 1)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(result["approved_oracles"])
+
+    def test_offline_match_capture_disputes_two_matching_private_reviews(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "    match item:\n"
+            "        case lookup:\n"
+            "            pass\n", encoding="utf-8",
+        )
+        self.freeze("class case capture shadows same name")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(report["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(report["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+
     def test_offline_verified_declaration_with_assignment_is_not_owner_proof(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "def lookup():\n"
