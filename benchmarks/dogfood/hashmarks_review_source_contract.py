@@ -21,13 +21,20 @@ class _Declarations(ast.NodeVisitor):
     def __init__(self, symbol: str):
         self.symbol = symbol
         self.function_depth = 0
+        self.guard_depth = 0
         self.matches: list[tuple[int, int]] = []
+        self.guarded_matches = 0
         self.local_matches = 0
 
     def _visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
         if node.name == self.symbol:
             if self.function_depth:
                 self.local_matches += 1
+            elif self.guard_depth:
+                # A declaration inside an if/try/match/loop/with block
+                # might not be bound on every import/execution path.
+                # Observing its syntax must not qualify availability.
+                self.guarded_matches += 1
             else:
                 start = min(
                     [node.lineno, *(decorator.lineno for decorator in node.decorator_list)]
@@ -36,6 +43,25 @@ class _Declarations(ast.NodeVisitor):
         self.function_depth += 1
         self.generic_visit(node)
         self.function_depth -= 1
+
+    def _visit_guarded(self, node: ast.AST) -> None:
+        # Do not interpret conditions or execute the source. Even an
+        # apparently constant predicate could hide another declaration.
+        self.guard_depth += 1
+        self.generic_visit(node)
+        self.guard_depth -= 1
+
+    # Python executes these bodies conditionally, or in a managed scope.
+    # A syntactic declaration there is not proof of an unconditional owner.
+    visit_If = _visit_guarded
+    visit_For = _visit_guarded
+    visit_AsyncFor = _visit_guarded
+    visit_While = _visit_guarded
+    visit_Try = _visit_guarded
+    visit_TryStar = _visit_guarded
+    visit_With = _visit_guarded
+    visit_AsyncWith = _visit_guarded
+    visit_Match = _visit_guarded
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._visit_function(node)
@@ -85,12 +111,16 @@ def check_references(
         except (SyntaxError, UnicodeError, ValueError, RecursionError):
             return "CANDIDATE_PYTHON_NOT_PARSEABLE", count
         if not declarations.matches:
+            if declarations.guarded_matches:
+                return "CANDIDATE_ONLY_GUARDED_DECLARATION", count
             return (
                 "CANDIDATE_ONLY_LOCAL_DECLARATION"
                 if declarations.local_matches else "CANDIDATE_DECLARATION_NOT_OBSERVED"
             ), count
         if len(declarations.matches) != 1:
             return "CANDIDATE_MULTIPLE_DECLARATIONS_OBSERVED", count
+        if declarations.guarded_matches:
+            return "CANDIDATE_GUARDED_ALTERNATIVE", count
         declaration_spans[(path, symbol)] = declarations.matches[0]
 
     for observation in evidence:
