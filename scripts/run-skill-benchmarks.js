@@ -241,10 +241,10 @@ function persist(result, base) {
 
 function executeCase(item, options, cookbook) {
   const skillText = fs.readFileSync(cookbook.file(path.join('skills', item.skill, 'SKILL.md')), 'utf8');
-  const systemPrompt = evaluatorSystem(options.withoutSkill ? 'You are a read-only code reviewer. Determine whether a material defect exists; do not invent findings.' : skillText, item.skill), prompt = casePrompt(item);
+  const systemPrompt = options.withoutSkill\n    ? 'You are a read-only code reviewer. Investigate repository identity authority and report only proven defects. Do not guess. Finish with EVAL_VERDICT: FINDING|CLEAN, EVAL_SCOPE: NONE, EVAL_EVIDENCE: <evidence>, EVAL_EVIDENCE_LOCATION: <path:line or NONE>, EVAL_EVIDENCE_QUOTE: <exact quote or NONE>.'\n    : evaluatorSystem(skillText, item.skill);\n  const prompt = casePrompt(item);
   const cwd = item.fixture ? path.resolve(repoRoot, item.fixture) : options.repoDir;
   const execution = options.runtime === 'pi' ? runPi(systemPrompt, prompt, cwd, options.model) : runOpenCode(systemPrompt, prompt, cwd, options.model);
-  const parsed = parseResult(execution.stdout), expectedScope = item.expected === 'FINDING' ? item.skill : 'NONE';
+  const parsed = parseResult(execution.stdout), expectedScope = options.withoutSkill ? 'NONE' : item.expected === 'FINDING' ? item.skill : 'NONE';
   const proof = qualifyEvidence({
     verdict: parsed.verdict,
     evidence: parsed.evidence,
@@ -256,7 +256,7 @@ function executeCase(item, options, cookbook) {
   });
   const qualified = assessSkillOutcome({
     executionStatus: execution.status, parsed, expected: item.expected,
-    skill: item.skill, proof,
+    skill: options.withoutSkill ? 'NONE' : item.skill, proof,
   });
   const pass = qualified.pass;
   return { id: item.id, skill: item.skill, kind: item.kind, arm: options.withoutSkill ? 'baseline' : 'skill', blinded: !!item.blind, runtime: options.runtime, model: options.model || null,
