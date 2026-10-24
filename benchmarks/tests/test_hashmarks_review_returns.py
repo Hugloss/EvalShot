@@ -283,6 +283,28 @@ class ReviewReturnTests(unittest.TestCase):
             self.assertEqual(error.exception.code, 2)
             self.assertTrue(answers.exists())
 
+    def test_cli_refuses_existing_sanitized_status_without_overwriting(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            output = root / "private-findings.json"
+            output.write_text("sensitive original", encoding="utf-8")
+            with redirect_stderr(StringIO()), self.assertRaises(SystemExit) as error:
+                main(["--repository-root", str(root), "--output", str(output)])
+            self.assertEqual(error.exception.code, 2)
+            self.assertEqual(output.read_text(encoding="utf-8"), "sensitive original")
+
+    def test_cli_refuses_symlink_status_target_without_overwriting(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            private = root / "private-findings.json"
+            private.write_text("sensitive original", encoding="utf-8")
+            output = root / "status.json"
+            output.symlink_to(private)
+            with redirect_stderr(StringIO()), self.assertRaises(SystemExit) as error:
+                main(["--repository-root", str(root), "--output", str(output)])
+            self.assertEqual(error.exception.code, 2)
+            self.assertEqual(private.read_text(encoding="utf-8"), "sensitive original")
+
     def test_review_return_reader_rejects_duplicate_json_keys(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "private.json"

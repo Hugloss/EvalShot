@@ -136,6 +136,10 @@ owner guesses in a repository, GitHub Actions log, job artifact or PR body.
 
 Safe public status is limited to receipt/check completion, coarse unresolved
 categories and a **negative** statement of oracle/experiment qualification.
+The EvalShot `hashmarks_review_returns --output` diagnostic deliberately
+requires a **new** output filename and refuses existing files or symlink
+targets, including an existing sanitized status file. Choose a fresh name
+for each invocation; do not use a reviewer response file as the destination.
 The presence of this runbook or two matching reviews must never be reported
 as two independently verified reviewers.
 
