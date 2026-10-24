@@ -333,6 +333,19 @@ functions do not make an otherwise unconditional module-level owner guarded.
 The Git-backed and offline source readers continue to consume the **same**
 portable source contract, and no source claim authorizes an oracle.
 
+**Source binding mutations:** the canonical AST checker also observes
+assignments, annotations with assigned values, augmented assignments,
+imports/aliases, deletion, walrus bindings and class definitions that could
+replace a named candidate in the **same lexical module/class scope**. It
+conservatively returns `CANDIDATE_BINDING_MUTATION_OBSERVED` rather than
+pretending a syntactically observed function is necessarily the binding
+that is still used. A module-level `ClassName.method = replacement`
+is observed as possible class-method mutation; a same-name assignment
+in a *different* class or inside an unrelated function is not treated as
+a mutation of the candidate. The checker does not evaluate execution
+order, conditional truth, dynamic aliases, or runtime behavior. These
+binding statuses cannot approve a reviewer, oracle or native baseline.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
