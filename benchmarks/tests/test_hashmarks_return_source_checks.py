@@ -316,6 +316,119 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=3,
         ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
 
+    def test_for_loop_target_after_definition_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "for a in values:\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_destructured_for_target_after_definition_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "for unused, (a, extra) in values:\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_prior_for_target_is_superseded_by_later_function(self):
+        self.assertEqual(self._guarded_owner_status(
+            "for a in items:\n"
+            "    pass\n"
+            "def a():\n"
+            "    return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_with_as_target_after_definition_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "with handle as a:\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_destructured_with_target_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "with handle as (a, extra):\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_except_as_target_after_definition_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "try:\n"
+            "    dangerous()\n"
+            "except RuntimeError as a:\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_match_as_capture_after_definition_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "match candidate:\n"
+            "    case a:\n"
+            "        pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_match_sequence_star_capture_after_definition_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "match candidate:\n"
+            "    case [head, *a]:\n"
+            "        pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_match_mapping_rest_capture_after_definition_is_unresolved_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "match candidate:\n"
+            "    case {'value': value, **a}:\n"
+            "        pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_unrelated_loop_with_and_match_targets_do_not_mutate_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "for other in sequence:\n"
+            "    pass\n"
+            "with resource as other:\n"
+            "    pass\n"
+            "match candidate:\n"
+            "    case {'name': other}:\n"
+            "        pass\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_loop_and_match_targets_in_unrelated_function_do_not_mutate_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def other():\n"
+            "    for a in sequence:\n"
+            "        pass\n"
+            "    match candidate:\n"
+            "        case a:\n"
+            "            pass\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_module_function_reassigned_to_constant_is_not_a_verified_binding(self):
         self.assertEqual(self._guarded_owner_status(
             "def a():\n"

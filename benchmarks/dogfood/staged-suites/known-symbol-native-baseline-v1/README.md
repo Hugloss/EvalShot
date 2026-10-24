@@ -359,6 +359,17 @@ a later plain `def`; a module wildcard import does not by itself
 replace a method inside a class. Checks are **source-order observations**,
 not an execution trace, run-time binding guarantee, or qualified oracle.
 
+**Control-flow binding targets:** the same canonical AST checker now also
+observes implicit name-binding positions in `for` loops, `with ... as`
+targets, `except ... as` handlers and `match` capture patterns (including
+starred and mapping-rest captures). A later target that binds the proposed
+function/method name within its module/class scope reports the existing
+non-approving `CANDIDATE_BINDING_MUTATION_OBSERVED` status; earlier targets
+preceding a plain `def` and targets inside unrelated local functions do
+not falsely count as later changes. This remains conservative source-order
+evidence, not a claim that any branch executed or that semantics changed.
+No new check/grading owner or oracle approval is introduced.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
