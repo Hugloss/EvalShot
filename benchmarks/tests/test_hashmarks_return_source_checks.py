@@ -231,6 +231,91 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=1,
         ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
 
+    def test_prior_module_assignment_is_shadowed_by_unconditional_definition(self):
+        self.assertEqual(self._guarded_owner_status(
+            "a = 42\n"
+            "def a():\n"
+            "    return 1\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_prior_import_alias_is_overwritten_by_later_definition(self):
+        self.assertEqual(self._guarded_owner_status(
+            "from module import replacement as a\n"
+            "def a():\n"
+            "    return 1\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_prior_deletion_is_overwritten_by_later_definition(self):
+        self.assertEqual(self._guarded_owner_status(
+            "del a\n"
+            "def a():\n"
+            "    return 1\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_prior_class_field_is_overwritten_by_later_method(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    a = 0\n"
+            "    def a(self):\n"
+            "        return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_prior_class_statement_is_overwritten_by_later_module_function(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class a:\n"
+            "    pass\n"
+            "def a():\n"
+            "    return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_prior_wildcard_import_is_overwritten_by_later_module_function(self):
+        self.assertEqual(self._guarded_owner_status(
+            "from package import *\n"
+            "def a():\n"
+            "    return 1\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_later_wildcard_import_is_not_assumed_to_preserve_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "from package import *\n",
+            line=1,
+        ), "CANDIDATE_WILDCARD_IMPORT_MAY_REBIND")
+
+    def test_guarded_later_wildcard_import_is_still_unresolved(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "if enabled:\n"
+            "    from package import *\n",
+            line=1,
+        ), "CANDIDATE_WILDCARD_IMPORT_MAY_REBIND")
+
+    def test_module_wildcard_import_does_not_masquerade_as_class_method_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "from package import *\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_conditional_assignment_before_plain_def_is_shadowed_by_def(self):
+        self.assertEqual(self._guarded_owner_status(
+            "if enabled:\n"
+            "    a = 99\n"
+            "def a():\n"
+            "    return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_module_function_reassigned_to_constant_is_not_a_verified_binding(self):
         self.assertEqual(self._guarded_owner_status(
             "def a():\n"
