@@ -450,6 +450,89 @@ class PinnedReviewerKitTests(unittest.TestCase):
             "UNABLE_TO_REVIEW_NO_AUTOMATIC_RESOLUTION",
         )
 
+    def test_comparison_consumes_each_private_response_exactly_once(self):
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        manifest = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
+        probe = r"""
+import sys
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import check_review
+import compare_reviews
+original = check_review._read_object
+private = {str(Path(value).resolve()): 0 for value in sys.argv[2:4]}
+
+def counting_read(path):
+    key = str(Path(path).resolve())
+    if key in private:
+        private[key] += 1
+        if private[key] > 1:
+            raise RuntimeError("private source response was read twice")
+    return original(path)
+
+check_review._read_object = counting_read
+result = compare_reviews.compare_private_reviews(
+    kit=Path(sys.argv[1]), response_a=Path(sys.argv[2]),
+    response_b=Path(sys.argv[3]), expected_manifest_sha256=sys.argv[4],
+)
+assert tuple(private.values()) == (1, 1), private
+assert result["summary"]["same_candidate_unverified"] == 1
+assert result["summary"]["approved_oracles"] == 0
+"""
+        command = subprocess.run([
+            sys.executable, "-c", probe, str(self.out), str(first),
+            str(second), manifest,
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(command.returncode, 0, command.stderr)
+        self.assertFalse((self.out / "__pycache__").exists())
+        verify_kit(self.out)
+
+    def test_private_response_replacement_after_read_does_not_change_compared_claim(self):
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        digest = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
+        probe = r"""
+import json
+import sys
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import check_review
+import compare_reviews
+original = check_review._read_object
+target = Path(sys.argv[2]).resolve()
+mutations = [0]
+
+def mutating_read(path):
+    payload, raw = original(path)
+    if Path(path).resolve() == target:
+        mutations[0] += 1
+        if mutations[0] > 1:
+            raise RuntimeError("private response reread after verification")
+        replacement = json.loads(raw)
+        replacement["reviews"][0]["candidate_locations"][0]["path"] = "hashmarks/missing.py"
+        target.write_text(json.dumps(replacement))
+    return payload, raw
+
+check_review._read_object = mutating_read
+result = compare_reviews.compare_private_reviews(
+    kit=Path(sys.argv[1]), response_a=target,
+    response_b=Path(sys.argv[3]), expected_manifest_sha256=sys.argv[4],
+)
+assert mutations == [1], mutations
+assert result["cases"][0]["state"] == "SAME_CANDIDATE_UNVERIFIED", result
+assert result["summary"]["approved_oracles"] == 0
+"""
+        command = subprocess.run([
+            sys.executable, "-c", probe, str(self.out),
+            str(first), str(second), digest,
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(command.returncode, 0, command.stderr)
+        self.assertFalse((self.out / "__pycache__").exists())
+        verify_kit(self.out)
+
     def test_comparison_does_not_accept_same_private_file_twice(self):
         run, first, _ = self._compare_two_private_reviews()
         self.assertEqual(run.returncode, 0, run.stderr)
