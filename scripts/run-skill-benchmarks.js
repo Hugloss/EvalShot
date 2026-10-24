@@ -114,6 +114,7 @@ function validateCorpus(corpus, cookbook, specialists) {
     if (!['FINDING', 'CLEAN'].includes(item.expected)) errors.push(`${item.id}: expected must be FINDING or CLEAN`);
     if (!item.scenario || typeof item.scenario !== 'string') errors.push(`${item.id}: missing scenario`);
     if (item.blind !== undefined && typeof item.blind !== 'boolean') errors.push(`${item.id}: blind must be boolean`);
+    if (item.blind && item.blind_scope !== undefined && (typeof item.blind_scope !== 'string' || !item.blind_scope.trim())) errors.push(`${item.id}: invalid blind scope`);
     if (item.fixture && item.expected === 'FINDING') {
       const contract = item.evidence_contract;
       if (!contract || contract.status !== 'pinned-fixture-anchor'
@@ -162,7 +163,7 @@ function evaluatorSystem(skillText, skillName) {
 }
 
 function casePrompt(item) {
-  if (item.blind) return 'Inspect the entire current repository for reachable defects in the declared review scope. Discover and justify the outcome from repository evidence. Do not assume a defect exists. Report only the strongest proven finding or a scoped clean result. No gold expectations or file locations are supplied.';
+  if (item.blind) return `Inspect the entire current repository for reachable defects concerning ${item.blind_scope || 'repository identity authority'}. Discover and justify the outcome from repository evidence. Do not assume a defect exists. Report only the strongest proven finding or a scoped clean result. No gold expectations or file locations are supplied.`;
   const source = item.fixture
     ? 'Inspect the files in the current working directory; they are the complete fixture for this case.'
     : 'The scenario below is the complete evidence for this bounded case.';

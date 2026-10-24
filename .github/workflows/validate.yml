@@ -39,6 +39,9 @@ jobs:
       - name: Blind investigation fixture regression
         run: node scripts/test-blind-investigation.js
 
+      - name: Blind control matrix regressions
+        run: node scripts/test-blind-control-matrix.js
+
       - name: Model-free skill evidence regressions
         run: |
           node scripts/test-skill-evidence-contract.js
