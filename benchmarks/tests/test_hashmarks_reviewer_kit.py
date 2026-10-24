@@ -1110,6 +1110,87 @@ assert result["approved_oracles"] == 0
         self.assertEqual(result["references_exist"], 1)
         self.assertFalse(result["approved_oracles"])
 
+    def test_offline_blank_function_span_line_is_not_source_anchor(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    x = 1\n"
+            "\n"
+            "    return x\n", encoding="utf-8",
+        )
+        self.freeze("blank declaration span source citation")
+        self.update_source_pin()
+        run, private = self._private_claim_check(line=3)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        status = json.loads(run.stdout)
+        self.assertEqual(
+            status["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION",
+        )
+        self.assertEqual(status["references_exist"], 0)
+        self.assertFalse(status["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(private.exists())
+        verify_kit(self.out)
+
+    def test_offline_comment_only_method_span_line_is_not_anchor(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        # this comment is not a declaration token\n"
+            "        return 1\n", encoding="utf-8",
+        )
+        self.freeze("comment-only method source citation")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=3)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        status = json.loads(run.stdout)
+        self.assertEqual(
+            status["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION",
+        )
+        self.assertEqual(status["references_exist"], 0)
+        self.assertFalse(status["semantic_owner_proven"])
+
+    def test_offline_multiline_string_source_line_is_real_syntax(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        '''intro\n"
+            "        # still inside the string literal\n"
+            "        closing'''\n"
+            "        return 1\n", encoding="utf-8",
+        )
+        self.freeze("multiline string citation")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=4)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        status = json.loads(run.stdout)
+        self.assertEqual(
+            status["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertEqual(status["references_exist"], 1)
+        self.assertFalse(status["approved_oracles"])
+
+    def test_offline_pair_blank_comment_anchor_cannot_fake_agreement(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        # cite this instead of its declaration\n"
+            "        return 1\n", encoding="utf-8",
+        )
+        self.freeze("pair of inert source citations")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews(citation_line=3)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        status = json.loads(run.stdout)
+        self.assertEqual(status["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(status["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(status["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+        verify_kit(self.out)
+
     def test_offline_class_suite_explicit_monkeypatch_is_disputed(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "class Store:\n"
@@ -1286,7 +1367,7 @@ assert result["approved_oracles"] == 0
         candidate_b=("hashmarks/store.py", "lookup"),
         exposure_a=False, exposure_b=False,
         reviewer_a="reviewer-one", reviewer_b="reviewer-two",
-        subset_b=False,
+        subset_b=False, citation_line=2,
     ):
         producer = self.build()
         manifest = json.loads((self.out / "manifest.json").read_text())
@@ -1312,7 +1393,7 @@ assert result["approved_oracles"] == 0
                 "source_evidence": (
                     [] if decision == "unable_to_review" else [{
                         "path": "hashmarks/store.py",
-                        "line": 2,
+                        "line": citation_line,
                         "observation": "private synthetic evidence",
                     }]
                 ),
