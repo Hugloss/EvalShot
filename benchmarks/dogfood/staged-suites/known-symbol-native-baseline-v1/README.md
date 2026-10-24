@@ -428,6 +428,17 @@ Ordinary class-local assignments and method-local assignments remain
 separate and do not override a same-name module function. None of these
 static observations authenticates a reviewer or approves an oracle.
 
+**Explicit class-attribute writes outside the owner:** an `Owner.lookup`
+assignment, deletion or binding target in a different class suite can
+potentially replace the observed `Owner.lookup` method. The same owner-scoped
+binding observer returns `CANDIDATE_BINDING_MUTATION_OBSERVED` for later
+writes. Such writes in ordinary, nested, or async function bodies are
+deferred, so it returns `CANDIDATE_DEFERRED_METHOD_REBINDING` irrespective
+of source order. Read-only access, an unrelated `Other.lookup` write, and
+a bare same-name variable in another class do not count. Receiver spelling
+is NOT a proven runtime object identity. Neither status is execution
+evidence, proof of semantic ownership or oracle approval.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
