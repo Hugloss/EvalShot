@@ -5,7 +5,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
-const { spawnSync } = require('node:child_process');
 
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const digestFile = name => digest(fs.readFileSync(name));
@@ -69,7 +68,9 @@ function resolveAuthority({ item, options, cookbook, cwd, prompt, skillText }) {
       ':' + digestFile(path.join(__dirname, 'skill-outcome-qualification.js')),
     replicate_id: options.replicateId || null,
     runtime_config_sha256: null,
-    model_identity: options.model || null,
+    // CLI selection is a request, not proof of the model actually used.
+    requested_model: options.model || null,
+    model_identity: null,
     intervention: options.withoutSkill ? 'WITHOUT_CANONICAL_SKILL' : 'WITH_CANONICAL_SKILL',
     execution_id: crypto.randomUUID(),
   };
