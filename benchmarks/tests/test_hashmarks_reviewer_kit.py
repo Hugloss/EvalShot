@@ -853,8 +853,7 @@ assert result["approved_oracles"] == 0
 
     def test_offline_deferred_global_write_prevents_false_two_review_agreement(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
-            "class Other:\n"
-            "    pass\n"
+            "# Pinned historical source fixture\n"
             "def lookup():\n"
             "    return 1\n"
             "def callback():\n"
