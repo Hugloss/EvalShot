@@ -396,6 +396,21 @@ must not be counted as eager mutations of the parent. The single portable
 AST observer preserves both distinctions, without executing code,
 establishing runtime reachability, or approving a semantic oracle.
 
+**Deferred `global` rebinding:** unlike ordinary local assignments inside
+an uncalled function, `global lookup` makes subsequent writes to `lookup`
+target the module namespace. The canonical source checker now conservatively
+reports `CANDIDATE_DEFERRED_GLOBAL_REBINDING` for a proposed module-level
+function whose name might be written by a function with a `global`
+declaration (including assignments, imports, deletions, loop targets and
+nested function definitions). `global` is scoped to the function that
+declares it, not an unrelated caller, lambda, or class body. A bare global
+declaration or read does not count as a write, and a module-global write
+does not itself replace a method attribute inside a different class.
+Deferred writes are reported even when the containing function appears
+textually before the candidate: its future invocation cannot be inferred
+from file order. This is a *potential* binding uncertainty, never proof
+of execution, semantic ownership, reviewer independence or oracle approval.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
