@@ -1014,6 +1014,66 @@ assert result["approved_oracles"] == 0
         self.assertTrue(private.exists())
         verify_kit(self.out)
 
+    def test_offline_class_suite_explicit_monkeypatch_is_disputed(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "class Patch:\n"
+            "    Store.lookup = replacement\n", encoding="utf-8",
+        )
+        self.freeze("class-suite method replacement")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=2)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        status = json.loads(run.stdout)
+        self.assertEqual(
+            status["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertEqual(status["references_exist"], 0)
+        self.assertFalse(status["approved_oracles"])
+
+    def test_offline_deferred_method_write_is_disputed(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    Store.lookup = replacement\n", encoding="utf-8",
+        )
+        self.freeze("deferred class method replacement")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=2)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        status = json.loads(run.stdout)
+        self.assertEqual(
+            status["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_DEFERRED_METHOD_REBINDING",
+        )
+        self.assertEqual(status["references_exist"], 0)
+        self.assertFalse(status["reviewer_independence_verified"])
+
+    def test_offline_deferred_method_write_prevents_false_review_agreement(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    del Store.lookup\n", encoding="utf-8",
+        )
+        self.freeze("deferred method deletion")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(result["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+        verify_kit(self.out)
+
     def test_offline_class_method_monkeypatch_is_not_unambiguous_source(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "class Store:\n"
