@@ -39,9 +39,13 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    competing layers or interpretable task boundaries. A single matching
    declaration does **not** establish unique behavioral ownership.
 5. Ground findings in repository-relative paths and **positive** line numbers
-   from the frozen source. Explain the specific semantic relationship seen
-   at each citation. A real file and line prove only source existence, not
-   that the interpretation is right.
+   from the frozen source. For **each proposed owner file**, cite at least
+   one actual line in that same file; additional caller, test, and delegation
+   evidence may cite other files. These known-symbol tasks expect Python
+   definitions: a README or other non-Python file can be background evidence,
+   but the current checker cannot establish its claimed symbol declaration.
+   Explain the specific semantic relationship at each citation. A real file
+   and line prove only source existence, not that the interpretation is right.
 6. Select one provisional decision:
    - `unique`: exactly one defensible owner, with evidence and alternatives
      explicitly challenged.
