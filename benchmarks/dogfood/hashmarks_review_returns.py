@@ -170,6 +170,8 @@ def main(argv: list[str] | None = None) -> int:
                 raise ReturnError("review status must not overwrite benchmark sources")
             if args.responses and output == args.responses.resolve():
                 raise ReturnError("review status must not overwrite private returns")
+            if args.output.exists() or args.output.is_symlink():
+                raise ReturnError("review status output must be a new file")
         packet = prepare_blind_review(staged=staged, repository_root=root)
         report = project_returns(
             packet, _read_json(args.responses) if args.responses else None
@@ -179,7 +181,8 @@ def main(argv: list[str] | None = None) -> int:
     rendered = json.dumps(report, sort_keys=True, indent=2) + "\n"
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered, encoding="utf-8")
+        with args.output.open("x", encoding="utf-8") as status_file:
+            status_file.write(rendered)
     print(rendered, end="")
     return 0
 
