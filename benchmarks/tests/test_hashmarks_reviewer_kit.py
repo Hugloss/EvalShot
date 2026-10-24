@@ -1014,6 +1014,102 @@ assert result["approved_oracles"] == 0
         self.assertTrue(private.exists())
         verify_kit(self.out)
 
+    def test_offline_starred_module_unpack_disputes_candidate(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "*lookup, rest = items\n", encoding="utf-8",
+        )
+        self.freeze("starred module unpack")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=1)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertEqual(result["references_exist"], 0)
+        self.assertFalse(result["approved_oracles"])
+
+    def test_offline_starred_class_unpack_disputes_method(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "    *lookup, rest = items\n", encoding="utf-8",
+        )
+        self.freeze("starred class unpack")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=2)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertEqual(result["references_exist"], 0)
+        self.assertFalse(result["semantic_owner_proven"])
+
+    def test_offline_deferred_global_starred_unpack_is_unresolved(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    global lookup\n"
+            "    *lookup, rest = items\n", encoding="utf-8",
+        )
+        self.freeze("starred deferred global unpack")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=1)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_DEFERRED_GLOBAL_REBINDING",
+        )
+        self.assertEqual(result["references_exist"], 0)
+        self.assertFalse(result["reviewer_independence_verified"])
+
+    def test_offline_starred_class_unpack_cannot_fake_pair_agreement(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "    *lookup, rest = items\n", encoding="utf-8",
+        )
+        self.freeze("starred class binding pair")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(result["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+        verify_kit(self.out)
+
+    def test_offline_unrelated_local_starred_unpack_preserves_source_status(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    *lookup, rest = items\n", encoding="utf-8",
+        )
+        self.freeze("unrelated local starred unpack")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=2)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertEqual(result["references_exist"], 1)
+        self.assertFalse(result["approved_oracles"])
+
     def test_offline_class_suite_explicit_monkeypatch_is_disputed(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "class Store:\n"
