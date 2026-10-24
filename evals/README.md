@@ -89,3 +89,24 @@ validation, a nonempty answer, or a source-citation match. The remaining
 uncovered specialists require independent, reviewed neighbor-confusion
 fixtures and model-backed qualification on OpenCode/Pi. Those evaluations
 are not performed by GitHub CI.
+
+## Experimental authority on paired skill runs
+
+The skill evaluator records observed repository-content, frozen task, canonical
+skill-content, executable-byte, and local evaluator-oracle digests before each
+agent invocation. It rechecks the repository snapshot after execution and rejects
+runs whose repository contents changed. Each run carries a fresh execution ID.
+Use the same explicit `--replicate-id ID` for a baseline/skill pair.
+
+These observations are **partial authority**, not provider attestation.
+The selected agent may load implicit configuration, resolve a default model,
+or invoke other programs internally. Unless that effective configuration and
+model identity are independently observed, the receipt leaves
+`runtime_config_sha256` or `model_identity` unknown. The paired reporter
+rejects unknown or mismatched governing authority with `NOT_COMPARABLE`, even
+when the classification score happens to pass. A deliberate difference in skill
+availability is separately recorded as the intervention, not mistaken for a
+difference in the frozen task.
+
+Historic receipts remain readable but are not comparable without sufficient
+observed evidence. This checkpoint does **not** qualify causal improvement claims.
