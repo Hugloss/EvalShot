@@ -370,6 +370,21 @@ not falsely count as later changes. This remains conservative source-order
 evidence, not a claim that any branch executed or that semantics changed.
 No new check/grading owner or oracle approval is introduced.
 
+**Definition-time expression scope:** Python evaluates function/method
+decorators, defaults and annotations in the enclosing namespace when
+creating a function, while its **body** runs in a later local frame.
+Similarly, class decorators, base expressions and metaclass keywords
+evaluate in the enclosing scope; the class body has its own namespace.
+The existing AST source-reference checker now observes walrus-style
+binding changes in these definition-time expressions using that correct
+parent module/class scope. It does not conflate unrelated local function
+bodies or class bodies with the parent's bindings. A later observed
+same-scope binding mutation retains the already-defined, non-approving
+`CANDIDATE_BINDING_MUTATION_OBSERVED` status; an earlier mutation
+superseded by a later plain `def` remains a source-existence observation
+only. There is no Python execution, reviewer identity attestation, semantic
+ownership proof or oracle approval.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
