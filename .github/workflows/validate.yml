@@ -34,7 +34,9 @@ jobs:
         run: node scripts/test-cookbook-migration.js --cookbook-root .test-inputs/agentsCookbook
 
       - name: Model-free skill evidence regressions
-        run: node scripts/test-skill-evidence-contract.js
+        run: |
+          node scripts/test-skill-evidence-contract.js
+          node scripts/test-skill-outcome-qualification.js
 
       - name: Model-free skill coverage and ownership inventory
         run: |

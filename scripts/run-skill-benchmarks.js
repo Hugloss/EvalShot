@@ -6,6 +6,7 @@ const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { qualifyEvidence } = require('./skill-evidence-contract');
+const { assessSkillOutcome } = require('./skill-outcome-qualification');
 const { resolveCookbookSource } = require('./cookbook-source');
 
 const repoRoot = path.resolve(path.dirname(fs.realpathSync(__filename)), '..');
@@ -249,15 +250,26 @@ function executeCase(item, options, cookbook) {
     expected: item.expected,
     anchors: item.evidence_contract ? item.evidence_contract.anchors : null,
   });
-  const pass = execution.status === 0 && parsed.verdict === item.expected
-    && parsed.scope === expectedScope
-    && !['UNQUALIFIED'].includes(proof.state);
+  const qualified = assessSkillOutcome({
+    executionStatus: execution.status, parsed, expected: item.expected,
+    skill: item.skill, proof,
+  });
+  const pass = qualified.pass;
   return { id: item.id, skill: item.skill, kind: item.kind, runtime: options.runtime, model: options.model || null,
     expected: item.expected, expectedScope, status: pass ? 'pass' : 'fail', exitCode: execution.status,
     elapsedMs: execution.elapsedMs, outputChars: execution.stdout.length, verdict: parsed.verdict || null,
     scope: parsed.scope || null, evidence: parsed.evidence || null,
     evidenceQualification: proof.state, evidenceReason: proof.reason,
-    evidenceLocation: proof.location || null, error: execution.error || null,
+    evidenceLocation: proof.location || null,
+    qualification: {
+      capability: qualified.capability,
+      classificationPass: qualified.classificationPass,
+      evidencePass: qualified.evidencePass,
+      semanticProof: qualified.semanticProof,
+      repositoryDiscovery: qualified.repositoryDiscovery,
+      repair: qualified.repair,
+    },
+    error: execution.error || null,
     stdout: execution.stdout, stderr: execution.stderr };
 }
 
