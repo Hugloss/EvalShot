@@ -266,6 +266,17 @@ packaged byte-for-byte as `source_contract.py` and bound by
 commit/tree authority; the offline caller uses the independently verified
 received kit. Neither implementation executes source code.
 
+**Single-read verified source custody:** the standalone recipient verifier
+now optionally retains an in-memory snapshot of each source blob **at the
+same time it verifies its manifest hash**. It publishes that snapshot to the
+private return checker only if the *entire* kit passes verification. The
+checker consumes those retained bytes rather than reopening paths after
+validation. A post-check filesystem edit or symlink swap cannot change the
+meaning of an already-validated source citation; a fresh verification of
+the modified kit still fails closed. No source bytes enter the printed status
+or reviewer-response files. The standard `verify.py` command continues to
+return a small, answer-free transport status.
+
 The result is explicitly `UNTRUSTED_FIRST_PASS_SOURCE_EXISTENCE_ONLY`;
 `SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF` means the citation bytes
 exist, not that the reviewer found a valid behavioral owner. For this
