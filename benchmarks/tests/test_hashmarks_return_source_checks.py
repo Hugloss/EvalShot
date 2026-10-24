@@ -148,8 +148,52 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             "CANDIDATE_PYTHON_NOT_PARSEABLE",
         )
 
+    def test_existing_candidate_without_own_citation_is_not_source_anchored(self):
+        claim = self.assertion()
+        claim["source_evidence"][0]["path"] = "hashmarks/b.py"
+        result = self.check([claim])
+        self.assertEqual(
+            self.status(result), "CANDIDATE_WITHOUT_CITED_SOURCE_EVIDENCE"
+        )
+        self.assertEqual(result["summary"]["pinned_references_exist"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/b.py", json.dumps(result))
+
+    def test_ambiguous_candidate_without_individual_source_anchor_is_not_positive(self):
+        claim = self.assertion(decision="ambiguous")
+        result = self.check([claim])
+        self.assertEqual(
+            self.status(result), "CANDIDATE_WITHOUT_CITED_SOURCE_EVIDENCE"
+        )
+        self.assertEqual(result["summary"]["pinned_references_exist"], 0)
+
+    def test_non_python_source_cannot_claim_unverified_symbol_ownership(self):
+        (self.repo / "README.md").write_text("symbol named pretend\n")
+        self.freeze("non-python source")
+        for question in self.packet["packets"]:
+            question["repository"]["commit"] = self.commit
+            question["repository"]["tree"] = self.tree
+        claim = self.assertion()
+        claim["candidate_locations"] = [
+            {"path": "README.md", "symbol": "pretend"}
+        ]
+        claim["source_evidence"] = [{
+            "path": "README.md", "line": 1,
+            "observation": "a real line but not a Python declaration",
+        }]
+        result = self.check([claim])
+        self.assertEqual(
+            self.status(result), "UNSUPPORTED_NON_PYTHON_CANDIDATE"
+        )
+        self.assertEqual(result["summary"]["pinned_references_exist"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+
     def test_ambiguity_with_two_pinned_declarations_remains_ambiguous(self):
         claim = self.assertion(decision="ambiguous")
+        claim["source_evidence"].append({
+            "path": "hashmarks/b.py", "line": 2,
+            "observation": "a second privately asserted synthetic owner",
+        })
         result = self.check([claim])
         self.assertEqual(result["summary"]["pinned_references_exist"], 1)
         self.assertEqual(result["summary"]["approved_oracles"], 0)
