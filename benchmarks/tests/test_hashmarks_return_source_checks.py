@@ -584,6 +584,121 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=1,
         ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
 
+    def test_class_global_assignment_after_module_function_is_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Holder:\n"
+            "    global a\n"
+            "    a = replacement\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_global_assignment_before_plain_module_def_is_superseded(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Holder:\n"
+            "    global a\n"
+            "    a = replacement\n"
+            "def a():\n"
+            "    return 1\n",
+            line=4,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_class_global_write_inside_deferred_function_is_deferred(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    class Holder:\n"
+            "        global a\n"
+            "        a = replacement\n",
+            line=1,
+        ), "CANDIDATE_DEFERRED_GLOBAL_REBINDING")
+
+    def test_prior_nested_class_global_write_remains_possible_after_later_def(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def callback():\n"
+            "    class Holder:\n"
+            "        global a\n"
+            "        a = replacement\n"
+            "def a():\n"
+            "    return 1\n",
+            line=5,
+        ), "CANDIDATE_DEFERRED_GLOBAL_REBINDING")
+
+    def test_class_global_declaration_and_read_without_write_is_not_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Reader:\n"
+            "    global a\n"
+            "    result = a\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_class_same_named_attribute_without_global_is_not_module_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Other:\n"
+            "    a = replacement\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_class_global_with_as_target_after_definition_is_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Holder:\n"
+            "    global a\n"
+            "    with handle as a:\n"
+            "        pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_global_match_capture_after_definition_is_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Holder:\n"
+            "    global a\n"
+            "    match value:\n"
+            "        case a:\n"
+            "            pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_global_definition_is_not_observed_as_regular_class_method(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Holder:\n"
+            "    global a\n"
+            "    def a():\n"
+            "        return 1\n",
+            line=3,
+        ), "CANDIDATE_CLASS_GLOBAL_DEFINITION")
+
+    def test_class_global_function_definition_overrides_earlier_module_candidate(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Holder:\n"
+            "    global a\n"
+            "    def a():\n"
+            "        return 2\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_function_method_binding_does_not_inherit_class_global_declaration(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Holder:\n"
+            "    global a\n"
+            "    def method(self):\n"
+            "        a = replacement\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_deferred_global_assignment_disputes_module_owner(self):
         self.assertEqual(self._guarded_owner_status(
             "def a():\n"
