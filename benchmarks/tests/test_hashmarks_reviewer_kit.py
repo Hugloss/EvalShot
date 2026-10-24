@@ -43,7 +43,8 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.git("init", "-q")
         (self.hashmarks / "hashmarks").mkdir()
         (self.hashmarks / "hashmarks/store.py").write_text(
-            "class Store:\n    def lookup(self):\n        return 7\n", encoding="utf-8"
+            "class Store:\n    def lookup(self):\n        return 7\n"
+            "    def alternative(self):\n        return 8\n", encoding="utf-8"
         )
         (self.hashmarks / "README.md").write_text(
             "Pinned source only, not an oracle review.\n", encoding="utf-8"
@@ -286,6 +287,43 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertFalse(result["reviewer_independence_verified"])
         self.assertFalse(result["semantic_owner_proven"])
 
+    def test_offline_candidate_definition_without_its_cited_source_is_not_positive(self):
+        process, private = self._private_claim_check()
+        self.assertEqual(process.returncode, 0, process.stderr)
+        data = json.loads(private.read_text())
+        data["reviews"][0]["source_evidence"][0]["path"] = "README.md"
+        private.write_text(json.dumps(data))
+        manifest_sha = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
+        run = subprocess.run([
+            sys.executable, str(self.out / "check_review.py"),
+            "--root", str(self.out),
+            "--responses", str(private),
+            "--expect-manifest-sha256", manifest_sha,
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(report["references_exist"], 0)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_WITHOUT_CITED_SOURCE_EVIDENCE",
+        )
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertNotIn("fictional-test-reviewer", run.stdout)
+
+    def test_offline_non_python_candidate_never_satisfies_source_owner_check(self):
+        process, _ = self._private_claim_check(
+            path="README.md", symbol="alternative",
+        )
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 0)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "UNSUPPORTED_NON_PYTHON_CANDIDATE",
+        )
+        self.assertFalse(report["approved_oracles"])
+
     def test_offline_source_contract_matches_canonical_file(self):
         self.build()
         self.assertEqual(
@@ -339,7 +377,7 @@ class PinnedReviewerKitTests(unittest.TestCase):
             }
             if decision == "ambiguous":
                 item["candidate_locations"].append(
-                    {"path": "README.md", "symbol": "alternative"}
+                    {"path": "hashmarks/store.py", "symbol": "alternative"}
                 )
             path.write_text(json.dumps({
                 "schema": "evalshot.hashmarks-external-first-pass-returns.v1",
@@ -391,14 +429,14 @@ class PinnedReviewerKitTests(unittest.TestCase):
 
     def test_two_competing_claimed_source_owners_preserve_disagreement(self):
         run, _, _ = self._compare_two_private_reviews(
-            candidate_b=("README.md", "alternative"),
+            candidate_b=("hashmarks/store.py", "alternative"),
         )
         self.assertEqual(run.returncode, 0, run.stderr)
         report = json.loads(run.stdout)
         self.assertEqual(report["cases"][0]["state"], "COMPETING_CANDIDATES_DISAGREE")
         self.assertEqual(report["summary"]["conflicts_or_incomplete"], 2)
         self.assertFalse(report["cases"][0]["canonical_oracle_approved"])
-        self.assertNotIn("README.md", run.stdout)
+        self.assertNotIn("alternative", run.stdout)
 
     def test_ambiguous_review_does_not_get_overridden_by_unique(self):
         run, _, _ = self._compare_two_private_reviews(decision_b="ambiguous")
