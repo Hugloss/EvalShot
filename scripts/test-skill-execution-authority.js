@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { directoryDigest, resolveAuthority, assertUnchanged } = require('./skill-execution-authority');
+const { persist } = require('./run-skill-benchmarks');
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'evalshot-authority-'));
 try {
@@ -42,6 +43,18 @@ try {
     if (previousBin === undefined) delete process.env.PI_BIN;
     else process.env.PI_BIN = previousBin;
   }
+  const artifacts = path.join(root, 'artifacts');
+  const result = { id: 'blind-a', runtime: 'pi', arm: 'baseline',
+    experimentalAuthority: { execution_id: 'immutable-run' },
+    stdout: 'first output', stderr: '' };
+  persist(result, artifacts);
+  const receiptPath = path.join(artifacts, 'pi', 'baseline', 'blind-a', 'result.json');
+  const firstReceipt = fs.readFileSync(receiptPath, 'utf8');
+  assert.throws(() => persist({ ...result, stdout: 'replacement' }, artifacts),
+    /Execution receipt already exists/);
+  assert.equal(fs.readFileSync(receiptPath, 'utf8'), firstReceipt);
+  assert.equal(fs.readFileSync(path.join(path.dirname(receiptPath), 'stdout.txt'), 'utf8'),
+    'first output');
   console.log('skill execution authority regressions PASS');
 } finally {
   fs.rmSync(root, { recursive: true, force: true });
