@@ -292,6 +292,7 @@ class PinnedReviewerKitTests(unittest.TestCase):
         self.assertEqual(process.returncode, 0, process.stderr)
         data = json.loads(private.read_text())
         data["reviews"][0]["source_evidence"][0]["path"] = "README.md"
+        data["reviews"][0]["source_evidence"][0]["line"] = 1  # real but unrelated
         private.write_text(json.dumps(data))
         manifest_sha = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
         run = subprocess.run([
