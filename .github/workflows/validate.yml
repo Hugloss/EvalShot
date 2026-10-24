@@ -163,6 +163,9 @@ jobs:
                   )
           PY
 
+      - name: Repair behavior qualification regressions
+        run: uv run --no-project python -m unittest benchmarks.tests.test_repair_qualification -v
+
       - name: Benchmark foundation and pilot regressions
         run: uv run --no-project python -m unittest discover -s benchmarks/tests -v
 
