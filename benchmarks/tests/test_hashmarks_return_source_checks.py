@@ -429,6 +429,161 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=1,
         ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
 
+    def test_own_function_default_binding_is_superseded_by_its_def(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a(value=(a := 3)):\n"
+            "    return 1\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_own_method_default_binding_is_superseded_by_its_def(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self, value=(a := 3)):\n"
+            "        return 1\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_own_definition_header_does_not_hide_subsequent_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a(value=(a := 3)):\n"
+            "    return 1\n"
+            "a = None\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_lambda_body_walrus_is_local_not_module_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "later = lambda: (a := 3)\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_later_lambda_default_walrus_rebinds_parent_module_name(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "later = lambda value=(a := 3): value\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_lambda_body_in_later_decorator_does_not_mutate_prior_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "@(lambda: (a := 3))\n"
+            "def later():\n"
+            "    pass\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_later_function_decorator_can_rebind_prior_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "@(a := decorator)\n"
+            "def other():\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_function_default_can_rebind_prior_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def other(arg=(a := 17)):\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_function_parameter_annotation_can_rebind_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def other(arg: (a := object)):\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_class_decorator_can_rebind_prior_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "@(a := class_decorator)\n"
+            "class Other:\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_class_base_expression_can_rebind_prior_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Other((a := Base)):\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_metaclass_keyword_can_rebind_prior_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Other(metaclass=(a := Meta)):\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_method_decorator_rebinds_earlier_method_in_same_class(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "    @(a := decorator)\n"
+            "    def other(self):\n"
+            "        pass\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_method_default_rebinds_earlier_method_in_same_class(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "    def other(self, arg=(a := 3)):\n"
+            "        pass\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_prior_function_default_is_superseded_by_later_module_definition(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def early(x=(a := 3)):\n"
+            "    pass\n"
+            "def a():\n"
+            "    return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_walrus_in_unrelated_function_body_does_not_rebind_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def other():\n"
+            "    x = (a := 3)\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_class_member_decorator_does_not_rebind_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Other:\n"
+            "    @(a := decorator)\n"
+            "    def method(self):\n"
+            "        pass\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_module_function_reassigned_to_constant_is_not_a_verified_binding(self):
         self.assertEqual(self._guarded_owner_status(
             "def a():\n"

@@ -75,6 +75,17 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    plain declaration, or inside an unrelated local function, is not by
    itself a later override. The checker observes syntax only; it does
    not evaluate whether a loop, exception, context manager or case runs.
+   Inspect definition-time expressions too: function/method decorators,
+   parameter defaults and annotations, plus class decorators, bases and
+   metaclass keywords are evaluated in their *enclosing* module/class
+   namespace. A binding expression there may replace an earlier owner,
+   while a binding inside an unrelated function body or class body does
+   not automatically replace a name in the enclosing namespace.
+   A function's own decorator/default/annotation binding occurs *before*
+   its final `def` name assignment, and so is superseded by that function
+   declaration; a later binding in a separate statement remains uncertain.
+   Lambda defaults also evaluate in their enclosing scope, whereas the
+   lambda body is local and is not executed by merely defining it.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:

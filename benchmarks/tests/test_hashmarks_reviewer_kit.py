@@ -641,6 +641,150 @@ assert result["approved_oracles"] == 0
         self.assertNotIn("hashmarks/store.py", run.stdout)
         self.assertTrue(first.exists() and second.exists())
 
+    def test_offline_own_default_binding_is_preceded_by_def_assignment(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup(value=(lookup := 3)):\n"
+            "    return 1\n", encoding="utf-8",
+        )
+        self.freeze("own signature write is replaced by def")
+        self.update_source_pin()
+        process, private = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertEqual(report["source_check_disagreements"], 0)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+        self.assertNotIn("fictional-test-reviewer", process.stdout)
+        self.assertTrue(private.is_file())
+        verify_kit(self.out)
+
+    def test_offline_own_default_followed_by_rebinding_is_disputed(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup(value=(lookup := 3)):\n"
+            "    return 1\n"
+            "lookup = None\n", encoding="utf-8",
+        )
+        self.freeze("own signature prebind then later overwrite")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 0)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+        self.assertFalse(report["approved_oracles"])
+
+    def test_offline_lambda_body_walrus_does_not_create_false_mutation(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "other = lambda: (lookup := None)\n", encoding="utf-8",
+        )
+        self.freeze("lambda body remains local")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+        self.assertFalse(report["approved_oracles"])
+
+    def test_offline_module_owner_mutated_by_later_function_default(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "def other(arg=(lookup := 7)):\n"
+            "    pass\n", encoding="utf-8",
+        )
+        self.freeze("function default binding in parent scope")
+        self.update_source_pin()
+        process, private = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertEqual(report["references_exist"], 0)
+        self.assertEqual(report["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+        self.assertNotIn("fictional-test-reviewer", process.stdout)
+        self.assertTrue(private.is_file())
+        verify_kit(self.out)
+
+    def test_offline_class_owner_mutated_by_later_method_decorator(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "    @(lookup := decorator)\n"
+            "    def other(self):\n"
+            "        pass\n", encoding="utf-8",
+        )
+        self.freeze("method decorator uses class namespace")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertFalse(report["reviewer_independence_verified"])
+
+    def test_offline_class_header_mutation_disputes_two_untrusted_matching_reviews(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "@(lookup := class_decorator)\n"
+            "class Other:\n"
+            "    pass\n", encoding="utf-8",
+        )
+        self.freeze("class decorator rebinding")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(result["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+
+    def test_offline_unrelated_class_method_decorator_does_not_mutate_module_owner(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "class Other:\n"
+            "    @(lookup := decorator)\n"
+            "    def other(self):\n"
+            "        pass\n", encoding="utf-8",
+        )
+        self.freeze("class member decorator remains in class namespace")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+        self.assertFalse(report["approved_oracles"])
+
     def test_offline_verified_declaration_with_assignment_is_not_owner_proof(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "def lookup():\n"
