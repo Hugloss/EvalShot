@@ -295,6 +295,12 @@ python3 /path/to/kit/compare_reviews.py \
 
 Both input files must be complete, independently returned first-pass
 declarations, not the intentionally incomplete `start_review.py` skeleton.
+The comparator uses `check_review.check_claims` to read, validate and
+transport **each private response exactly once**, then compares the validated
+in-memory payload. This prevents a second read of a response file after
+validation from silently changing the claim being compared. The ordinary
+`check_review.check` CLI continues to return only sanitized status without
+exposing any private payload.
 Each is processed by the **same** `check_review.check` pipeline that already
 validates the frozen packet identity, source-reference syntax, and **manifest
 bound source existence**. The comparison introduces no second grader and no
