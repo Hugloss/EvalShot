@@ -237,6 +237,81 @@ class PinnedReviewerKitTests(unittest.TestCase):
         ], cwd=self.workspace, capture_output=True, text=True)
         return process, target
 
+    def test_offline_review_uses_exact_verified_source_after_file_replacement(self):
+        original, private = self._private_claim_check()
+        self.assertEqual(original.returncode, 0, original.stderr)
+        manifest = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
+        probe = r"""
+import json
+import sys
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import check_review
+original_verify = check_review.verify_kit
+changed = [False]
+
+def replace_source_after_verification(*args, **kwargs):
+    receipt = original_verify(*args, **kwargs)
+    source = Path(sys.argv[1]) / "source/hashmarks/store.py"
+    source.write_text("def forged(): pass\n")
+    changed[0] = True
+    return receipt
+
+check_review.verify_kit = replace_source_after_verification
+result = check_review.check(Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3])
+assert changed == [True]
+assert result["references_exist"] == 1, result
+assert result["source_check_disagreements"] == 0, result
+assert result["review_statuses"][0]["source_reference_status"] == "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF"
+assert result["approved_oracles"] == 0
+print(json.dumps(result))
+"""
+        command = subprocess.run([
+            sys.executable, "-c", probe, str(self.out), str(private), manifest,
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(command.returncode, 0, command.stderr)
+        self.assertNotIn("hashmarks/store.py", command.stdout)
+        self.assertNotIn("fictional-test-reviewer", command.stdout)
+        self.assertFalse((self.out / "__pycache__").exists())
+        # Later verifier attempts MUST reject changed disk contents, while
+        # the completed check above was bound to already verified bytes.
+        with self.assertRaisesRegex(KitVerificationError, "inventory"):
+            verify_kit(self.out)
+
+    def test_offline_review_after_verified_source_symlink_swap_is_still_bound(self):
+        original, private = self._private_claim_check()
+        self.assertEqual(original.returncode, 0, original.stderr)
+        manifest = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
+        probe = r"""
+import sys
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import check_review
+original_verify = check_review.verify_kit
+
+def replace_source_after_verification(*args, **kwargs):
+    receipt = original_verify(*args, **kwargs)
+    source = Path(sys.argv[1]) / "source/hashmarks/store.py"
+    source.unlink()
+    source.symlink_to(Path(sys.argv[4]))
+    return receipt
+
+check_review.verify_kit = replace_source_after_verification
+result = check_review.check(Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3])
+assert result["references_exist"] == 1, result
+assert result["approved_oracles"] == 0
+"""
+        command = subprocess.run([
+            sys.executable, "-c", probe, str(self.out), str(private), manifest,
+            str(self.workspace / "nonexistent-private-file"),
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(command.returncode, 0, command.stderr)
+        self.assertFalse((self.out / "__pycache__").exists())
+        with self.assertRaisesRegex(KitVerificationError, "unsafe"):
+            verify_kit(self.out)
+
     def test_offline_private_citation_exists_but_is_never_semantic_approval(self):
         process, private = self._private_claim_check()
         self.assertEqual(process.returncode, 0, process.stderr)
@@ -618,6 +693,40 @@ assert result["summary"]["approved_oracles"] == 0
         path.write_text(path.read_text() + "\\n# altered\\n")
         with self.assertRaises(KitVerificationError):
             verify_kit(self.out)
+
+    def test_verified_source_snapshot_only_publishes_after_complete_validation(self):
+        producer = self.build()
+        verified: dict[str, bytes] = {}
+        receipt = verify_kit(
+            self.out, expected_manifest_sha256=producer["manifest_sha256"],
+            verified_source_bytes=verified,
+        )
+        self.assertEqual(receipt["source_files"], 3)
+        self.assertEqual(set(verified), {
+            "README.md", "hashmarks/store.py", "nested/data.json"
+        })
+        self.assertEqual(
+            verified["hashmarks/store.py"],
+            (self.hashmarks / "hashmarks/store.py").read_bytes(),
+        )
+        (self.out / "source/nested/data.json").write_text('{"altered": true}\n')
+        failed_sink: dict[str, bytes] = {}
+        with self.assertRaisesRegex(KitVerificationError, "inventory"):
+            verify_kit(
+                self.out, expected_manifest_sha256=producer["manifest_sha256"],
+                verified_source_bytes=failed_sink,
+            )
+        self.assertEqual(failed_sink, {})
+
+    def test_verified_source_snapshot_rejects_prepopulated_destination(self):
+        producer = self.build()
+        existing = {"preexisting.py": b"untrusted bytes"}
+        with self.assertRaisesRegex(KitVerificationError, "start empty"):
+            verify_kit(
+                self.out, expected_manifest_sha256=producer["manifest_sha256"],
+                verified_source_bytes=existing,
+            )
+        self.assertEqual(existing, {"preexisting.py": b"untrusted bytes"})
 
     def test_manifest_file_digests_bind_exported_bytes(self):
         self.build()

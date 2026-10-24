@@ -73,8 +73,21 @@ def _path_safe(name: str) -> bool:
     )
 
 
-def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> dict[str, Any]:
-    """Verify after transport; never execute or import checked source files."""
+def verify_kit(
+    root: Path,
+    *,
+    expected_manifest_sha256: str | None = None,
+    verified_source_bytes: dict[str, bytes] | None = None,
+) -> dict[str, Any]:
+    """Verify transport and optionally retain the EXACT verified source bytes.
+
+    The optional destination must be empty; it is populated only after every
+    file and manifest check succeeds, never with unverified or partial bytes.
+    This prevents review consumers from rereading changed source files after
+    the successful verification. Neither form proves semantic correctness.
+    """
+    if verified_source_bytes is not None and verified_source_bytes:
+        raise KitVerificationError("verified source destination must start empty")
     if root.is_symlink() or not root.is_dir():
         raise KitVerificationError("review kit root is missing or unsafe")
     if {child.name for child in root.iterdir()} != _ROOT_ITEMS:
@@ -193,6 +206,9 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         packet_ids.add(row["packet_id"])
 
     observed: set[str] = set()
+    verified_snapshot: dict[str, bytes] | None = (
+        {} if verified_source_bytes is not None else None
+    )
     total = 0
     source = root / "source"
     for item in source.rglob("*"):
@@ -210,8 +226,13 @@ def verify_kit(root: Path, *, expected_manifest_sha256: str | None = None) -> di
         if hashlib.sha256(raw).hexdigest() != hashes[relative]:
             raise KitVerificationError("received source does not match inventory")
         observed.add(relative)
+        if verified_snapshot is not None:
+            verified_snapshot[relative] = raw
     if observed != set(hashes):
         raise KitVerificationError("received reviewer kit omitted tracked source files")
+    # This is the ONLY transfer of bytes to the caller: none escape on failure.
+    if verified_source_bytes is not None:
+        verified_source_bytes.update(verified_snapshot)
 
     return {
         "qualification": "TRANSPORT_BYTES_VERIFIED_ONLY",

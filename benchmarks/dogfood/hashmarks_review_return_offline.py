@@ -11,7 +11,13 @@ from source_contract import check_references
 
 
 def check_claims(root: Path, responses: Path, digest: str) -> tuple[dict, dict]:
-    verify_kit(root, expected_manifest_sha256=digest)
+    # Pin the exact manifest-approved source bytes once. Reopening source
+    # paths after verification could read a changed worktree or symlink.
+    verified_sources: dict[str, bytes] = {}
+    verify_kit(
+        root, expected_manifest_sha256=digest,
+        verified_source_bytes=verified_sources,
+    )
     if responses.resolve().is_relative_to(root.resolve()):
         raise ReturnError("private reviewer returns must remain outside the kit")
     if responses.is_symlink() or not responses.is_file() or responses.stat().st_size > 250_000:
@@ -22,16 +28,12 @@ def check_claims(root: Path, responses: Path, digest: str) -> tuple[dict, dict]:
     if payload.get("blinded_packet_identity") != manifest.get("packet_digest"):
         raise ReturnError("review returns do not match the exact blinded packet")
     checked = validate_returns(question, payload)
-    # The received kit's bytes were checked against the exact producer
-    # manifest above. Do not read current-worktree files or trust unlisted
-    # paths. Semantic meaning and reviewer provenance remain unverified.
+    # Use the SAME bytes checked by verify_kit, never another filesystem
+    # read. This is still source existence, not interpretation or provenance.
     indexed = {row["packet_id"]: row for row in question["packets"]}
     cases = []
     for packet_id, response in checked.items():
-        source_bytes = lambda path: (
-            (root / "source" / path).read_bytes()
-            if path in manifest["source_sha256_by_path"] else None
-        )
+        source_bytes = verified_sources.get
         status, count = check_references(response, source_bytes)
         cases.append({
             "task_id": indexed[packet_id]["task_id"],
