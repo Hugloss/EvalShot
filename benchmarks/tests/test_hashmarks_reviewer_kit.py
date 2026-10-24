@@ -785,6 +785,94 @@ assert result["approved_oracles"] == 0
         self.assertFalse(report["semantic_owner_proven"])
         self.assertFalse(report["approved_oracles"])
 
+    def test_offline_deferred_global_write_disputes_module_owner(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    global lookup\n"
+            "    lookup = replacement\n", encoding="utf-8",
+        )
+        self.freeze("deferred global assignment")
+        self.update_source_pin()
+        process, private = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_DEFERRED_GLOBAL_REBINDING",
+        )
+        self.assertEqual(result["references_exist"], 0)
+        self.assertEqual(result["source_check_disagreements"], 1)
+        self.assertFalse(result["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+        self.assertNotIn("fictional-test-reviewer", process.stdout)
+        self.assertTrue(private.is_file())
+        verify_kit(self.out)
+
+    def test_offline_global_declaration_without_write_is_not_rebinding(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    global lookup\n"
+            "    return lookup\n", encoding="utf-8",
+        )
+        self.freeze("global reference with no mutation")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["references_exist"], 1)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(result["semantic_owner_proven"])
+
+    def test_offline_global_name_write_does_not_mutate_unrelated_class_method(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    global lookup\n"
+            "    lookup = replacement\n", encoding="utf-8",
+        )
+        self.freeze("class method not replaced by module global write")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["references_exist"], 1)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(result["approved_oracles"])
+
+    def test_offline_deferred_global_write_prevents_false_two_review_agreement(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Other:\n"
+            "    pass\n"
+            "def lookup():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    global lookup\n"
+            "    del lookup\n", encoding="utf-8",
+        )
+        self.freeze("deferred global deletion of claimed source owner")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(result["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.is_file() and second.is_file())
+        verify_kit(self.out)
+
     def test_offline_verified_declaration_with_assignment_is_not_owner_proof(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "def lookup():\n"
