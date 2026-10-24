@@ -36,6 +36,9 @@ jobs:
       - name: Ownership matrix fixture regressions
         run: node scripts/test-ownership-matrix.js
 
+      - name: Blind investigation fixture regression
+        run: node scripts/test-blind-investigation.js
+
       - name: Model-free skill evidence regressions
         run: |
           node scripts/test-skill-evidence-contract.js
