@@ -370,6 +370,16 @@ not falsely count as later changes. This remains conservative source-order
 evidence, not a claim that any branch executed or that semantics changed.
 No new check/grading owner or oracle approval is introduced.
 
+**Starred unpacking bindings:** the canonical source checker now descends
+through `ast.Starred` targets in unpacking assignments, `for` and
+`with ... as`. A binding such as `*lookup, rest = values` can change
+the nominated source-owner name and is reported through the **existing**
+module/class/source-order and deferred-global/method mutation statuses.
+Prior writes superseded by a later plain `def`, an unrelated class body
+or a local function without `global` must not create false mutations.
+The same source checker is copied to the standalone reviewer kit; neither
+transport path grants reviewer identity, semantic proof or oracle approval.
+
 **Definition-time expression scope:** Python evaluates function/method
 decorators, defaults and annotations in the enclosing namespace when
 creating a function, while its **body** runs in a later local frame.
