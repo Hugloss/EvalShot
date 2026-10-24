@@ -151,6 +151,7 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
     def test_existing_candidate_without_own_citation_is_not_source_anchored(self):
         claim = self.assertion()
         claim["source_evidence"][0]["path"] = "hashmarks/b.py"
+        claim["source_evidence"][0]["line"] = 2  # real but unrelated source
         result = self.check([claim])
         self.assertEqual(
             self.status(result), "CANDIDATE_WITHOUT_CITED_SOURCE_EVIDENCE"
