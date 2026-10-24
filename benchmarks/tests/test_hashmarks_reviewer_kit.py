@@ -475,6 +475,88 @@ assert result["approved_oracles"] == 0
         self.assertFalse(report["approved_oracles"])
         self.assertNotIn("ENABLED", run.stdout)
 
+    def test_offline_prior_binding_is_overwritten_by_final_declared_method(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    lookup = None\n"
+            "    def lookup(self):\n"
+            "        return 1\n", encoding="utf-8",
+        )
+        self.freeze("method replaces earlier assigned attribute")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=3)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertEqual(report["source_check_disagreements"], 0)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+
+    def test_offline_wildcard_import_after_module_def_is_uncertain(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "from package import *\n", encoding="utf-8",
+        )
+        self.freeze("possibly overwritten by star import")
+        self.update_source_pin()
+        process, private = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 0)
+        self.assertEqual(report["source_check_disagreements"], 1)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_WILDCARD_IMPORT_MAY_REBIND",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("fictional-test-reviewer", process.stdout)
+        self.assertTrue(private.exists())
+        verify_kit(self.out)
+
+    def test_offline_module_wildcard_import_cannot_override_observed_class_method(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "from package import *\n", encoding="utf-8",
+        )
+        self.freeze("star-import does not replace class method")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(report["approved_oracles"])
+
+    def test_offline_pair_source_wildcard_dispute_never_becomes_agreement(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "from package import *\n", encoding="utf-8",
+        )
+        self.freeze("ambiguous module star-import source")
+        self.update_source_pin()
+        # Private synthetic pair checker uses a class-method fixture citation
+        # at line 2, which is a valid body line for the module function.
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(report["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(report["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+
     def test_offline_verified_declaration_with_assignment_is_not_owner_proof(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "def lookup():\n"
