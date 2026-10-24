@@ -86,6 +86,13 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    declaration; a later binding in a separate statement remains uncertain.
    Lambda defaults also evaluate in their enclosing scope, whereas the
    lambda body is local and is not executed by merely defining it.
+   Search for deferred writes inside functions declaring `global name`:
+   an assignment, import, deletion, loop target or nested definition of
+   that name can replace an otherwise observed *module-level* candidate
+   if the function is called. Merely reading a global name, assigning to
+   a same-spelled local variable without `global`, or assigning to an
+   unrelated class attribute must not be treated as a module mutation.
+   The checker cannot determine when such functions run.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:

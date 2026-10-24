@@ -15,6 +15,30 @@ MAX_REFERENCES = 60
 MAX_SOURCE_BYTES = 32 * 1024 * 1024
 
 
+class _FunctionGlobalDeclarations(ast.NodeVisitor):
+    """Collect a function's global declarations without borrowing nested scopes."""
+
+    def __init__(self) -> None:
+        self.names: set[str] = set()
+
+    def visit_Global(self, node: ast.Global) -> None:
+        self.names.update(node.names)
+
+    # These introduce different lexical namespaces; a global statement
+    # inside one must not be attributed to the enclosing function.
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        pass
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        pass
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        pass
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:
+        pass
+
+
 class _Declarations(ast.NodeVisitor):
     """Observe declaration spans and same-scope binding changes, never execute code."""
 
@@ -28,16 +52,28 @@ class _Declarations(ast.NodeVisitor):
         self.local_matches = 0
         self.binding_changes: dict[tuple[str, ...], list[tuple[int, int]]] = {}
         self.wildcard_imports: list[tuple[int, int]] = []
+        self.function_globals: list[tuple[set[str], int]] = []
+        self.possible_global_rebinding = False
 
     def _mark_binding(
         self, name: str, *, node: ast.AST,
         scope: tuple[str, ...] | None = None,
     ) -> None:
-        if self.function_depth == 0 and name == self.symbol:
-            owner = tuple(self.class_stack) if scope is None else scope
-            self.binding_changes.setdefault(owner, []).append(
-                (node.lineno, node.col_offset)
-            )
+        if name != self.symbol:
+            return
+        if self.function_depth:
+            # A function-level 'global name' changes the module namespace
+            # when that function runs, regardless of its lexical position.
+            # Only count real writes, never a bare global declaration.
+            if self.function_globals:
+                global_names, class_depth = self.function_globals[-1]
+                if name in global_names and len(self.class_stack) == class_depth:
+                    self.possible_global_rebinding = True
+            return
+        owner = tuple(self.class_stack) if scope is None else scope
+        self.binding_changes.setdefault(owner, []).append(
+            (node.lineno, node.col_offset)
+        )
 
     def _target(self, target: ast.AST) -> None:
         if isinstance(target, ast.Name):
@@ -114,6 +150,11 @@ class _Declarations(ast.NodeVisitor):
         self.class_stack.pop()
 
     def _visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
+        # A nested definition also binds its name in the enclosing function.
+        # If that enclosing function declares the name global, it may
+        # replace a module-level candidate on a later invocation.
+        if self.function_depth and node.name == self.symbol:
+            self._mark_binding(node.name, node=node)
         # The def statement binds its own name *after* evaluation of its
         # decorators, defaults and annotations. Those expressions may assign
         # to the very same name, but their writes are superseded by this def.
@@ -148,10 +189,17 @@ class _Declarations(ast.NodeVisitor):
             # execution than the def's final name assignment, despite
             # appearing later than "def name" in source-column order.
             del self.binding_changes.setdefault(scope, [])[prior_writes:]
+        global_declarations = _FunctionGlobalDeclarations()
+        for statement in node.body:
+            global_declarations.visit(statement)
+        self.function_globals.append(
+            (global_declarations.names, len(self.class_stack))
+        )
         self.function_depth += 1
         for statement in node.body:
             self.visit(statement)
         self.function_depth -= 1
+        self.function_globals.pop()
 
     def _visit_guarded(self, node: ast.AST) -> None:
         # A conditional binding is still a possible override. No attempt
@@ -221,9 +269,12 @@ class _Declarations(ast.NodeVisitor):
         # Lambda defaults evaluate in the parent scope at definition time,
         # but assignments in its body are lambda-local until invocation.
         self.visit(node.args)
+        # A lambda body is another local scope; it cannot declare global.
+        self.function_globals.append((set(), len(self.class_stack)))
         self.function_depth += 1
         self.visit(node.body)
         self.function_depth -= 1
+        self.function_globals.pop()
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._visit_function(node)
@@ -298,6 +349,10 @@ def check_references(
             for position in declarations.wildcard_imports
         ):
             return "CANDIDATE_WILDCARD_IMPORT_MAY_REBIND", count
+        if not scope and declarations.possible_global_rebinding:
+            # Whether a function with 'global symbol' actually executes
+            # after this declaration cannot be decided from static source.
+            return "CANDIDATE_DEFERRED_GLOBAL_REBINDING", count
         declaration_spans[(path, symbol)] = (start, end)
 
     for observation in evidence:
