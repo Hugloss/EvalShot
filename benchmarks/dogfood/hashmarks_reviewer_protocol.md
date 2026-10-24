@@ -54,6 +54,12 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    loop, or `with` block is also **guarded**: its presence in the AST does
    not prove unconditional availability. A separately unguarded definition
    with a guarded same-name alternative must not be called unique.
+   Also inspect whether a candidate's module-level name or class attribute
+   is reassigned, imported over, deleted or monkeypatched via a statement
+   such as `ClassName.method = replacement`. The presence of a `def`
+   does not prove that its binding remains intact on all paths. A
+   same-name local variable in another function, or a binding in a
+   different class, is not automatically an override of the candidate.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:

@@ -16,43 +16,101 @@ MAX_SOURCE_BYTES = 32 * 1024 * 1024
 
 
 class _Declarations(ast.NodeVisitor):
-    """Observe functions/methods, not local helper definitions inside functions."""
+    """Observe declaration spans and same-scope binding changes, never execute code."""
 
     def __init__(self, symbol: str):
         self.symbol = symbol
         self.function_depth = 0
         self.guard_depth = 0
-        self.matches: list[tuple[int, int]] = []
+        self.class_stack: list[str] = []
+        self.matches: list[tuple[int, int, tuple[str, ...]]] = []
         self.guarded_matches = 0
         self.local_matches = 0
+        self.binding_changes: set[tuple[str, ...]] = set()
+
+    def _mark_binding(self, name: str, *, scope: tuple[str, ...] | None = None) -> None:
+        if self.function_depth == 0 and name == self.symbol:
+            self.binding_changes.add(
+                tuple(self.class_stack) if scope is None else scope
+            )
+
+    def _target(self, target: ast.AST) -> None:
+        if isinstance(target, ast.Name):
+            self._mark_binding(target.id)
+        elif isinstance(target, (ast.Tuple, ast.List)):
+            for item in target.elts:
+                self._target(item)
+        elif (
+            isinstance(target, ast.Attribute)
+            and self.function_depth == 0
+            and not self.class_stack
+            and isinstance(target.value, ast.Name)
+        ):
+            # Module-level ClassName.method = replacement is a possible
+            # monkeypatch of a named class method, but not of every other
+            # class with the same method name.
+            self._mark_binding(target.attr, scope=(target.value.id,))
+
+    def visit_Assign(self, node: ast.Assign) -> None:
+        for target in node.targets:
+            self._target(target)
+        self.generic_visit(node)
+
+    def visit_AnnAssign(self, node: ast.AnnAssign) -> None:
+        if node.value is not None:
+            self._target(node.target)
+        self.generic_visit(node)
+
+    def visit_AugAssign(self, node: ast.AugAssign) -> None:
+        self._target(node.target)
+        self.generic_visit(node)
+
+    def visit_NamedExpr(self, node: ast.NamedExpr) -> None:
+        self._target(node.target)
+        self.generic_visit(node)
+
+    def visit_Delete(self, node: ast.Delete) -> None:
+        for target in node.targets:
+            self._target(target)
+        self.generic_visit(node)
+
+    def visit_Import(self, node: ast.Import) -> None:
+        for alias in node.names:
+            self._mark_binding(alias.asname or alias.name.split(".")[0])
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
+        for alias in node.names:
+            if alias.name != "*":
+                self._mark_binding(alias.asname or alias.name)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        self._mark_binding(node.name)
+        self.class_stack.append(node.name)
+        self.generic_visit(node)
+        self.class_stack.pop()
 
     def _visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
         if node.name == self.symbol:
             if self.function_depth:
                 self.local_matches += 1
             elif self.guard_depth:
-                # A declaration inside an if/try/match/loop/with block
-                # might not be bound on every import/execution path.
-                # Observing its syntax must not qualify availability.
                 self.guarded_matches += 1
             else:
                 start = min(
                     [node.lineno, *(decorator.lineno for decorator in node.decorator_list)]
                 )
-                self.matches.append((start, node.end_lineno))
+                self.matches.append((start, node.end_lineno, tuple(self.class_stack)))
         self.function_depth += 1
         self.generic_visit(node)
         self.function_depth -= 1
 
     def _visit_guarded(self, node: ast.AST) -> None:
-        # Do not interpret conditions or execute the source. Even an
-        # apparently constant predicate could hide another declaration.
+        # A conditional binding is still a possible override. No attempt
+        # is made to prove whether or when the branch executes.
         self.guard_depth += 1
         self.generic_visit(node)
         self.guard_depth -= 1
 
-    # Python executes these bodies conditionally, or in a managed scope.
-    # A syntactic declaration there is not proof of an unconditional owner.
     visit_If = _visit_guarded
     visit_For = _visit_guarded
     visit_AsyncFor = _visit_guarded
@@ -121,7 +179,10 @@ def check_references(
             return "CANDIDATE_MULTIPLE_DECLARATIONS_OBSERVED", count
         if declarations.guarded_matches:
             return "CANDIDATE_GUARDED_ALTERNATIVE", count
-        declaration_spans[(path, symbol)] = declarations.matches[0]
+        start, end, scope = declarations.matches[0]
+        if scope in declarations.binding_changes:
+            return "CANDIDATE_BINDING_MUTATION_OBSERVED", count
+        declaration_spans[(path, symbol)] = (start, end)
 
     for observation in evidence:
         content = source(observation["path"])
