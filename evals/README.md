@@ -43,6 +43,17 @@ Model-backed runs belong in local runtime qualification because GitHub CI does n
 
 Do not put canonical agent or skill sources under an evaluation or runtime-specific directory.
 
+## Blinded repository investigation pilot
+
+The existing skill evaluator supports `blind: true` cases. Its agent-facing task hides the gold scenario and pinned anchors. For a paired investigation using exactly the same fixture, run the case with the canonical skill and then the explicit `--without-skill` baseline. The baseline receives neither the canonical skill text nor its specialist name; both arms share the same source fixture and read-only execution. Artifacts are separated by arm (`skill` and `baseline`).
+
+```sh
+node scripts/run-skill-benchmarks.js --cookbook-root ../agentsCookbook --runtime pi --case blind-investigation-alpha --artifacts-dir .runs/blind-pilot
+node scripts/run-skill-benchmarks.js --cookbook-root ../agentsCookbook --runtime pi --case blind-investigation-alpha --without-skill --artifacts-dir .runs/blind-pilot
+```
+
+This pilot only checks case-level classification and pinned citation localization. It does **not** qualify recall, general agent improvement, semantic proof, statistical significance, or cross-agent comparability. The baseline arm uses a general repository-identity investigation task; other specialist domains need separately reviewed baseline tasks rather than a misleading generic fallback.
+
 ## Source-anchored positive fixture qualification
 
 For the existing positive repository-fixture cases, the corpus now pins exact
