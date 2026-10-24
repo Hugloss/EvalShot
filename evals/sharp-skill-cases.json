@@ -1451,6 +1451,162 @@
       "kind": "confusion",
       "expected": "CLEAN",
       "scenario": "The canonical import owner refines a binding from Unknown to Module(pathlib). Its consumer receives and branches on the refined binding directly but incorrectly requires kind=Unknown before reporting a filesystem observation. No resolved fact is discarded or recreated from raw inputs; the defect belongs to canonical-consumer-contract-review."
+    },
+    {
+      "id": "ownership-matrix-split-authority-positive",
+      "skill": "single-source-of-truth-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/ownership-matrix/split-authority",
+      "scenario": "Trace release and recovery: both results reach the accepted-identity store, but manifest_id and archive_name can disagree for one source. Prove competing accepted identity authorities across real routes.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "identity.py",
+            "line": 9,
+            "quote": "return store_accepted_identity(manifest_identity(source))"
+          },
+          {
+            "path": "identity.py",
+            "line": 10,
+            "quote": "return store_accepted_identity(recovery_identity(source))"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ownership-matrix-split-authority-neighbor-control",
+      "skill": "semantic-redecision-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/split-authority",
+      "scenario": "Inspect this repository strictly for the invariant of the loaded skill. The fixture's principal problem belongs to single-source-of-truth-review. Do not claim a neighboring category as this specialist's finding; trace the reachable paths and give a scoped result."
+    },
+    {
+      "id": "ownership-matrix-redecision-positive",
+      "skill": "semantic-redecision-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/ownership-matrix/redecision",
+      "scenario": "Admission controls start. A warning path independently decides the same readiness predicate for a reachable diagnostic, but cannot accept admission. Prove repeated semantics without split authority.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "eligibility.py",
+            "line": 2,
+            "quote": "return config[\"enabled\"] and not config[\"blocked\"]"
+          },
+          {
+            "path": "eligibility.py",
+            "line": 5,
+            "quote": "if config[\"enabled\"] and not config[\"blocked\"]:"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ownership-matrix-redecision-neighbor-control",
+      "skill": "resolved-fact-regression-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/redecision",
+      "scenario": "Inspect this repository strictly for the invariant of the loaded skill. The fixture's principal problem belongs to semantic-redecision-review. Do not claim a neighboring category as this specialist's finding; trace the reachable paths and give a scoped result."
+    },
+    {
+      "id": "ownership-matrix-backtrack-positive",
+      "skill": "resolved-fact-regression-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/ownership-matrix/backtrack",
+      "scenario": "The run resolver transports a canonical identity to execute; execute disregards it for use and derives another identity from archive_name. Trace the backward boundary and observable mismatch.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "resolution.py",
+            "line": 2,
+            "quote": "return {\"canonical\": source[\"manifest_id\"]}"
+          },
+          {
+            "path": "resolution.py",
+            "line": 5,
+            "quote": "identity = source[\"archive_name\"].split(\".\")[0]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ownership-matrix-backtrack-neighbor-control",
+      "skill": "single-source-of-truth-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/backtrack",
+      "scenario": "Inspect this repository strictly for the invariant of the loaded skill. The fixture's principal problem belongs to resolved-fact-regression-review. Do not claim a neighboring category as this specialist's finding; trace the reachable paths and give a scoped result."
+    },
+    {
+      "id": "ownership-matrix-refinement-positive",
+      "skill": "canonical-consumer-contract-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/ownership-matrix/refinement",
+      "scenario": "The same pathlib import is legitimately refined to module(pathlib). The filesystem consumer incorrectly stops recognizing pathlib. Prove the paired behavior from the code and consumer's independent obligation.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "imports.py",
+            "line": 3,
+            "quote": "return {\"kind\": \"module\", \"name\": name}"
+          },
+          {
+            "path": "imports.py",
+            "line": 7,
+            "quote": "if binding[\"kind\"] != \"unknown\":"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ownership-matrix-refinement-neighbor-control",
+      "skill": "semantic-redecision-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/refinement",
+      "scenario": "Inspect this repository strictly for the invariant of the loaded skill. The fixture's principal problem belongs to canonical-consumer-contract-review. Do not claim a neighboring category as this specialist's finding; trace the reachable paths and give a scoped result."
+    },
+    {
+      "id": "ownership-matrix-safe-single-source-of-truth-review",
+      "skill": "single-source-of-truth-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/safe",
+      "scenario": "Trace the owner, verification and consumer in this complete fixture. Verification of the canonical manifest identity does not override it; source is used only for an integrity check. Do not treat a valid canonical transport path as a defect."
+    },
+    {
+      "id": "ownership-matrix-safe-semantic-redecision-review",
+      "skill": "semantic-redecision-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/safe",
+      "scenario": "Trace the owner, verification and consumer in this complete fixture. Verification of the canonical manifest identity does not override it; source is used only for an integrity check. Do not treat a valid canonical transport path as a defect."
+    },
+    {
+      "id": "ownership-matrix-safe-resolved-fact-regression-review",
+      "skill": "resolved-fact-regression-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/safe",
+      "scenario": "Trace the owner, verification and consumer in this complete fixture. Verification of the canonical manifest identity does not override it; source is used only for an integrity check. Do not treat a valid canonical transport path as a defect."
+    },
+    {
+      "id": "ownership-matrix-safe-canonical-consumer-contract-review",
+      "skill": "canonical-consumer-contract-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/ownership-matrix/safe",
+      "scenario": "Trace the owner, verification and consumer in this complete fixture. Verification of the canonical manifest identity does not override it; source is used only for an integrity check. Do not treat a valid canonical transport path as a defect."
     }
   ]
 }
