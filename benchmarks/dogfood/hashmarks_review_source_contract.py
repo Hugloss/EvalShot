@@ -98,9 +98,19 @@ class _Declarations(ast.NodeVisitor):
                 self._mark_binding(alias.asname or alias.name, node=node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        # Decorators, bases and metaclass keywords evaluate in the
+        # enclosing scope. A walrus binding there can replace a named
+        # candidate; it is not a variable in the class being defined.
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for base in node.bases:
+            self.visit(base)
+        for keyword in node.keywords:
+            self.visit(keyword)
         self._mark_binding(node.name, node=node)
         self.class_stack.append(node.name)
-        self.generic_visit(node)
+        for statement in node.body:
+            self.visit(statement)
         self.class_stack.pop()
 
     def _visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
@@ -117,8 +127,18 @@ class _Declarations(ast.NodeVisitor):
                     start, node.end_lineno, tuple(self.class_stack),
                     (node.lineno, node.col_offset),
                 ))
+        # Definition-time decorators, parameter defaults and annotations
+        # evaluate in the enclosing lexical namespace, NOT in the later
+        # function call's locals. Only the function BODY introduces a local
+        # scope. Do not hide definition-time walrus bindings as locals.
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        self.visit(node.args)
+        if node.returns is not None:
+            self.visit(node.returns)
         self.function_depth += 1
-        self.generic_visit(node)
+        for statement in node.body:
+            self.visit(statement)
         self.function_depth -= 1
 
     def _visit_guarded(self, node: ast.AST) -> None:
