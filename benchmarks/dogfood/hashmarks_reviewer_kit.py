@@ -217,6 +217,10 @@ def prepare_reviewer_kit(
             "hashmarks_review_source_contract.py"
         ).read_bytes()
         (working / "source_contract.py").write_bytes(source_contract_bytes)
+        comparison_bytes = Path(__file__).with_name(
+            "hashmarks_review_comparison.py"
+        ).read_bytes()
+        (working / "compare_reviews.py").write_bytes(comparison_bytes)
         manifest = {
             "schema": SCHEMA,
             "qualification": "HANDOFF_SOURCE_SNAPSHOT_ONLY",
@@ -230,6 +234,7 @@ def prepare_reviewer_kit(
                 "manifest.json", "questions.json", "source/",
                 "verify.py", "start_review.py", "REVIEW.md",
                 "review_contract.py", "check_review.py", "source_contract.py",
+                "compare_reviews.py",
             ],
             "verifier_sha256": hashlib.sha256(verifier_bytes).hexdigest(),
             "review_starter_sha256": hashlib.sha256(starter_bytes).hexdigest(),
@@ -237,6 +242,7 @@ def prepare_reviewer_kit(
             "review_contract_sha256": hashlib.sha256(contract_bytes).hexdigest(),
             "offline_checker_sha256": hashlib.sha256(checker_bytes).hexdigest(),
             "source_contract_sha256": hashlib.sha256(source_contract_bytes).hexdigest(),
+            "comparison_sha256": hashlib.sha256(comparison_bytes).hexdigest(),
             "reviewer_independence_attested": False,
             "canonical_oracle_approved": False,
             "native_trial_executed": False,

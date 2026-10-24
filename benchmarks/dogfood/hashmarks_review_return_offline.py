@@ -10,7 +10,7 @@ from review_contract import validate_returns, ReturnError
 from source_contract import check_references
 
 
-def check(root: Path, responses: Path, digest: str) -> dict:
+def check_claims(root: Path, responses: Path, digest: str) -> tuple[dict, dict]:
     verify_kit(root, expected_manifest_sha256=digest)
     if responses.resolve().is_relative_to(root.resolve()):
         raise ReturnError("private reviewer returns must remain outside the kit")
@@ -60,7 +60,13 @@ def check(root: Path, responses: Path, digest: str) -> dict:
         "reviewer_independence_verified": False,
         "semantic_owner_proven": False,
         "native_baseline_established": False,
-    }
+    }, payload
+
+
+def check(root: Path, responses: Path, digest: str) -> dict:
+    """Public status-only interface; private claim bytes never leave this process."""
+    status, _private_payload = check_claims(root, responses, digest)
+    return status
 
 
 def main(argv=None) -> int:
