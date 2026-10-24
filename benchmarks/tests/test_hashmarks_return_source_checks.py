@@ -429,6 +429,55 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=1,
         ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
 
+    def test_own_function_default_binding_is_superseded_by_its_def(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a(value=(a := 3)):\n"
+            "    return 1\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_own_method_default_binding_is_superseded_by_its_def(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self, value=(a := 3)):\n"
+            "        return 1\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_own_definition_header_does_not_hide_subsequent_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a(value=(a := 3)):\n"
+            "    return 1\n"
+            "a = None\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_later_lambda_body_walrus_is_local_not_module_rebinding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "later = lambda: (a := 3)\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_later_lambda_default_walrus_rebinds_parent_module_name(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "later = lambda value=(a := 3): value\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_lambda_body_in_later_decorator_does_not_mutate_prior_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "@(lambda: (a := 3))\n"
+            "def later():\n"
+            "    pass\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_later_function_decorator_can_rebind_prior_module_owner(self):
         self.assertEqual(self._guarded_owner_status(
             "def a():\n"
