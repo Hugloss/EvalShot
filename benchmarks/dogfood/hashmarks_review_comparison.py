@@ -15,7 +15,7 @@ import sys
 
 sys.dont_write_bytecode = True
 from verify import KitVerificationError, _read_object
-from check_review import check
+from check_review import check_claims
 from review_contract import ReturnError
 
 SCHEMA = "evalshot.hashmarks-private-review-disagreement.v1"
@@ -29,8 +29,7 @@ def _bundle(
     # check() already authenticates the manifest bytes, uses the shared
     # return-shape contract and validates source references from that
     # manifest-verified snapshot. No duplicate validator is introduced.
-    report = check(kit, responses, expected_digest)
-    payload, _ = _read_object(responses)
+    report, payload = check_claims(kit, responses, expected_digest)
     questions, _ = _read_object(kit / "questions.json")
     by_packet = {row["packet_id"]: row["task_id"] for row in questions["packets"]}
     statuses = {row["task_id"]: row["source_reference_status"]
