@@ -176,13 +176,16 @@ def main(argv: list[str] | None = None) -> int:
         report = project_returns(
             packet, _read_json(args.responses) if args.responses else None
         )
+        rendered = json.dumps(report, sort_keys=True, indent=2) + "\n"
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            # Creation can still race after the earlier existence check.
+            # Keep an exclusive-open failure inside the sanitized CLI error
+            # boundary rather than leaking an unhandled traceback.
+            with args.output.open("x", encoding="utf-8") as status_file:
+                status_file.write(rendered)
     except (OSError, ValueError, TypeError, KeyError, RecursionError) as exc:
         parser.error(str(exc))
-    rendered = json.dumps(report, sort_keys=True, indent=2) + "\n"
-    if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        with args.output.open("x", encoding="utf-8") as status_file:
-            status_file.write(rendered)
     print(rendered, end="")
     return 0
 
