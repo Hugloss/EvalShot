@@ -36,6 +36,12 @@ jobs:
       - name: Model-free skill evidence regressions
         run: node scripts/test-skill-evidence-contract.js
 
+      - name: Model-free skill coverage and ownership inventory
+        run: |
+          node scripts/test-skill-coverage.js
+          node scripts/skill-coverage.js --cookbook-root .test-inputs/agentsCookbook --output "$RUNNER_TEMP/skill-coverage.json"
+          node -e 'const x=require(process.argv[1]); if (!x.counts.specialists || !x.counts.cases || !x.cookbook.revision || x.cookbook.dirty) process.exit(1)' "$RUNNER_TEMP/skill-coverage.json"
+
       - name: OpenCode runtime regressions
         run: node scripts/test-opencode-runtime.js
 
