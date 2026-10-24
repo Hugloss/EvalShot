@@ -10,6 +10,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from benchmarks.dogfood.hashmarks_review_returns import (
     RETURNS_SCHEMA, ReturnError, _read_json, main, project_returns,
@@ -336,6 +337,25 @@ class ReviewReturnTests(unittest.TestCase):
                 main(["--repository-root", str(root),
                       "--output", str(stage / "review-status.json")])
             self.assertFalse((stage / "review-status.json").exists())
+
+            # The output path can be created by another process after the
+            # preflight check. Report the race as a controlled CLI failure.
+            raced_output = root / "race-status.json"
+            original_open = Path.open
+
+            def race_on_exclusive_open(path, *args, **kwargs):
+                if path == raced_output and args and args[0] == "x":
+                    raise FileExistsError("status output already created")
+                return original_open(path, *args, **kwargs)
+
+            with patch.object(Path, "open", race_on_exclusive_open):
+                with redirect_stderr(StringIO()) as stderr:
+                    with self.assertRaises(SystemExit) as error:
+                        main(["--repository-root", str(root),
+                              "--output", str(raced_output)])
+            self.assertEqual(error.exception.code, 2)
+            self.assertIn("status output already created", stderr.getvalue())
+            self.assertFalse(raced_output.exists())
 
 
 if __name__ == "__main__":
