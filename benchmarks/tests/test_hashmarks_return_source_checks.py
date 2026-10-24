@@ -180,6 +180,100 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
         self.assertNotIn("hashmarks/guarded.py", json.dumps(report))
         return self.status(report)
 
+    def test_blank_line_inside_function_span_cannot_anchor_source_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    x = 1\n"
+            "\n"
+            "    return x\n",
+            line=3,
+        ), "CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION")
+
+    def test_comment_only_line_inside_function_span_cannot_anchor_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    # not a Python declaration or statement\n"
+            "    return 1\n",
+            line=2,
+        ), "CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION")
+
+    def test_comment_only_line_inside_class_method_cannot_anchor_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        # comment-only reviewer anchor\n"
+            "        return 1\n",
+            line=3,
+        ), "CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION")
+
+    def test_blank_line_inside_method_cannot_anchor_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        result = 3\n"
+            "\n"
+            "        return result\n",
+            line=4,
+        ), "CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION")
+
+    def test_actual_return_statement_inside_owner_is_lexical_evidence(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    # independent investigation still required\n"
+            "    return 1  # comment follows an actual expression\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_multiline_docstring_hash_line_is_string_not_python_comment(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    '''first docstring line\n"
+            "    # this is string content, not a Python comment\n"
+            "    last docstring line'''\n"
+            "    return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_multiline_docstring_blank_line_remains_part_of_string_token(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    '''first docstring line\n"
+            "\n"
+            "    last docstring line'''\n"
+            "    return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_bare_comment_outside_declaration_keeps_existing_span_diagnostic(self):
+        self.assertEqual(self._guarded_owner_status(
+            "# unrelated preamble comment\n"
+            "def a():\n"
+            "    return 1\n",
+            line=1,
+        ), "CANDIDATE_WITHOUT_DECLARATION_SPAN_CITATION")
+
+    def test_source_anchor_with_blank_and_real_code_line_is_still_valid(self):
+        path = self.repo / "hashmarks/guarded.py"
+        path.write_text(
+            "def a():\n"
+            "    x = 2\n"
+            "\n"
+            "    return x\n", encoding="utf-8",
+        )
+        self.freeze("multiple citation anchors")
+        for q in self.packet["packets"]:
+            q["repository"].update(commit=self.commit, tree=self.tree)
+        claim = self.assertion()
+        claim["candidate_locations"] = [{"path": "hashmarks/guarded.py", "symbol": "a"}]
+        claim["source_evidence"][0].update(path="hashmarks/guarded.py", line=3)
+        claim["source_evidence"].append({
+            "path": "hashmarks/guarded.py", "line": 4,
+            "observation": "synthetic source-backed return statement",
+        })
+        report = self.check([claim])
+        self.assertEqual(self.status(report), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+
     def test_if_false_declaration_is_not_unconditional_owner_evidence(self):
         self.assertEqual(self._guarded_owner_status(
             "if False:\n"
