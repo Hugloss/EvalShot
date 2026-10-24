@@ -475,6 +475,87 @@ assert result["approved_oracles"] == 0
         self.assertFalse(report["approved_oracles"])
         self.assertNotIn("ENABLED", run.stdout)
 
+    def test_offline_verified_declaration_with_assignment_is_not_owner_proof(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "lookup = None\n", encoding="utf-8",
+        )
+        self.freeze("reassigned module function")
+        self.update_source_pin()
+        process, private = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertEqual(result["references_exist"], 0)
+        self.assertEqual(result["source_check_disagreements"], 1)
+        self.assertFalse(result["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+        self.assertNotIn("fictional-test-reviewer", process.stdout)
+        self.assertTrue(private.exists())
+        verify_kit(self.out)
+
+    def test_offline_class_method_monkeypatch_is_not_unambiguous_source(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "Store.lookup = other\n", encoding="utf-8",
+        )
+        self.freeze("method replacement")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertFalse(result["reviewer_independence_verified"])
+        self.assertFalse(result["semantic_owner_proven"])
+
+    def test_offline_different_class_assignment_does_not_shadow_owner(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "class Other:\n"
+            "    lookup = None\n", encoding="utf-8",
+        )
+        self.freeze("different class assignment")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        result = json.loads(process.stdout)
+        self.assertEqual(result["references_exist"], 1)
+        self.assertEqual(
+            result["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(result["approved_oracles"])
+
+    def test_offline_binding_mutation_prevents_false_review_agreement(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    def lookup(self):\n"
+            "        return 1\n"
+            "    lookup = lambda self: 2\n", encoding="utf-8",
+        )
+        self.freeze("mutated claimed method")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(result["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+        verify_kit(self.out)
+
     def test_offline_multiple_same_named_methods_are_not_qualified_unique(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "class One:\n"
