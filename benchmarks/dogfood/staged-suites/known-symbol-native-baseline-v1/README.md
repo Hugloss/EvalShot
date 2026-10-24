@@ -307,9 +307,22 @@ still do **not** establish semantic behavior, reviewer independence or
 oracle correctness. Status output never includes candidate paths,
 reviewer names, rationales or source observations, and always reports
 zero oracle approvals.
- Source existence
-and semantic ownership remain separate responsibilities, with independent
-approval reserved to EvalShot's canonical oracle review owner.
+
+**Symbol-scoped source anchors:** a positive reference-existence result now
+requires a real citation inside the **observed Python function/method
+declaration span**, including decorators, rather than an unrelated line in
+the same file. Matching symbols observed only inside local nested functions
+return `CANDIDATE_ONLY_LOCAL_DECLARATION`; multiple separately observable
+declarations sharing a symbol within one candidate file return
+`CANDIDATE_MULTIPLE_DECLARATIONS_OBSERVED`; existing declarations cited
+only elsewhere in their file return `CANDIDATE_WITHOUT_DECLARATION_SPAN_CITATION`.
+All three statuses are unqualified: static syntax does not prove semantics,
+runtime reachability, independence, or an oracle. Additional external
+callers/tests/delegation evidence remains allowed.
+
+Source existence and semantic ownership remain separate responsibilities,
+with independent approval reserved to EvalShot's canonical oracle review
+owner.
 
 ## Two-return private disagreement review (no semantic promotion)
 
