@@ -385,6 +385,17 @@ superseded by a later plain `def` remains a source-existence observation
 only. There is no Python execution, reviewer identity attestation, semantic
 ownership proof or oracle approval.
 
+**Definition-time binding order and lambdas:** a named function's own
+decorators/defaults/annotations are evaluated before `def` finally binds
+that function name. An assignment expression to its own name in that
+header is therefore superseded by the declaration itself; an additional
+same-name mutation in a later source statement remains disputed. Lambda
+parameter defaults likewise evaluate at definition time in the parent
+scope, but a lambda body runs only when called and its local bindings
+must not be counted as eager mutations of the parent. The single portable
+AST observer preserves both distinctions, without executing code,
+establishing runtime reachability, or approving a semantic oracle.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
