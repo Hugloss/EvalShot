@@ -233,15 +233,26 @@ function parseResult(output) {
   };
 }
 
+function assertReceiptVacant(base, runtime, arm, id) {
+  if (!base) return;
+  const dir = path.join(base, runtime, arm, id);
+  for (const name of ['result.json', 'stdout.txt', 'stderr.txt']) {
+    // lstat also detects dangling symlinks; do not silently overwrite anything.
+    try {
+      fs.lstatSync(path.join(dir, name));
+      throw new Error('Execution artifact already exists (choose a fresh --artifacts-dir): ' + path.join(dir, name));
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
+    }
+  }
+}
+
 function persist(result, base) {
   if (!base) return;
-  const dir = path.join(base, result.runtime, result.arm || 'skill', result.id); ensureDir(dir);
+  const arm = result.arm || 'skill';
+  assertReceiptVacant(base, result.runtime, arm, result.id);
+  const dir = path.join(base, result.runtime, arm, result.id); ensureDir(dir);
   const receiptPath = path.join(dir, 'result.json');
-  // Never reinterpret a past execution by overwriting its canonical receipt.
-  // An explicit new artifacts directory is required for another replicate.
-  if (fs.existsSync(receiptPath)) {
-    throw new Error('Execution receipt already exists (choose a fresh --artifacts-dir): ' + receiptPath);
-  }
   const copy = { ...result }; delete copy.stdout; delete copy.stderr;
   fs.writeFileSync(receiptPath, `${JSON.stringify(copy, null, 2)}\n`, { flag: 'wx' });
   fs.writeFileSync(path.join(dir, 'stdout.txt'), result.stdout, { flag: 'wx' });
@@ -315,6 +326,8 @@ function main() {
   if (options.artifactsDir) ensureDir(options.artifactsDir);
   const results = [];
   for (const item of cases) {
+    assertReceiptVacant(options.artifactsDir, options.runtime,
+      options.withoutSkill ? 'baseline' : 'skill', item.id);
     process.stdout.write(`CASE id=${item.id} skill=${item.skill} runtime=${options.runtime} status=running\n`);
     const result = executeCase(item, options, cookbook); persist(result, options.artifactsDir); results.push(result);
     process.stdout.write(`CASE id=${result.id} skill=${result.skill} runtime=${result.runtime} status=${result.status} expected=${result.expected} verdict=${result.verdict || 'missing'} scope=${result.scope || 'missing'} elapsed_ms=${result.elapsedMs} output_chars=${result.outputChars}\n`);
@@ -328,4 +341,4 @@ if (require.main === module) {
   try { main(); }
   catch (error) { process.stderr.write(`Error: ${error.message}\n`); process.exitCode = 1; }
 }
-module.exports = { persist };
+module.exports = { persist, assertReceiptVacant };
