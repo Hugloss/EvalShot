@@ -8,6 +8,7 @@ const { spawnSync } = require('child_process');
 const { qualifyEvidence } = require('./skill-evidence-contract');
 const { assessSkillOutcome } = require('./skill-outcome-qualification');
 const { resolveCookbookSource } = require('./cookbook-source');
+const { resolveAuthority, assertUnchanged } = require('./skill-execution-authority');
 
 const repoRoot = path.resolve(path.dirname(fs.realpathSync(__filename)), '..');
 const defaultCorpus = path.join(repoRoot, 'evals', 'sharp-skill-cases.json');
@@ -42,6 +43,7 @@ Options:
   --list               List cases without model execution.
   --validate-corpus    Validate ids, coverage, fixtures, and skill references.
   --without-skill      Baseline arm: withhold canonical skill text (requires blinded cases).
+  --replicate-id ID    Explicit replicate identity shared by paired arms.
 `);
 }
 
@@ -49,7 +51,7 @@ function parseArgs(argv) {
   const out = {
     runtime: '', all: false, skills: [], cases: [], repoDir: '', cookbookRoot: '',
     corpus: defaultCorpus, artifactsDir: '', model: process.env.SKILL_EVAL_MODEL || '',
-    list: false, validateCorpus: false, withoutSkill: false,
+    list: false, validateCorpus: false, withoutSkill: false, replicateId: '',
   };
   const take = (argvRef, indexRef, name) => {
     indexRef.value += 1;
@@ -62,6 +64,7 @@ function parseArgs(argv) {
     if (arg === '--runtime') out.runtime = take(argv, indexRef, arg);
     else if (arg === '--all') out.all = true;
     else if (arg === '--without-skill') out.withoutSkill = true;
+    else if (arg === '--replicate-id') out.replicateId = take(argv, indexRef, arg);
     else if (arg === '--skill') out.skills.push(take(argv, indexRef, arg));
     else if (arg === '--case') out.cases.push(take(argv, indexRef, arg));
     else if (arg === '--cookbook-root') out.cookbookRoot = take(argv, indexRef, arg);
@@ -246,7 +249,9 @@ function executeCase(item, options, cookbook) {
     : evaluatorSystem(skillText, item.skill);
   const prompt = casePrompt(item);
   const cwd = item.fixture ? path.resolve(repoRoot, item.fixture) : options.repoDir;
+  const experimentalAuthority = resolveAuthority({ item, options, cookbook, cwd, prompt, skillText });
   const execution = options.runtime === 'pi' ? runPi(systemPrompt, prompt, cwd, options.model) : runOpenCode(systemPrompt, prompt, cwd, options.model);
+  assertUnchanged(experimentalAuthority, cwd);
   const parsed = parseResult(execution.stdout), expectedScope = options.withoutSkill ? 'NONE' : item.expected === 'FINDING' ? item.skill : 'NONE';
   const proof = qualifyEvidence({
     verdict: parsed.verdict,
@@ -277,6 +282,7 @@ function executeCase(item, options, cookbook) {
       repair: qualified.repair,
     },
     error: execution.error || null,
+    experimentalAuthority,
     stdout: execution.stdout, stderr: execution.stderr };
 }
 
