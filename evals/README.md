@@ -61,6 +61,10 @@ every pinned anchor. A citation to a different existing line is rejected.
 Anchors are pinned source observations, **not independent semantic oracle
 approval**; a correct citation can still support an incorrect interpretation.
 
+## Explicit skill outcome qualification
+
+Skill result receipts now include a separate `qualification` object. The historical `status=pass` remains the classification-and-evidence-contract result, **not** a claim of independently proven semantic correctness. `capability` distinguishes `SCENARIO_CLASSIFICATION`, `SOURCE_LOCATED_CLASSIFICATION`, and `CLASSIFICATION_ONLY`; failed cases report `UNQUALIFIED`. `semanticProof=NOT_ADJUDICATED`, `repositoryDiscovery=NOT_MEASURED`, and `repair=NOT_MEASURED` deliberately prohibit promoting source citations or plausible claims into benchmark-proven capabilities. Future independently qualified semantic oracles require their own frozen experiment and explicit evidence; they must not guess from the observed verdict or citation.
+
 Model-free quality checks:
 
 ```sh
