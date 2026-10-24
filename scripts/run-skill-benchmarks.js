@@ -236,10 +236,16 @@ function parseResult(output) {
 function persist(result, base) {
   if (!base) return;
   const dir = path.join(base, result.runtime, result.arm || 'skill', result.id); ensureDir(dir);
-  fs.writeFileSync(path.join(dir, 'stdout.txt'), result.stdout);
-  fs.writeFileSync(path.join(dir, 'stderr.txt'), result.stderr);
+  const receiptPath = path.join(dir, 'result.json');
+  // Never reinterpret a past execution by overwriting its canonical receipt.
+  // An explicit new artifacts directory is required for another replicate.
+  if (fs.existsSync(receiptPath)) {
+    throw new Error('Execution receipt already exists (choose a fresh --artifacts-dir): ' + receiptPath);
+  }
   const copy = { ...result }; delete copy.stdout; delete copy.stderr;
-  fs.writeFileSync(path.join(dir, 'result.json'), `${JSON.stringify(copy, null, 2)}\n`);
+  fs.writeFileSync(receiptPath, `${JSON.stringify(copy, null, 2)}\n`, { flag: 'wx' });
+  fs.writeFileSync(path.join(dir, 'stdout.txt'), result.stdout, { flag: 'wx' });
+  fs.writeFileSync(path.join(dir, 'stderr.txt'), result.stderr, { flag: 'wx' });
 }
 
 function executeCase(item, options, cookbook) {
