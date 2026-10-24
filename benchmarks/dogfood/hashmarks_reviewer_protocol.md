@@ -100,6 +100,11 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    Without an explicit class-body global declaration, a same-name class
    attribute does not automatically overwrite the module owner. A function
    definition redirected by class-body `global` is not a regular method.
+   Also inspect explicit writes to `Owner.method` inside another class
+   suite or inside a deferred function body (assignment, deletion, augmented
+   assignment or binding target). Unlike an unrelated class-local name,
+   this attribute spelling could potentially alter the nominated method.
+   The checker cannot prove runtime receiver identity or callback execution.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:
