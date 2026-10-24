@@ -608,15 +608,22 @@ candidate Python declarations, and cited source line existence.
 uv run --no-project python -m benchmarks.dogfood.hashmarks_return_source_checks \
   --repository-root . \
   --checkout /path/to/pinned/Hashmarks \
-  --output /tmp/hashmarks-return-source-status.json
+  --output /tmp/hashmarks-return-source-status-unreviewed.json
 
 # Only on a private reviewer intake machine, never GitHub Actions
 uv run --no-project python -m benchmarks.dogfood.hashmarks_return_source_checks \
   --repository-root . \
   --checkout /path/to/pinned/Hashmarks \
   --responses /private/outside-evalshot/reviewer-answers.json \
-  --output /tmp/hashmarks-return-source-status.json
+  --output /tmp/hashmarks-return-source-status-reviewed.json
 ```
+
+The optional `--output` path must be fresh and **outside EvalShot**.
+It is created exclusively with private-by-default permissions; the command
+refuses an existing file, symlink, or a destination matching a private
+response. Select a distinct filename for each status observation rather
+than overwriting prior evidence. Omitting `--output` prints sanitized status
+to stdout without creating a file.
 
 This uses **the existing strict return validator** for exact blinded packet,
 task digest, source commit/tree and declared review decision. Git replacement

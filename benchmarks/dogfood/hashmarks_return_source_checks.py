@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from typing import Any, Mapping
 
@@ -168,10 +169,16 @@ def main(argv: list[str] | None = None) -> int:
             raise ReturnError("private reviewer returns must remain outside repository")
         if args.output:
             out = args.output.resolve()
-            if out.is_relative_to(root) or (
-                args.responses and out == args.responses.resolve()
+            if (
+                out.is_relative_to(root)
+                or (args.responses and out == args.responses.resolve())
+                or args.output.exists()
+                or args.output.is_symlink()
             ):
-                raise ReturnError("source status must not overwrite repository or private inputs")
+                raise ReturnError(
+                    "source status must be a new file outside the repository "
+                    "and distinct from private returns"
+                )
         packet = prepare_blind_review(
             staged=(root / args.suite).resolve(), repository_root=root
         )
@@ -184,8 +191,18 @@ def main(argv: list[str] | None = None) -> int:
         parser.error(str(exc))
     raw = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(raw, encoding="utf-8")
+        try:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            # Exclusive publication is authoritative even if another writer
+            # creates the name after preflight. Never follow a final symlink
+            # or truncate private/previously qualified review material.
+            fd = os.open(
+                args.output, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600
+            )
+            with os.fdopen(fd, "w", encoding="utf-8") as output:
+                output.write(raw)
+        except OSError as exc:
+            parser.error(str(exc))
     print(raw, end="")
     return 0 if report["summary"]["unavailable_or_disputed_source"] == 0 else 1
 
