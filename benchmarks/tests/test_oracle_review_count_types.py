@@ -67,6 +67,24 @@ class OracleReviewCountTypeTests(unittest.TestCase):
             result = validate_oracle_reviews(suite, require_complete=True)
             self.assertEqual(result["approved_tasks"], 1)
 
+            for malformed_root in (None, [], "wrong", 42):
+                with self.subTest(root=malformed_root):
+                    path.write_text(json.dumps(malformed_root), encoding="utf-8")
+                    with self.assertRaisesRegex(OracleReviewError, "unknown oracle review evidence schema"):
+                        validate_oracle_reviews(suite, require_complete=True)
+
+            # A JSON array or object is not a legal semantic review decision.
+            # The validator must fail with its typed error, not TypeError.
+            for malformed_decision in ([], {}, ["unique"], None, True, 1):
+                with self.subTest(decision=malformed_decision):
+                    row["reviews"][0]["decision"] = malformed_decision
+                    path.write_text(json.dumps({
+                        "schema": "agents-cookbook-oracle-reviews.v1",
+                        "tasks": {task_id: row},
+                    }), encoding="utf-8")
+                    with self.assertRaisesRegex(OracleReviewError, "invalid review record"):
+                        validate_oracle_reviews(suite, require_complete=True)
+
 
 if __name__ == "__main__":
     unittest.main()
