@@ -1,5 +1,6 @@
 """Model-free repair qualification regressions."""
 import tempfile
+import sys
 import unittest
 from pathlib import Path
 
@@ -29,8 +30,8 @@ class RepairQualificationTests(unittest.TestCase):
 
     def checks(self):
         return RepairChecks(
-            ("python3", "-B", "test_defect.py"),
-            (("python3", "-B", "test_preservation.py"),),
+            (sys.executable, "-B", "test_defect.py"),
+            ((sys.executable, "-B", "test_preservation.py"),),
         )
 
     def test_behavioral_repair_passes_without_claiming_semantic_proof(self):
@@ -59,7 +60,7 @@ class RepairQualificationTests(unittest.TestCase):
 
     def test_missing_controls_rejected(self):
         with self.assertRaises(ValueError):
-            check_repair(before=self.before, after=self.after, checks=RepairChecks(("python3",), ()))
+            check_repair(before=self.before, after=self.after, checks=RepairChecks((sys.executable,), ()))
 
 
 if __name__ == "__main__":
