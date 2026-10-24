@@ -43,6 +43,11 @@ def check_references(
         count += 1
         if content is None:
             return "PINNED_CANDIDATE_FILE_UNAVAILABLE", count
+        # This historical cohort asks for Python symbol definitions. A
+        # README or another non-Python file may exist in the source tree,
+        # but this checker has no authority to establish its symbol owner.
+        if not path.endswith(".py"):
+            return "UNSUPPORTED_NON_PYTHON_CANDIDATE", count
         if path.endswith(".py"):
             try:
                 syntax = ast.parse(content.decode("utf-8"), filename=path)
@@ -62,4 +67,10 @@ def check_references(
             return "PINNED_EVIDENCE_FILE_UNAVAILABLE", count
         if observation["line"] > len(content.splitlines()):
             return "PINNED_EVIDENCE_LINE_ABSENT", count
+    # Merely citing a different file does not source-anchor a claimed
+    # definition. Require at least one real cited line *in each* proposed
+    # owner file, while still allowing additional callers/tests as context.
+    cited_paths = {observation["path"] for observation in evidence}
+    if any(location["path"] not in cited_paths for location in locations):
+        return "CANDIDATE_WITHOUT_CITED_SOURCE_EVIDENCE", count
     return "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF", count
