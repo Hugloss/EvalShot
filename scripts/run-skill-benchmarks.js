@@ -324,5 +324,8 @@ function main() {
   if (failed) process.exitCode = 1;
 }
 
-try { main(); }
-catch (error) { process.stderr.write(`Error: ${error.message}\n`); process.exitCode = 1; }
+if (require.main === module) {
+  try { main(); }
+  catch (error) { process.stderr.write(`Error: ${error.message}\n`); process.exitCode = 1; }
+}
+module.exports = { persist };
