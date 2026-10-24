@@ -231,6 +231,76 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=1,
         ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
 
+    def test_module_function_reassigned_to_constant_is_not_a_verified_binding(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "a = False\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_module_function_overwritten_by_import_alias_is_unqualified(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "from somewhere import replacement as a\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_deleted_module_function_is_not_declared_available(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "del a\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_conditional_reassignment_remains_an_unresolved_binding_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "if setting:\n"
+            "    a = False\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_method_rebound_inside_own_class_is_not_qualified(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "    a = property(lambda self: 7)\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_monkeypatch_of_named_class_method_is_not_qualified(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "Owner.a = override\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_other_class_binding_cannot_override_unrelated_class_method(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "class Other:\n"
+            "    a = 17\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_assignment_within_unrelated_function_does_not_rebind_module_symbol(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def another():\n"
+            "    a = None\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_local_function_with_matching_name_is_not_an_observed_owner(self):
         (self.repo / "hashmarks/local.py").write_text(
             "def wrapper():\n"
