@@ -1607,6 +1607,30 @@
       "expected": "CLEAN",
       "fixture": "evals/fixtures/ownership-matrix/safe",
       "scenario": "Trace the owner, verification and consumer in this complete fixture. Verification of the canonical manifest identity does not override it; source is used only for an integrity check. Do not treat a valid canonical transport path as a defect."
+    },
+    {
+      "id": "blind-investigation-alpha",
+      "skill": "single-source-of-truth-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "blind": true,
+      "fixture": "evals/fixtures/investigation-alpha",
+      "scenario": "Review accepted repository identity authority across all entrypoints without any provided hint to the defect location.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "api.py",
+            "line": 6,
+            "quote": "return accepted_identity(identity)"
+          },
+          {
+            "path": "recovery.py",
+            "line": 5,
+            "quote": "return accepted_identity(identity)"
+          }
+        ]
+      }
     }
   ]
 }
