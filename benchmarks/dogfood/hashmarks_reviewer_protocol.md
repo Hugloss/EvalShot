@@ -67,6 +67,14 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    also unresolved, because the checker cannot infer what the wildcard
    brings into the namespace. Do not infer runtime execution or ownership
    from static source order alone.
+   Also check implicit binding targets: `for name in ...`, `with resource
+   as name`, `except Exception as name`, and `match` captures (including
+   starred and mapping-rest captures) bind names without an ordinary
+   assignment. A same-name binding target **after** a candidate `def`
+   remains an unresolved potential overwrite. A target before a later
+   plain declaration, or inside an unrelated local function, is not by
+   itself a later override. The checker observes syntax only; it does
+   not evaluate whether a loop, exception, context manager or case runs.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:
