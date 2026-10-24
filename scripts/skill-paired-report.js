@@ -37,6 +37,27 @@ function compareReceipts(receipts) {
         comparability: 'NOT_COMPARABLE', reason: mismatch ? 'mismatch-' + mismatch : 'not-blinded' });
       continue;
     }
+    // Evidence from the execution itself, never from report-time guesses.
+    // Legacy receipts stay descriptive and carry explicit missing authority.
+    const bindings = ['repository_sha256', 'task_sha256', 'skill_revision',
+      'runtime_config_sha256', 'oracle_revision', 'replicate_id'];
+    const authority = Object.fromEntries(bindings.map(field => {
+      const b = baseline.experimentalAuthority?.[field];
+      const a = skill.experimentalAuthority?.[field];
+      if (typeof b !== 'string' || !b || typeof a !== 'string' || !a)
+        return [field, 'UNKNOWN'];
+      return [field, b === a ? 'MATCH' : 'MISMATCH'];
+    }));
+    // An intervention deliberately varies loaded skill text; equality of its
+    // revision identifies a source, not equivalence of agent-visible prompts.
+    const conflicts = Object.entries(authority).filter(([, v]) => v === 'MISMATCH')
+      .map(([field]) => field);
+    if (conflicts.length) {
+      comparisons.push({ id: pair.id, runtime: pair.runtime, model: pair.model,
+        comparability: 'NOT_COMPARABLE', reason: 'authority-mismatch',
+        mismatched_authority: conflicts, authority });
+      continue;
+    }
     const qualified = arm => ({
       status: arm.status,
       qualification: arm.qualification?.capability ?? 'UNKNOWN',
@@ -49,7 +70,7 @@ function compareReceipts(receipts) {
     });
     const b = qualified(baseline), s = qualified(skill);
     comparisons.push({ id: pair.id, runtime: pair.runtime, model: pair.model,
-      comparability: 'DESCRIPTIVE_ONLY', baseline: b, skill: s,
+      comparability: 'DESCRIPTIVE_ONLY', authority, baseline: b, skill: s,
       observed_transition: (b.success ? 'PASS' : 'NOT_QUALIFIED') + '_TO_' +
         (s.success ? 'PASS' : 'NOT_QUALIFIED') });
   }
