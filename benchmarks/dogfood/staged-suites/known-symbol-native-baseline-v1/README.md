@@ -411,6 +411,23 @@ textually before the candidate: its future invocation cannot be inferred
 from file order. This is a *potential* binding uncertainty, never proof
 of execution, semantic ownership, reviewer independence or oracle approval.
 
+**Class-body `global` scope:** a `global lookup` inside a class body
+redirects subsequent `lookup` bindings **into the module namespace**,
+rather than changing the class's own `lookup` attribute. The single AST
+source checker now collects `global` declarations for each class body
+without inheriting declarations from nested functions or classes.
+Unconditionally executed class-body module writes are compared with
+candidate definitions in lexical source order and retain the existing
+`CANDIDATE_BINDING_MUTATION_OBSERVED` result when later. A class body
+created inside a function is deferred, so any class-level module write
+instead yields `CANDIDATE_DEFERRED_GLOBAL_REBINDING`. A class-body
+`def lookup` redirected by `global` does not count as a normal class
+method: without another ordinary candidate it produces
+`CANDIDATE_CLASS_GLOBAL_DEFINITION`, not false class-method ownership.
+Ordinary class-local assignments and method-local assignments remain
+separate and do not override a same-name module function. None of these
+static observations authenticates a reviewer or approves an oracle.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.

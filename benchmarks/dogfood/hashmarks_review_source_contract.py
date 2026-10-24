@@ -53,6 +53,8 @@ class _Declarations(ast.NodeVisitor):
         self.binding_changes: dict[tuple[str, ...], list[tuple[int, int]]] = {}
         self.wildcard_imports: list[tuple[int, int]] = []
         self.function_globals: list[tuple[set[str], int]] = []
+        self.class_globals: list[tuple[set[str], int]] = []
+        self.class_global_definitions = 0
         self.possible_global_rebinding = False
 
     def _mark_binding(
@@ -61,6 +63,22 @@ class _Declarations(ast.NodeVisitor):
     ) -> None:
         if name != self.symbol:
             return
+        # A global declaration in a CLASS body directs name writes into
+        # the MODULE namespace. Class decorators/bases execute in the
+        # parent scope; function bodies inside the class are separate.
+        if self.class_globals:
+            global_names, class_body_function_depth = self.class_globals[-1]
+            if (
+                name in global_names
+                and self.function_depth == class_body_function_depth
+            ):
+                if self.function_depth:
+                    self.possible_global_rebinding = True
+                else:
+                    self.binding_changes.setdefault((), []).append(
+                        (node.lineno, node.col_offset)
+                    )
+                return
         if self.function_depth:
             # A function-level 'global name' changes the module namespace
             # when that function runs, regardless of its lexical position.
@@ -144,25 +162,47 @@ class _Declarations(ast.NodeVisitor):
         for keyword in node.keywords:
             self.visit(keyword)
         self._mark_binding(node.name, node=node)
+        globals_here = _FunctionGlobalDeclarations()
+        for statement in node.body:
+            globals_here.visit(statement)
         self.class_stack.append(node.name)
+        self.class_globals.append(
+            (globals_here.names, self.function_depth)
+        )
         for statement in node.body:
             self.visit(statement)
+        self.class_globals.pop()
         self.class_stack.pop()
 
     def _visit_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> None:
         # A nested definition also binds its name in the enclosing function.
         # If that enclosing function declares the name global, it may
         # replace a module-level candidate on a later invocation.
-        if self.function_depth and node.name == self.symbol:
+        class_global_definition = (
+            node.name == self.symbol
+            and bool(self.class_globals)
+            and self.function_depth == self.class_globals[-1][1]
+            and node.name in self.class_globals[-1][0]
+        )
+        if class_global_definition:
+            # This syntax creates a MODULE binding, not a method in the
+            # class suite. It cannot count as an ordinary class owner.
+            self.class_global_definitions += 1
+            self._mark_binding(node.name, node=node)
+        elif self.function_depth and node.name == self.symbol:
             self._mark_binding(node.name, node=node)
         # The def statement binds its own name *after* evaluation of its
         # decorators, defaults and annotations. Those expressions may assign
         # to the very same name, but their writes are superseded by this def.
         # Preserve unrelated preceding/later source mutations as before.
         scope = tuple(self.class_stack)
-        own_binding = node.name == self.symbol and self.function_depth == 0
+        own_binding = (
+            node.name == self.symbol
+            and self.function_depth == 0
+            and not class_global_definition
+        )
         prior_writes = len(self.binding_changes.get(scope, ()))
-        if node.name == self.symbol:
+        if node.name == self.symbol and not class_global_definition:
             if self.function_depth:
                 self.local_matches += 1
             elif self.guard_depth:
@@ -324,6 +364,8 @@ def check_references(
         except (SyntaxError, UnicodeError, ValueError, RecursionError):
             return "CANDIDATE_PYTHON_NOT_PARSEABLE", count
         if not declarations.matches:
+            if declarations.class_global_definitions:
+                return "CANDIDATE_CLASS_GLOBAL_DEFINITION", count
             if declarations.guarded_matches:
                 return "CANDIDATE_ONLY_GUARDED_DECLARATION", count
             return (
