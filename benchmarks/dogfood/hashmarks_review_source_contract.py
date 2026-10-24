@@ -129,14 +129,61 @@ class _Declarations(ast.NodeVisitor):
         self.guard_depth -= 1
 
     visit_If = _visit_guarded
-    visit_For = _visit_guarded
-    visit_AsyncFor = _visit_guarded
     visit_While = _visit_guarded
     visit_Try = _visit_guarded
     visit_TryStar = _visit_guarded
-    visit_With = _visit_guarded
-    visit_AsyncWith = _visit_guarded
     visit_Match = _visit_guarded
+
+    def visit_For(self, node: ast.For) -> None:
+        self._visit_iteration_target(node)
+
+    def visit_AsyncFor(self, node: ast.AsyncFor) -> None:
+        self._visit_iteration_target(node)
+
+    def _visit_iteration_target(self, node: ast.For | ast.AsyncFor) -> None:
+        # For-loop targets bind in the enclosing module/class scope.
+        # Unlike comprehension targets, these names may replace a def.
+        self.guard_depth += 1
+        self._target(node.target)
+        self.generic_visit(node)
+        self.guard_depth -= 1
+
+    def visit_With(self, node: ast.With) -> None:
+        self._visit_with_targets(node)
+
+    def visit_AsyncWith(self, node: ast.AsyncWith) -> None:
+        self._visit_with_targets(node)
+
+    def _visit_with_targets(self, node: ast.With | ast.AsyncWith) -> None:
+        self.guard_depth += 1
+        for item in node.items:
+            if item.optional_vars is not None:
+                self._target(item.optional_vars)
+        self.generic_visit(node)
+        self.guard_depth -= 1
+
+    def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
+        # Exception aliases are local to the enclosing block and are
+        # commonly deleted after handling. Either behavior can change
+        # a same-name binding, so do not infer runtime availability.
+        if node.name:
+            self._mark_binding(node.name, node=node)
+        self.generic_visit(node)
+
+    def visit_MatchAs(self, node: ast.MatchAs) -> None:
+        if node.name:
+            self._mark_binding(node.name, node=node)
+        self.generic_visit(node)
+
+    def visit_MatchStar(self, node: ast.MatchStar) -> None:
+        if node.name:
+            self._mark_binding(node.name, node=node)
+        self.generic_visit(node)
+
+    def visit_MatchMapping(self, node: ast.MatchMapping) -> None:
+        if node.rest:
+            self._mark_binding(node.rest, node=node)
+        self.generic_visit(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         self._visit_function(node)
