@@ -93,6 +93,13 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    a same-spelled local variable without `global`, or assigning to an
    unrelated class attribute must not be treated as a module mutation.
    The checker cannot determine when such functions run.
+   Python also permits `global name` inside a **class body**. Assignments,
+   imports, deletes, loop/match targets and even `def name` within that
+   body then bind the *module* name instead of a class attribute. If the
+   class is nested inside an uncalled function, those writes are deferred.
+   Without an explicit class-body global declaration, a same-name class
+   attribute does not automatically overwrite the module owner. A function
+   definition redirected by class-body `global` is not a regular method.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:
