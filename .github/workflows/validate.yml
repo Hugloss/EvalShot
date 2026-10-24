@@ -33,6 +33,9 @@ jobs:
       - name: Evaluator source-boundary regressions and corpus validation
         run: node scripts/test-cookbook-migration.js --cookbook-root .test-inputs/agentsCookbook
 
+      - name: Ownership matrix fixture regressions
+        run: node scripts/test-ownership-matrix.js
+
       - name: Model-free skill evidence regressions
         run: |
           node scripts/test-skill-evidence-contract.js
