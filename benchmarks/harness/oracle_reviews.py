@@ -91,7 +91,7 @@ def validate_oracle_reviews(
             raise OracleReviewError(f"oracle review requirement missing for {task_id}")
         minimum_reviews = requirement.get("minimum_independent_reviews")
         escalation_reason = requirement.get("escalation_reason")
-        if minimum_reviews not in {1, 2}:
+        if type(minimum_reviews) is not int or minimum_reviews not in (1, 2):
             raise OracleReviewError(
                 f"invalid oracle review requirement for {task_id}"
             )
