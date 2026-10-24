@@ -430,6 +430,51 @@ assert result["approved_oracles"] == 0
         )
         self.assertFalse(report["semantic_owner_proven"])
 
+    def test_offline_if_false_python_candidate_remains_unqualified(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "if False:\n"
+            "    def lookup():\n"
+            "        return 1\n", encoding="utf-8"
+        )
+        self.freeze("guarded if-false fixture")
+        self.update_source_pin()
+        run, private = self._private_claim_check(line=2)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_ONLY_GUARDED_DECLARATION",
+        )
+        self.assertEqual(report["references_exist"], 0)
+        self.assertFalse(report["semantic_owner_proven"])
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertNotIn("fictional-test-reviewer", run.stdout)
+        self.assertTrue(private.is_file())
+        verify_kit(self.out)
+
+    def test_offline_conditional_override_blocks_unique_candidate(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "if ENABLED:\n"
+            "    def lookup():\n"
+            "        return 2\n", encoding="utf-8"
+        )
+        self.freeze("conditional alternate owner fixture")
+        self.update_source_pin()
+        run, _ = self._private_claim_check(line=1)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_GUARDED_ALTERNATIVE",
+        )
+        self.assertEqual(report["source_check_disagreements"], 1)
+        self.assertFalse(report["reviewer_independence_verified"])
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("ENABLED", run.stdout)
+
     def test_offline_multiple_same_named_methods_are_not_qualified_unique(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "class One:\n"
