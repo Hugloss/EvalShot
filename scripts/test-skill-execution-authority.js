@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { directoryDigest, resolveAuthority, assertUnchanged } = require('./skill-execution-authority');
-const { persist } = require('./run-skill-benchmarks');
+const { persist, assertReceiptVacant } = require('./run-skill-benchmarks');
 
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'evalshot-authority-'));
 try {
@@ -26,6 +26,8 @@ try {
     assert.equal(observed.replicate_id, 'paired-01');
     assert.equal(observed.runtime_executable_sha256.length, 64);
     assert.equal(observed.runtime_config_sha256, null);
+    assert.equal(observed.requested_model, 'test-model');
+    assert.equal(observed.model_identity, null);
     assert.equal(observed.intervention, 'WITH_CANONICAL_SKILL');
     assertUnchanged(observed, repo);
     const baseline = resolveAuthority({ item, options: { ...options, withoutSkill: true },
@@ -47,11 +49,14 @@ try {
   const result = { id: 'blind-a', runtime: 'pi', arm: 'baseline',
     experimentalAuthority: { execution_id: 'immutable-run' },
     stdout: 'first output', stderr: '' };
+  assertReceiptVacant(artifacts, 'pi', 'baseline', 'blind-a');
   persist(result, artifacts);
   const receiptPath = path.join(artifacts, 'pi', 'baseline', 'blind-a', 'result.json');
   const firstReceipt = fs.readFileSync(receiptPath, 'utf8');
   assert.throws(() => persist({ ...result, stdout: 'replacement' }, artifacts),
-    /Execution receipt already exists/);
+    /Execution artifact already exists/);
+  assert.throws(() => assertReceiptVacant(artifacts, 'pi', 'baseline', 'blind-a'),
+    /Execution artifact already exists/);
   assert.equal(fs.readFileSync(receiptPath, 'utf8'), firstReceipt);
   assert.equal(fs.readFileSync(path.join(path.dirname(receiptPath), 'stdout.txt'), 'utf8'),
     'first output');
