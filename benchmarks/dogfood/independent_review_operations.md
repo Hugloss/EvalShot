@@ -136,10 +136,15 @@ owner guesses in a repository, GitHub Actions log, job artifact or PR body.
 
 Safe public status is limited to receipt/check completion, coarse unresolved
 categories and a **negative** statement of oracle/experiment qualification.
-The EvalShot `hashmarks_review_returns --output` diagnostic deliberately
-requires a **new** output filename and refuses existing files or symlink
-targets, including an existing sanitized status file. Choose a fresh name
-for each invocation; do not use a reviewer response file as the destination.
+The EvalShot `hashmarks_review_returns --output` and Git-backed
+`hashmarks_return_source_checks --output` diagnostics require a **new**
+external status filename. Both refuse existing files, existing/dangling
+symlinks and private response destinations; source-check status uses exclusive
+creation even if a competing writer creates the path after preflight.
+Choose a fresh name for each invocation; do not reuse a review response
+file or an earlier sanitized report. Stdout-only status remains available.
+These measures preserve intake artifacts; they do **not** establish reviewer
+independence or authorize an oracle.
 The presence of this runbook or two matching reviews must never be reported
 as two independently verified reviewers.
 
