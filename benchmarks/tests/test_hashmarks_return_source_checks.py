@@ -159,6 +159,78 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
         self.assertEqual(result["summary"]["approved_oracles"], 0)
         self.assertNotIn("hashmarks/a.py", json.dumps(result))
 
+    def _guarded_owner_status(self, source: str, *, line: int = 2) -> str:
+        (self.repo / "hashmarks/guarded.py").write_text(source, encoding="utf-8")
+        self.freeze("guarded declaration fixture")
+        for question in self.packet["packets"]:
+            question["repository"]["commit"] = self.commit
+            question["repository"]["tree"] = self.tree
+        claim = self.assertion()
+        claim["candidate_locations"] = [{
+            "path": "hashmarks/guarded.py", "symbol": "a"
+        }]
+        claim["source_evidence"][0].update(
+            path="hashmarks/guarded.py", line=line
+        )
+        report = self.check([claim])
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+        self.assertFalse(report["tasks"][0]["semantic_owner_proven"])
+        self.assertNotIn("hashmarks/guarded.py", json.dumps(report))
+        return self.status(report)
+
+    def test_if_false_declaration_is_not_unconditional_owner_evidence(self):
+        self.assertEqual(self._guarded_owner_status(
+            "if False:\n"
+            "    def a():\n"
+            "        return 1\n",
+        ), "CANDIDATE_ONLY_GUARDED_DECLARATION")
+
+    def test_type_checking_declaration_is_not_unconditional_owner_evidence(self):
+        self.assertEqual(self._guarded_owner_status(
+            "from typing import TYPE_CHECKING\n"
+            "if TYPE_CHECKING:\n"
+            "    class Demo:\n"
+            "        def a(self): pass\n",
+            line=4,
+        ), "CANDIDATE_ONLY_GUARDED_DECLARATION")
+
+    def test_try_except_declaration_does_not_establish_unconditional_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "try:\n"
+            "    def a():\n"
+            "        return 1\n"
+            "except RuntimeError:\n"
+            "    pass\n",
+        ), "CANDIDATE_ONLY_GUARDED_DECLARATION")
+
+    def test_match_case_declaration_is_guarded_not_verified_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "match 0:\n"
+            "    case 0:\n"
+            "        def a(): pass\n",
+            line=3,
+        ), "CANDIDATE_ONLY_GUARDED_DECLARATION")
+
+    def test_conditional_same_name_alternative_blocks_unconditional_unique_claim(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "if should_override:\n"
+            "    def a():\n"
+            "        return 2\n",
+            line=1,
+        ), "CANDIDATE_GUARDED_ALTERNATIVE")
+
+    def test_guard_inside_unrelated_function_does_not_hide_plain_declaration(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def wrapper():\n"
+            "    if enabled:\n"
+            "        def a(): pass\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_local_function_with_matching_name_is_not_an_observed_owner(self):
         (self.repo / "hashmarks/local.py").write_text(
             "def wrapper():\n"
