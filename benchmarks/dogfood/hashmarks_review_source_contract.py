@@ -56,6 +56,7 @@ class _Declarations(ast.NodeVisitor):
         self.class_globals: list[tuple[set[str], int]] = []
         self.class_global_definitions = 0
         self.possible_global_rebinding = False
+        self.possible_method_rebinding: set[tuple[str, ...]] = set()
 
     def _mark_binding(
         self, name: str, *, node: ast.AST,
@@ -101,16 +102,21 @@ class _Declarations(ast.NodeVisitor):
                 self._target(item)
         elif (
             isinstance(target, ast.Attribute)
-            and self.function_depth == 0
-            and not self.class_stack
+            and target.attr == self.symbol
             and isinstance(target.value, ast.Name)
         ):
-            # Module-level ClassName.method = replacement is a possible
-            # monkeypatch of a named class method, but not of every other
-            # class with the same method name.
-            self._mark_binding(
-                target.attr, node=target, scope=(target.value.id,)
-            )
+            # Literal ClassName.method writes can affect THAT method even
+            # when performed in a different class suite. A function body
+            # might run after the nominated definition regardless of order.
+            owner = (target.value.id,)
+            if self.function_depth:
+                self.possible_method_rebinding.add(owner)
+            else:
+                # An enclosing class 'global method' only redirects bare
+                # names; this is an explicit attribute write.
+                self.binding_changes.setdefault(owner, []).append(
+                    (target.lineno, target.col_offset)
+                )
 
     def visit_Assign(self, node: ast.Assign) -> None:
         for target in node.targets:
@@ -395,6 +401,10 @@ def check_references(
             # Whether a function with 'global symbol' actually executes
             # after this declaration cannot be decided from static source.
             return "CANDIDATE_DEFERRED_GLOBAL_REBINDING", count
+        if scope and scope in declarations.possible_method_rebinding:
+            # A source-level receiver spelling does not prove runtime
+            # identity or execution of the function body.
+            return "CANDIDATE_DEFERRED_METHOD_REBINDING", count
         declaration_spans[(path, symbol)] = (start, end)
 
     for observation in evidence:
