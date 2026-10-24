@@ -9,10 +9,41 @@ from __future__ import annotations
 
 import ast
 from collections.abc import Callable, Mapping
+from io import BytesIO
+import tokenize
 from typing import Any
 
 MAX_REFERENCES = 60
 MAX_SOURCE_BYTES = 32 * 1024 * 1024
+_NON_SOURCE_TOKENS = frozenset({
+    tokenize.ENCODING, tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE,
+    tokenize.INDENT, tokenize.DEDENT, tokenize.ENDMARKER,
+})
+
+
+def _code_backed_lines(source: bytes, cited_lines: set[int]) -> set[int]:
+    """Observe lexical source tokens at cited lines, never Python behavior.
+
+    A Python STRING token may span several physical lines. Those lines count
+    as source text, unlike a comment or blank line inside the AST declaration
+    span. Only inspect the bounded caller-supplied bytes, not a second path.
+    """
+    found: set[int] = set()
+    try:
+        for token in tokenize.tokenize(BytesIO(source).readline):
+            if token.type in _NON_SOURCE_TOKENS:
+                continue
+            found.update(
+                line for line in cited_lines
+                if token.start[0] <= line <= token.end[0]
+            )
+            if found == cited_lines:
+                break
+    except (tokenize.TokenError, IndentationError, SyntaxError, UnicodeError):
+        # AST parsing already happened; a tokenizer disagreement never
+        # upgrades syntactic evidence or supplies an alternate authority.
+        return set()
+    return found
 
 
 class _FunctionGlobalDeclarations(ast.NodeVisitor):
@@ -428,12 +459,21 @@ def check_references(
     # A real line in the right file is still insufficient if it has no
     # relationship to the named declaration. This is only AST syntax, not a
     # semantic assessment of ownership, delegation or reviewer independence.
+    code_backed_by_path: dict[str, set[int]] = {}
     for location in locations:
         path, symbol = location["path"], location["symbol"]
         start, end = declaration_spans[(path, symbol)]
-        if not any(
-            fact["path"] == path and start <= fact["line"] <= end
-            for fact in evidence
-        ):
+        cited_in_span = {
+            fact["line"] for fact in evidence
+            if fact["path"] == path and start <= fact["line"] <= end
+        }
+        if not cited_in_span:
             return "CANDIDATE_WITHOUT_DECLARATION_SPAN_CITATION", count
+        if path not in code_backed_by_path:
+            cited = {fact["line"] for fact in evidence if fact["path"] == path}
+            # These bytes were already pinned by source(path). Do not open
+            # source files again, or treat lexical syntax as semantic proof.
+            code_backed_by_path[path] = _code_backed_lines(source(path), cited)
+        if not cited_in_span & code_backed_by_path[path]:
+            return "CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION", count
     return "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF", count
