@@ -825,6 +825,117 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=1,
         ), "CANDIDATE_DEFERRED_GLOBAL_REBINDING")
 
+    def test_class_suite_explicit_method_monkeypatch_is_unresolved(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "class Patch:\n"
+            "    Owner.a = replacement\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_suite_explicit_method_delete_is_unresolved(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "class Patch:\n"
+            "    del Owner.a\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_suite_global_does_not_redirect_explicit_method_write(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "class Patch:\n"
+            "    global a\n"
+            "    Owner.a = replacement\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_suite_unrelated_receiver_is_not_candidate_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "class Patch:\n"
+            "    Other.a = replacement\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_deferred_method_assignment_disputes_class_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    Owner.a = replacement\n",
+            line=2,
+        ), "CANDIDATE_DEFERRED_METHOD_REBINDING")
+
+    def test_deferred_method_write_before_class_is_still_possible(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def callback():\n"
+            "    Owner.a = replacement\n"
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n",
+            line=4,
+        ), "CANDIDATE_DEFERRED_METHOD_REBINDING")
+
+    def test_deferred_nested_method_delete_is_still_possible(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    def later():\n"
+            "        del Owner.a\n",
+            line=2,
+        ), "CANDIDATE_DEFERRED_METHOD_REBINDING")
+
+    def test_deferred_async_method_rebind_is_still_possible(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "async def callback():\n"
+            "    Owner.a += other\n",
+            line=2,
+        ), "CANDIDATE_DEFERRED_METHOD_REBINDING")
+
+    def test_deferred_unrelated_method_write_does_not_dispute_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    Other.a = replacement\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_deferred_method_read_does_not_dispute_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    return Owner.a\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_method_attribute_write_does_not_rebind_module_function(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    Owner.a = replacement\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
     def test_module_function_reassigned_to_constant_is_not_a_verified_binding(self):
         self.assertEqual(self._guarded_owner_status(
             "def a():\n"
