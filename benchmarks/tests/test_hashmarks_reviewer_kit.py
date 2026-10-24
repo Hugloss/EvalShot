@@ -785,6 +785,125 @@ assert result["approved_oracles"] == 0
         self.assertFalse(report["semantic_owner_proven"])
         self.assertFalse(report["approved_oracles"])
 
+    def test_offline_class_global_write_disputes_module_function(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "class Holder:\n"
+            "    global lookup\n"
+            "    lookup = replacement\n", encoding="utf-8"
+        )
+        self.freeze("class global module mutation")
+        self.update_source_pin()
+        process, private = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_BINDING_MUTATION_OBSERVED",
+        )
+        self.assertEqual(report["references_exist"], 0)
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+        self.assertNotIn("fictional-test-reviewer", process.stdout)
+        self.assertTrue(private.is_file())
+        verify_kit(self.out)
+
+    def test_offline_prior_class_global_write_is_superseded_by_module_def(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Holder:\n"
+            "    global lookup\n"
+            "    lookup = replacement\n"
+            "def lookup():\n"
+            "    return 1\n", encoding="utf-8"
+        )
+        self.freeze("prior class global binding")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=4)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+
+    def test_offline_deferred_nested_class_global_write_is_unqualified(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    class Holder:\n"
+            "        global lookup\n"
+            "        lookup = replacement\n", encoding="utf-8"
+        )
+        self.freeze("nested class global deferred")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_DEFERRED_GLOBAL_REBINDING",
+        )
+        self.assertEqual(report["references_exist"], 0)
+        self.assertFalse(report["approved_oracles"])
+
+    def test_offline_class_global_method_def_cannot_impersonate_regular_method(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Holder:\n"
+            "    global lookup\n"
+            "    def lookup():\n"
+            "        return 1\n", encoding="utf-8"
+        )
+        self.freeze("class global def binds module")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=3)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_CLASS_GLOBAL_DEFINITION",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+        self.assertFalse(report["approved_oracles"])
+
+    def test_offline_class_local_assignment_without_global_is_not_module_mutation(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "class Other:\n"
+            "    lookup = replacement\n", encoding="utf-8"
+        )
+        self.freeze("unrelated class local attribute")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=1)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertFalse(report["approved_oracles"])
+
+    def test_offline_class_global_disputes_two_matching_private_claims(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def lookup():\n"
+            "    return 1\n"
+            "class Holder:\n"
+            "    global lookup\n"
+            "    lookup = replacement\n", encoding="utf-8"
+        )
+        self.freeze("class global possible source shadow")
+        self.update_source_pin()
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(report["cases"][0]["state"], "SOURCE_REFERENCE_DISPUTED")
+        self.assertEqual(report["summary"]["same_candidate_unverified"], 0)
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/store.py", run.stdout)
+        self.assertTrue(first.exists() and second.exists())
+        verify_kit(self.out)
+
     def test_offline_deferred_global_write_disputes_module_owner(self):
         (self.hashmarks / "hashmarks/store.py").write_text(
             "def lookup():\n"
