@@ -40,7 +40,8 @@ function compareReceipts(receipts) {
     // Evidence from the execution itself, never from report-time guesses.
     // Legacy receipts stay descriptive and carry explicit missing authority.
     const bindings = ['repository_sha256', 'task_sha256', 'skill_revision',
-      'runtime_config_sha256', 'oracle_revision', 'replicate_id'];
+      'runtime_executable_sha256', 'runtime_config_sha256', 'oracle_revision',
+      'replicate_id', 'model_identity'];
     const authority = Object.fromEntries(bindings.map(field => {
       const b = baseline.experimentalAuthority?.[field];
       const a = skill.experimentalAuthority?.[field];
@@ -56,6 +57,26 @@ function compareReceipts(receipts) {
       comparisons.push({ id: pair.id, runtime: pair.runtime, model: pair.model,
         comparability: 'NOT_COMPARABLE', reason: 'authority-mismatch',
         mismatched_authority: conflicts, authority });
+      continue;
+    }
+    // Unlike historical descriptive receipts, experimental comparability
+    // requires positive evidence for every governing input. Unknown is never
+    // silently promoted to a matched identity.
+    const unknown = Object.entries(authority).filter(([, v]) => v === 'UNKNOWN')
+      .map(([field]) => field);
+    if (unknown.length) {
+      comparisons.push({ id: pair.id, runtime: pair.runtime, model: pair.model,
+        comparability: 'NOT_COMPARABLE', reason: 'authority-unknown',
+        unknown_authority: unknown, authority });
+      continue;
+    }
+    if (baseline.experimentalAuthority.intervention !== 'WITHOUT_CANONICAL_SKILL' ||
+        skill.experimentalAuthority.intervention !== 'WITH_CANONICAL_SKILL' ||
+        baseline.experimentalAuthority.execution_id === skill.experimentalAuthority.execution_id ||
+        !baseline.experimentalAuthority.execution_id ||
+        !skill.experimentalAuthority.execution_id) {
+      comparisons.push({ id: pair.id, runtime: pair.runtime, model: pair.model,
+        comparability: 'NOT_COMPARABLE', reason: 'invalid-intervention-or-execution-identity', authority });
       continue;
     }
     const qualified = arm => ({
