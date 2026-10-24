@@ -18,18 +18,21 @@ import sys
 # A received kit is an exact, manifest-bound allowlist. Importing verify.py
 # must not create __pycache__ and invalidate its own transport verification.
 sys.dont_write_bytecode = True
-from verify import KitVerificationError, verify_kit, _read_object
+from verify import KitVerificationError, verify_kit
 
 RETURNS_SCHEMA = "evalshot.hashmarks-external-first-pass-returns.v1"
 NOT_REVIEWED = "NOT_REVIEWED_REPLACE_BEFORE_SUBMISSION"
 
 
 def make_unreviewed_starter(root: Path, expected_digest: str) -> dict:
-    verified = verify_kit(root, expected_manifest_sha256=expected_digest)
+    public: dict = {}
+    verified = verify_kit(
+        root, expected_manifest_sha256=expected_digest, verified_public=public
+    )
     if verified.get("qualification") != "TRANSPORT_BYTES_VERIFIED_ONLY":
         raise KitVerificationError("review kit transport is unverified")
-    questions, _raw = _read_object(root / "questions.json")
-    manifest, _raw = _read_object(root / "manifest.json")
+    questions = public["questions"]
+    manifest = public["manifest"]
     identity = manifest.get("packet_digest")
     if not isinstance(identity, str) or not identity.startswith("sha256:"):
         raise KitVerificationError("blinded question identity missing from manifest")

@@ -78,16 +78,21 @@ def verify_kit(
     *,
     expected_manifest_sha256: str | None = None,
     verified_source_bytes: dict[str, bytes] | None = None,
+    verified_public: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Verify transport and optionally retain the EXACT verified source bytes.
 
     The optional destination must be empty; it is populated only after every
     file and manifest check succeeds, never with unverified or partial bytes.
-    This prevents review consumers from rereading changed source files after
-    the successful verification. Neither form proves semantic correctness.
+    This prevents review consumers from rereading changed source files or
+    question/manifest objects after successful verification. The optional
+    source and public-metadata outputs are published only after the entire
+    manifest inventory passes. Neither form proves semantic correctness.
     """
     if verified_source_bytes is not None and verified_source_bytes:
         raise KitVerificationError("verified source destination must start empty")
+    if verified_public is not None and verified_public:
+        raise KitVerificationError("verified public metadata destination must start empty")
     if root.is_symlink() or not root.is_dir():
         raise KitVerificationError("review kit root is missing or unsafe")
     if {child.name for child in root.iterdir()} != _ROOT_ITEMS:
@@ -233,6 +238,11 @@ def verify_kit(
     # This is the ONLY transfer of bytes to the caller: none escape on failure.
     if verified_source_bytes is not None:
         verified_source_bytes.update(verified_snapshot)
+    # The public question/manifest objects were parsed and hash-checked by
+    # this exact verification. Export them only after ALL source checks pass,
+    # so callers never reread mutable metadata after the admission decision.
+    if verified_public is not None:
+        verified_public.update({"manifest": manifest, "questions": questions})
 
     return {
         "qualification": "TRANSPORT_BYTES_VERIFIED_ONLY",

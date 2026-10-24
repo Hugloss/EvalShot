@@ -728,6 +728,155 @@ assert result["summary"]["approved_oracles"] == 0
             )
         self.assertEqual(existing, {"preexisting.py": b"untrusted bytes"})
 
+    def test_public_metadata_is_published_atomically_only_after_complete_kit(self):
+        receipt = self.build()
+        public: dict = {}
+        result = verify_kit(
+            self.out, expected_manifest_sha256=receipt["manifest_sha256"],
+            verified_public=public,
+        )
+        self.assertEqual(result["qualification"], "TRANSPORT_BYTES_VERIFIED_ONLY")
+        self.assertEqual(set(public), {"questions", "manifest"})
+        self.assertEqual(public["manifest"]["packet_digest"],
+                         json.loads((self.out / "manifest.json").read_text())["packet_digest"])
+        self.assertEqual(len(public["questions"]["packets"]), 2)
+        self.assertFalse(public["questions"]["experiment_admitted"])
+        self.assertFalse(public["manifest"]["canonical_oracle_approved"])
+
+        (self.out / "source/nested/data.json").write_text('{"altered":true}\n')
+        stale: dict = {}
+        with self.assertRaisesRegex(KitVerificationError, "inventory"):
+            verify_kit(
+                self.out, expected_manifest_sha256=receipt["manifest_sha256"],
+                verified_public=stale,
+            )
+        self.assertEqual(stale, {})
+
+    def test_public_metadata_rejects_existing_destination(self):
+        receipt = self.build()
+        stale = {"questions": {"compromised": True}}
+        with self.assertRaisesRegex(KitVerificationError, "start empty"):
+            verify_kit(
+                self.out, expected_manifest_sha256=receipt["manifest_sha256"],
+                verified_public=stale,
+            )
+        self.assertEqual(stale, {"questions": {"compromised": True}})
+
+    def test_offline_checker_ignores_question_and_manifest_changes_after_verification(self):
+        run, private = self._private_claim_check()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        digest = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
+        probe = r"""
+import json
+import sys
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import check_review
+original_verify = check_review.verify_kit
+changed = [False]
+
+def mutate_metadata_after_verify(*args, **kwargs):
+    result = original_verify(*args, **kwargs)
+    kit = Path(sys.argv[1])
+    (kit / "questions.json").write_text('{"forged":true}\n')
+    (kit / "manifest.json").write_text('{"forged":true}\n')
+    changed[0] = True
+    return result
+
+check_review.verify_kit = mutate_metadata_after_verify
+out = check_review.check(Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3])
+assert changed == [True]
+assert out["references_exist"] == 1, out
+assert out["approved_oracles"] == 0
+assert out["review_statuses"][0]["source_reference_status"] == "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF"
+print(json.dumps(out))
+"""
+        result = subprocess.run([
+            sys.executable, "-c", probe, str(self.out), str(private), digest
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("hashmarks/store.py", result.stdout)
+        self.assertNotIn("fictional-test-reviewer", result.stdout)
+        self.assertFalse((self.out / "__pycache__").exists())
+        with self.assertRaisesRegex(KitVerificationError, "producer-supplied digest"):
+            verify_kit(self.out, expected_manifest_sha256=digest)
+
+    def test_review_starter_uses_verified_public_metadata_without_reread(self):
+        producer = self.build()
+        destination = self.workspace / "private-unreviewed-snapshot.json"
+        probe = r"""
+import json
+import sys
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import start_review
+original_verify = start_review.verify_kit
+
+def mutate_metadata_after_verify(*args, **kwargs):
+    result = original_verify(*args, **kwargs)
+    kit = Path(sys.argv[1])
+    (kit / "questions.json").write_text('{"forged":true}\n')
+    (kit / "manifest.json").write_text('{"forged":true}\n')
+    return result
+
+start_review.verify_kit = mutate_metadata_after_verify
+result = start_review.make_unreviewed_starter(Path(sys.argv[1]), sys.argv[2])
+assert result["blinded_packet_identity"].startswith("sha256:")
+assert len(result["reviews"]) == 2
+assert all(r["decision"] == "NOT_REVIEWED_REPLACE_BEFORE_SUBMISSION" for r in result["reviews"])
+assert all(r["source_inspected"] is None for r in result["reviews"])
+assert all(r["prior_expected_answer_access"] is None for r in result["reviews"])
+print(json.dumps({"tasks": len(result["reviews"]), "approval": False}))
+"""
+        process = subprocess.run([
+            sys.executable, "-c", probe, str(self.out), producer["manifest_sha256"],
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        self.assertFalse(json.loads(process.stdout)["approval"])
+        self.assertFalse(destination.exists())
+        self.assertFalse((self.out / "__pycache__").exists())
+
+    def test_two_review_comparison_reuses_verified_question_context(self):
+        run, first, second = self._compare_two_private_reviews()
+        self.assertEqual(run.returncode, 0, run.stderr)
+        digest = hashlib.sha256((self.out / "manifest.json").read_bytes()).hexdigest()
+        probe = r"""
+import sys
+from pathlib import Path
+sys.dont_write_bytecode = True
+sys.path.insert(0, sys.argv[1])
+import compare_reviews
+original_check = compare_reviews.check_claims
+calls = [0]
+
+def mutate_after_second_validated_bundle(*args, **kwargs):
+    report = original_check(*args, **kwargs)
+    calls[0] += 1
+    if calls[0] == 2:
+        (Path(sys.argv[1]) / "questions.json").write_text('{"forged":true}\n')
+    return report
+
+compare_reviews.check_claims = mutate_after_second_validated_bundle
+report = compare_reviews.compare_private_reviews(
+    kit=Path(sys.argv[1]), response_a=Path(sys.argv[2]),
+    response_b=Path(sys.argv[3]), expected_manifest_sha256=sys.argv[4],
+)
+assert calls == [2]
+assert report["summary"]["same_candidate_unverified"] == 1
+assert report["summary"]["approved_oracles"] == 0
+assert report["cases"][0]["state"] == "SAME_CANDIDATE_UNVERIFIED"
+"""
+        result = subprocess.run([
+            sys.executable, "-c", probe, str(self.out), str(first), str(second),
+            digest,
+        ], cwd=self.workspace, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((self.out / "__pycache__").exists())
+        with self.assertRaisesRegex(KitVerificationError, "questions bytes"):
+            verify_kit(self.out)
+
     def test_manifest_file_digests_bind_exported_bytes(self):
         self.build()
         manifest = json.loads((self.out / "manifest.json").read_text())

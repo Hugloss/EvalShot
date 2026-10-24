@@ -10,21 +10,28 @@ from review_contract import validate_returns, ReturnError
 from source_contract import check_references
 
 
-def check_claims(root: Path, responses: Path, digest: str) -> tuple[dict, dict]:
+def check_claims(
+    root: Path, responses: Path, digest: str,
+    *, verified_public: dict | None = None,
+) -> tuple[dict, dict]:
+    if verified_public is not None and verified_public:
+        raise ReturnError("validated public context destination must start empty")
     # Pin the exact manifest-approved source bytes once. Reopening source
     # paths after verification could read a changed worktree or symlink.
     verified_sources: dict[str, bytes] = {}
+    public: dict = {}
     verify_kit(
         root, expected_manifest_sha256=digest,
         verified_source_bytes=verified_sources,
+        verified_public=public,
     )
     if responses.resolve().is_relative_to(root.resolve()):
         raise ReturnError("private reviewer returns must remain outside the kit")
     if responses.is_symlink() or not responses.is_file() or responses.stat().st_size > 250_000:
         raise ReturnError("private response unavailable or unsafe")
     payload, _ = _read_object(responses)
-    question, _ = _read_object(root / "questions.json")
-    manifest, _ = _read_object(root / "manifest.json")
+    question = public["questions"]
+    manifest = public["manifest"]
     if payload.get("blinded_packet_identity") != manifest.get("packet_digest"):
         raise ReturnError("review returns do not match the exact blinded packet")
     checked = validate_returns(question, payload)
@@ -44,7 +51,7 @@ def check_claims(root: Path, responses: Path, digest: str) -> tuple[dict, dict]:
             "semantic_owner_proven": False,
             "canonical_oracle_approved": False,
         })
-    return {
+    result = {
         "status": "UNTRUSTED_FIRST_PASS_SOURCE_EXISTENCE_ONLY",
         "responses_received": len(checked),
         "references_exist": sum(
@@ -62,7 +69,10 @@ def check_claims(root: Path, responses: Path, digest: str) -> tuple[dict, dict]:
         "reviewer_independence_verified": False,
         "semantic_owner_proven": False,
         "native_baseline_established": False,
-    }, payload
+    }
+    if verified_public is not None:
+        verified_public.update(public)
+    return result, payload
 
 
 def check(root: Path, responses: Path, digest: str) -> dict:

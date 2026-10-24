@@ -277,6 +277,19 @@ the modified kit still fails closed. No source bytes enter the printed status
 or reviewer-response files. The standard `verify.py` command continues to
 return a small, answer-free transport status.
 
+**Atomic verified review context:** the same recipient verifier now also
+publishes the already-validated `questions.json` and `manifest.json` parse
+results in memory, only after **all** kit source and metadata checks succeed.
+The private response checker, incomplete-review starter, and two-review
+comparator use those exact verified question/source identities instead of
+reopening the JSON files after verification. Both source and public-metadata
+snapshot destinations must begin empty and are not populated on failure.
+An on-disk question/manifest swap after verification cannot change a
+completed first-pass comparison; a new verification of the tampered kit
+still fails. Ordinary command-line reports remain answer-free and do not
+export private reviewer content. This is transport/identity consistency,
+**not** source semantics, reviewer independence, or oracle approval.
+
 The result is explicitly `UNTRUSTED_FIRST_PASS_SOURCE_EXISTENCE_ONLY`;
 `SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF` means the citation bytes
 exist, not that the reviewer found a valid behavioral owner. For this

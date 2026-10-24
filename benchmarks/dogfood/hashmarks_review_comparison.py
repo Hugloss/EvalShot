@@ -14,7 +14,7 @@ from pathlib import Path
 import sys
 
 sys.dont_write_bytecode = True
-from verify import KitVerificationError, _read_object
+from verify import KitVerificationError
 from check_review import check_claims
 from review_contract import ReturnError
 
@@ -29,15 +29,18 @@ def _bundle(
     # check() already authenticates the manifest bytes, uses the shared
     # return-shape contract and validates source references from that
     # manifest-verified snapshot. No duplicate validator is introduced.
-    report, payload = check_claims(kit, responses, expected_digest)
-    questions, _ = _read_object(kit / "questions.json")
+    public: dict = {}
+    report, payload = check_claims(
+        kit, responses, expected_digest, verified_public=public
+    )
+    questions = public["questions"]
     by_packet = {row["packet_id"]: row["task_id"] for row in questions["packets"]}
     statuses = {row["task_id"]: row["source_reference_status"]
                 for row in report["review_statuses"]}
     reviewers = {row["reviewer_id"] for row in payload["reviews"]}
     if len(reviewers) > 1:
         raise ReturnError("one private response bundle must declare one reviewer")
-    return {
+    claims = {
         by_packet[row["packet_id"]]: {
             "declared_reviewer": row["reviewer_id"],
             "decision": row["decision"],
@@ -51,6 +54,7 @@ def _bundle(
         }
         for row in payload["reviews"]
     }
+    return claims, questions
 
 
 def compare_private_reviews(
@@ -60,15 +64,16 @@ def compare_private_reviews(
     kit = kit.resolve()
     if response_a.resolve() == response_b.resolve():
         raise ReturnError("two distinct private review files are required")
-    first = _bundle(
+    first, questions = _bundle(
         kit=kit, responses=response_a,
         expected_digest=expected_manifest_sha256,
     )
-    second = _bundle(
+    second, other_questions = _bundle(
         kit=kit, responses=response_b,
         expected_digest=expected_manifest_sha256,
     )
-    questions, _ = _read_object(kit / "questions.json")
+    if other_questions != questions:
+        raise ReturnError("verified review question identities changed across bundles")
     cases = []
     for question in questions["packets"]:
         task = question["task_id"]
