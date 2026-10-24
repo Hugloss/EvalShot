@@ -39,6 +39,9 @@ jobs:
       - name: Blind investigation fixture regression
         run: node scripts/test-blind-investigation.js
 
+      - name: Paired skill report regression
+        run: node scripts/test-skill-paired-report.js
+
       - name: Model-free skill evidence regressions
         run: |
           node scripts/test-skill-evidence-contract.js
