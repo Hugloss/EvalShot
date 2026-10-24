@@ -316,6 +316,135 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             line=3,
         ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
 
+    def test_starred_assignment_after_module_owner_is_binding_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "*a, rest = items\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_deeply_nested_starred_assignment_is_binding_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "(first, [*a, last]) = values\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_starred_assignment_before_module_owner_is_superseded(self):
+        self.assertEqual(self._guarded_owner_status(
+            "*a, rest = items\n"
+            "def a():\n"
+            "    return 1\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_starred_for_target_after_owner_is_binding_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "for *a, rest in items:\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_starred_with_target_after_owner_is_binding_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "with resource as (*a, rest):\n"
+            "    pass\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_body_starred_assignment_replaces_earlier_method(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "    *a, rest = items\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_class_body_starred_assignment_before_method_is_superseded(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    *a, rest = items\n"
+            "    def a(self):\n"
+            "        return 1\n",
+            line=3,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_class_body_global_starred_unpack_rebinds_module_owner(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "class Unrelated:\n"
+            "    global a\n"
+            "    *a, rest = items\n",
+            line=1,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_deferred_global_starred_unpack_is_possible_module_rebind(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    global a\n"
+            "    *a, rest = items\n",
+            line=1,
+        ), "CANDIDATE_DEFERRED_GLOBAL_REBINDING")
+
+    def test_deferred_nested_class_global_starred_unpack_is_possible(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    class Later:\n"
+            "        global a\n"
+            "        *a, rest = items\n",
+            line=1,
+        ), "CANDIDATE_DEFERRED_GLOBAL_REBINDING")
+
+    def test_local_starred_unpack_without_global_does_not_rebind_module(self):
+        self.assertEqual(self._guarded_owner_status(
+            "def a():\n"
+            "    return 1\n"
+            "def callback():\n"
+            "    *a, rest = items\n",
+            line=1,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_unrelated_class_starred_unpack_does_not_rebind_other_method(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "class Other:\n"
+            "    *a, rest = items\n",
+            line=2,
+        ), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF")
+
+    def test_starred_class_attribute_unpack_after_method_is_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "*Owner.a, rest = values\n",
+            line=2,
+        ), "CANDIDATE_BINDING_MUTATION_OBSERVED")
+
+    def test_deferred_starred_class_attribute_unpack_is_possible_mutation(self):
+        self.assertEqual(self._guarded_owner_status(
+            "class Owner:\n"
+            "    def a(self):\n"
+            "        return 1\n"
+            "def callback():\n"
+            "    *Owner.a, rest = values\n",
+            line=2,
+        ), "CANDIDATE_DEFERRED_METHOD_REBINDING")
+
     def test_for_loop_target_after_definition_is_unresolved_binding(self):
         self.assertEqual(self._guarded_owner_status(
             "def a():\n"
