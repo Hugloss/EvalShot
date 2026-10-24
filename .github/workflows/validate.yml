@@ -42,6 +42,9 @@ jobs:
       - name: Paired skill report regression
         run: node scripts/test-skill-paired-report.js
 
+      - name: Execution authority drift regressions
+        run: node scripts/test-skill-execution-authority.js
+
       - name: Model-free skill evidence regressions
         run: |
           node scripts/test-skill-evidence-contract.js
