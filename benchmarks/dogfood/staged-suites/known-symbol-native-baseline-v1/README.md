@@ -320,6 +320,19 @@ All three statuses are unqualified: static syntax does not prove semantics,
 runtime reachability, independence, or an oracle. Additional external
 callers/tests/delegation evidence remains allowed.
 
+**Guarded declarations:** the canonical AST source checker now also
+distinguishes source definitions inside conditional or managed blocks
+(`if`, `try`, `match`, loops, and `with`), including class methods
+under `TYPE_CHECKING`. These return `CANDIDATE_ONLY_GUARDED_DECLARATION`
+when no unconditional definition was observed. A sole unconditional
+definition accompanied by a guarded same-name alternative returns
+`CANDIDATE_GUARDED_ALTERNATIVE`. Neither status asserts that a branch
+can or cannot run: that requires runtime/semantic knowledge the static
+reviewer deliberately does not own. Definitions nested inside unrelated
+functions do not make an otherwise unconditional module-level owner guarded.
+The Git-backed and offline source readers continue to consume the **same**
+portable source contract, and no source claim authorizes an oracle.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
