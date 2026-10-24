@@ -316,7 +316,14 @@ return `CANDIDATE_ONLY_LOCAL_DECLARATION`; multiple separately observable
 declarations sharing a symbol within one candidate file return
 `CANDIDATE_MULTIPLE_DECLARATIONS_OBSERVED`; existing declarations cited
 only elsewhere in their file return `CANDIDATE_WITHOUT_DECLARATION_SPAN_CITATION`.
-All three statuses are unqualified: static syntax does not prove semantics,
+A citation inside the declaration span still needs **a Python lexical
+token** on that physical line; a blank or comment-only line in the body
+now yields `CANDIDATE_WITHOUT_DECLARATION_SYNTAX_CITATION`. The checker
+recognizes multiline string tokens, so lines within a docstring (even an
+empty physical line) are not falsely classified as outside syntax. It
+reuses the same manifest-/Git-verified source bytes and portable source
+checker, not a second interpretation or an executable source inspection.
+All these statuses remain unqualified: static syntax does not prove semantics,
 runtime reachability, independence, or an oracle. Additional external
 callers/tests/delegation evidence remains allowed.
 

@@ -47,6 +47,10 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    Cite at least one line **inside each named Python declaration's own
    span** (including its decorators or body), not just an unrelated class
    definition, import, comment or helper elsewhere in the same file.
+   That line must also contain genuine Python lexical source: a blank
+   or comment-only line inside the declaration is insufficient. Multiline
+   string content is still Python source, including lines beginning `#`.
+   These checks establish only lexical evidence, not semantic ownership.
    A matching name defined only inside another function is a local helper,
    not a supported module-level or class-method owner; multiple observable
    declarations of the same name in one file are not syntactically unique.
