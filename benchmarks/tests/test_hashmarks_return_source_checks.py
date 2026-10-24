@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from benchmarks.dogfood.hashmarks_return_source_checks import (
     main, verify_source_references,
@@ -1335,6 +1337,161 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             ])
         self.assertEqual(error.exception.code, 2)
         self.assertFalse(target.exists())
+
+    def _run_status_output_cli(self, *, output=None, responses=None, before_open=None):
+        # Only the output boundary is under test. The frozen source and
+        # response-shape owners have their own integration regressions.
+        root = Path(self.temp.name) / "EvalShot"
+        root.mkdir(exist_ok=True)
+        args = [
+            "--repository-root", str(root),
+            "--checkout", str(self.repo),
+        ]
+        if output is not None:
+            args.extend(["--output", str(output)])
+        if responses is not None:
+            args.extend(["--responses", str(responses)])
+        sanitized = {
+            "summary": {"unavailable_or_disputed_source": 0, "approved_oracles": 0},
+            "tasks": [],
+            "data_classification": "SANITIZED_PRIVATE_SOURCE_CHECK_STATUS_ONLY",
+        }
+        stdout, stderr = StringIO(), StringIO()
+        with (
+            patch(
+                "benchmarks.dogfood.hashmarks_return_source_checks.prepare_blind_review",
+                return_value=self.packet,
+            ) as prepare,
+            patch(
+                "benchmarks.dogfood.hashmarks_return_source_checks.verify_source_references",
+                return_value=sanitized,
+            ) as verify,
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+        ):
+            try:
+                if before_open is None:
+                    exit_code = main(args)
+                else:
+                    original_open = os.open
+
+                    def raced_open(path, flags, mode=0o777):
+                        before_open()
+                        return original_open(path, flags, mode)
+
+                    with patch(
+                        "benchmarks.dogfood.hashmarks_return_source_checks.os.open",
+                        side_effect=raced_open,
+                    ):
+                        exit_code = main(args)
+            except SystemExit as exc:
+                exit_code = exc.code
+        return exit_code, stdout.getvalue(), stderr.getvalue(), prepare.call_count, verify.call_count
+
+    def test_status_cli_refuses_existing_file_before_source_intake(self):
+        output = Path(self.temp.name) / "previous-status.json"
+        original = '{"private":"must not change"}\n'
+        output.write_text(original, encoding="utf-8")
+        code, printed, error, prepared, verified = self._run_status_output_cli(
+            output=output
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("new file", error)
+        self.assertEqual(output.read_text(encoding="utf-8"), original)
+        self.assertFalse(printed)
+        self.assertEqual((prepared, verified), (0, 0))
+
+    def test_status_cli_refuses_symlink_to_private_return(self):
+        private = Path(self.temp.name) / "private-return.json"
+        original = '{"reason":"must remain private"}\n'
+        private.write_text(original, encoding="utf-8")
+        output = Path(self.temp.name) / "linked-status.json"
+        output.symlink_to(private)
+        code, printed, _, prepared, verified = self._run_status_output_cli(
+            output=output
+        )
+        self.assertEqual(code, 2)
+        self.assertFalse(printed)
+        self.assertTrue(output.is_symlink())
+        self.assertEqual(private.read_text(encoding="utf-8"), original)
+        self.assertEqual((prepared, verified), (0, 0))
+
+    def test_status_cli_refuses_dangling_symlink(self):
+        output = Path(self.temp.name) / "dangling-status.json"
+        output.symlink_to("missing-private-file.json")
+        self.assertFalse(output.exists())
+        code, printed, error, prepared, verified = self._run_status_output_cli(
+            output=output
+        )
+        self.assertEqual(code, 2)
+        self.assertFalse(printed)
+        self.assertIn("new file", error)
+        self.assertTrue(output.is_symlink())
+        self.assertFalse((output.parent / "missing-private-file.json").exists())
+        self.assertEqual((prepared, verified), (0, 0))
+
+    def test_status_cli_refuses_private_response_as_output(self):
+        private = Path(self.temp.name) / "source-response.json"
+        contents = '{"private":"preserve"}'
+        private.write_text(contents, encoding="utf-8")
+        code, printed, error, prepared, verified = self._run_status_output_cli(
+            output=private, responses=private
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("private", error)
+        self.assertFalse(printed)
+        self.assertEqual(private.read_text(encoding="utf-8"), contents)
+        self.assertEqual((prepared, verified), (0, 0))
+
+    def test_status_cli_creates_fresh_external_sanitized_status(self):
+        output = Path(self.temp.name) / "reports" / "source-status.json"
+        code, printed, error, prepared, verified = self._run_status_output_cli(
+            output=output
+        )
+        self.assertEqual(code, 0, error)
+        self.assertEqual((prepared, verified), (1, 1))
+        self.assertEqual(printed, output.read_text(encoding="utf-8"))
+        report = json.loads(printed)
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+        self.assertEqual(report["data_classification"],
+                         "SANITIZED_PRIVATE_SOURCE_CHECK_STATUS_ONLY")
+        if os.name == "posix":
+            self.assertEqual(output.stat().st_mode & 0o077, 0)
+        # A second run cannot replace a completed or previously read status.
+        again, silent, error, prepared, verified = self._run_status_output_cli(
+            output=output
+        )
+        self.assertEqual(again, 2)
+        self.assertIn("new file", error)
+        self.assertEqual((prepared, verified), (0, 0))
+        self.assertFalse(silent)
+        self.assertEqual(output.read_text(encoding="utf-8"), printed)
+
+    def test_status_cli_exclusive_open_blocks_late_competing_writer(self):
+        output = Path(self.temp.name) / "late-status.json"
+        original = '{"existing":"late writer"}\n'
+        created = []
+
+        def competitor():
+            if not created:
+                output.write_text(original, encoding="utf-8")
+                created.append(True)
+
+        code, printed, error, prepared, verified = self._run_status_output_cli(
+            output=output, before_open=competitor
+        )
+        self.assertEqual(code, 2)
+        self.assertIn("File exists", error)
+        self.assertEqual((prepared, verified), (1, 1))
+        self.assertTrue(created)
+        self.assertFalse(printed)
+        self.assertEqual(output.read_text(encoding="utf-8"), original)
+
+    def test_status_cli_stdout_only_does_not_write_file(self):
+        code, printed, error, prepared, verified = self._run_status_output_cli()
+        self.assertEqual(code, 0, error)
+        self.assertEqual((prepared, verified), (1, 1))
+        self.assertEqual(json.loads(printed)["summary"]["approved_oracles"], 0)
 
     def test_determinism_and_source_input_non_mutation(self):
         incoming = responses(self.packet, [self.assertion()])
