@@ -50,6 +50,10 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    A matching name defined only inside another function is a local helper,
    not a supported module-level or class-method owner; multiple observable
    declarations of the same name in one file are not syntactically unique.
+   A matching declaration under an `if` / `TYPE_CHECKING`, `try`, `match`,
+   loop, or `with` block is also **guarded**: its presence in the AST does
+   not prove unconditional availability. A separately unguarded definition
+   with a guarded same-name alternative must not be called unique.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:
