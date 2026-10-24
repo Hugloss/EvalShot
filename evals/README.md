@@ -100,16 +100,19 @@ Use the same explicit `--replicate-id ID` for a baseline/skill pair.
 
 These observations are **partial authority**, not provider attestation.
 The selected agent may load implicit configuration, resolve a default model,
-or invoke other programs internally. Unless that effective configuration and
-model identity are independently observed, the receipt leaves
+or invoke other programs internally. A command-line model override is recorded
+as `requested_model`, while `model_identity` remains unknown until actual
+runtime observation. Unless effective configuration and model identity are
+independently observed, the receipt leaves
 `runtime_config_sha256` or `model_identity` unknown. The paired reporter
 rejects unknown or mismatched governing authority with `NOT_COMPARABLE`, even
 when the classification score happens to pass. A deliberate difference in skill
 availability is separately recorded as the intervention, not mistaken for a
 difference in the frozen task.
 
-A pre-existing result receipt is never overwritten. To execute another
-replicate, select a fresh artifacts directory. This prevents silent replacement
+Existing result, stdout, or stderr artifacts are rejected **before agent execution**.
+The persistence step also uses exclusive creation to reject races at write time.
+To execute another replicate, select a fresh artifacts directory. This prevents silent replacement
 of completed observations; it is not cryptographic provenance protection.
 
 Historic receipts remain readable but are not comparable without sufficient
