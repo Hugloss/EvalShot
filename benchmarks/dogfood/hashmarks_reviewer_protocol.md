@@ -75,6 +75,10 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    plain declaration, or inside an unrelated local function, is not by
    itself a later override. The checker observes syntax only; it does
    not evaluate whether a loop, exception, context manager or case runs.
+   Starred unpacking targets (`*name`) in assignments, `for`, and
+   `with ... as` also bind their wrapped names. Inspect each nested
+   tuple/list target, including class-body writes and function-body writes
+   declared `global`; ignoring the star can hide a competing binding.
    Inspect definition-time expressions too: function/method decorators,
    parameter defaults and annotations, plus class decorators, bases and
    metaclass keywords are evaluated in their *enclosing* module/class
