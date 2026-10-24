@@ -97,6 +97,11 @@ class _Declarations(ast.NodeVisitor):
     def _target(self, target: ast.AST) -> None:
         if isinstance(target, ast.Name):
             self._mark_binding(target.id, node=target)
+        elif isinstance(target, ast.Starred):
+            # Unpacking binds the wrapped target in the same namespace as
+            # ordinary assignment/for/with targets. Skipping this wrapper
+            # could falsely validate a previously declared source owner.
+            self._target(target.value)
         elif isinstance(target, (ast.Tuple, ast.List)):
             for item in target.elts:
                 self._target(item)
