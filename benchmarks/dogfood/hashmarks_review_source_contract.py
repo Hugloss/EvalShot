@@ -23,20 +23,25 @@ class _Declarations(ast.NodeVisitor):
         self.function_depth = 0
         self.guard_depth = 0
         self.class_stack: list[str] = []
-        self.matches: list[tuple[int, int, tuple[str, ...]]] = []
+        self.matches: list[tuple[int, int, tuple[str, ...], tuple[int, int]]] = []
         self.guarded_matches = 0
         self.local_matches = 0
-        self.binding_changes: set[tuple[str, ...]] = set()
+        self.binding_changes: dict[tuple[str, ...], list[tuple[int, int]]] = {}
+        self.wildcard_imports: list[tuple[int, int]] = []
 
-    def _mark_binding(self, name: str, *, scope: tuple[str, ...] | None = None) -> None:
+    def _mark_binding(
+        self, name: str, *, node: ast.AST,
+        scope: tuple[str, ...] | None = None,
+    ) -> None:
         if self.function_depth == 0 and name == self.symbol:
-            self.binding_changes.add(
-                tuple(self.class_stack) if scope is None else scope
+            owner = tuple(self.class_stack) if scope is None else scope
+            self.binding_changes.setdefault(owner, []).append(
+                (node.lineno, node.col_offset)
             )
 
     def _target(self, target: ast.AST) -> None:
         if isinstance(target, ast.Name):
-            self._mark_binding(target.id)
+            self._mark_binding(target.id, node=target)
         elif isinstance(target, (ast.Tuple, ast.List)):
             for item in target.elts:
                 self._target(item)
@@ -49,7 +54,9 @@ class _Declarations(ast.NodeVisitor):
             # Module-level ClassName.method = replacement is a possible
             # monkeypatch of a named class method, but not of every other
             # class with the same method name.
-            self._mark_binding(target.attr, scope=(target.value.id,))
+            self._mark_binding(
+                target.attr, node=target, scope=(target.value.id,)
+            )
 
     def visit_Assign(self, node: ast.Assign) -> None:
         for target in node.targets:
@@ -76,15 +83,22 @@ class _Declarations(ast.NodeVisitor):
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:
-            self._mark_binding(alias.asname or alias.name.split(".")[0])
+            self._mark_binding(
+                alias.asname or alias.name.split(".")[0], node=node
+            )
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         for alias in node.names:
-            if alias.name != "*":
-                self._mark_binding(alias.asname or alias.name)
+            if alias.name == "*":
+                if self.function_depth == 0 and not self.class_stack:
+                    # A wildcard import may bind any public module name.
+                    # Its actual contents are outside the frozen source.
+                    self.wildcard_imports.append((node.lineno, node.col_offset))
+            else:
+                self._mark_binding(alias.asname or alias.name, node=node)
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        self._mark_binding(node.name)
+        self._mark_binding(node.name, node=node)
         self.class_stack.append(node.name)
         self.generic_visit(node)
         self.class_stack.pop()
@@ -99,7 +113,10 @@ class _Declarations(ast.NodeVisitor):
                 start = min(
                     [node.lineno, *(decorator.lineno for decorator in node.decorator_list)]
                 )
-                self.matches.append((start, node.end_lineno, tuple(self.class_stack)))
+                self.matches.append((
+                    start, node.end_lineno, tuple(self.class_stack),
+                    (node.lineno, node.col_offset),
+                ))
         self.function_depth += 1
         self.generic_visit(node)
         self.function_depth -= 1
@@ -179,9 +196,21 @@ def check_references(
             return "CANDIDATE_MULTIPLE_DECLARATIONS_OBSERVED", count
         if declarations.guarded_matches:
             return "CANDIDATE_GUARDED_ALTERNATIVE", count
-        start, end, scope = declarations.matches[0]
-        if scope in declarations.binding_changes:
+        start, end, scope, declaration_position = declarations.matches[0]
+        # A later unconditional def overwrites an earlier import/assignment
+        # in the same namespace. Only mutations after the observed def
+        # could change the name's final binding. Python semantics beyond
+        # source order (branch truth, dynamic execution) are not inferred.
+        if any(
+            position > declaration_position
+            for position in declarations.binding_changes.get(scope, ())
+        ):
             return "CANDIDATE_BINDING_MUTATION_OBSERVED", count
+        if not scope and any(
+            position > declaration_position
+            for position in declarations.wildcard_imports
+        ):
+            return "CANDIDATE_WILDCARD_IMPORT_MAY_REBIND", count
         declaration_spans[(path, symbol)] = (start, end)
 
     for observation in evidence:

@@ -60,6 +60,13 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    does not prove that its binding remains intact on all paths. A
    same-name local variable in another function, or a binding in a
    different class, is not automatically an override of the candidate.
+   Check the **source order**: an unconditional definition after an
+   assignment or explicit import normally supersedes that earlier binding.
+   A potential assignment/import/delete **after** the observed definition
+   remains unresolved. A later `from package import *` at module scope is
+   also unresolved, because the checker cannot infer what the wildcard
+   brings into the namespace. Do not infer runtime execution or ownership
+   from static source order alone.
    Explain the specific semantic relationship at each citation. These rules
    observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:
