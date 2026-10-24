@@ -268,12 +268,21 @@ received kit. Neither implementation executes source code.
 
 The result is explicitly `UNTRUSTED_FIRST_PASS_SOURCE_EXISTENCE_ONLY`;
 `SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF` means the citation bytes
-exist, not that the reviewer found a valid behavioral owner. Missing
-source files, absent Python declarations, invalid syntax, or nonexistent
+exist, not that the reviewer found a valid behavioral owner. For this
+Python-symbol cohort, a *positive source-existence status* now requires
+each proposed Python candidate to have a matching AST declaration **and**
+at least one cited line in that same candidate file. Additional cited
+callers, tests and delegations remain permitted. A claimed symbol in a
+non-Python file returns `UNSUPPORTED_NON_PYTHON_CANDIDATE` (no inferred
+declaration authority); an otherwise valid candidate with only unrelated
+file citations returns `CANDIDATE_WITHOUT_CITED_SOURCE_EVIDENCE`.
+Missing source files, absent declarations, invalid syntax, or nonexistent
 line numbers retain distinct negative statuses. An unable-to-review
-decision cannot be reported as positive source evidence. Status output
-never includes candidate paths, reviewer names, rationales or source
-observations, and always reports zero oracle approvals.
+decision cannot be reported as positive source evidence. These checks
+still do **not** establish semantic behavior, reviewer independence or
+oracle correctness. Status output never includes candidate paths,
+reviewer names, rationales or source observations, and always reports
+zero oracle approvals.
  Source existence
 and semantic ownership remain separate responsibilities, with independent
 approval reserved to EvalShot's canonical oracle review owner.
