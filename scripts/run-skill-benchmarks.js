@@ -41,6 +41,7 @@ Options:
   --all                Run every corpus case.
   --list               List cases without model execution.
   --validate-corpus    Validate ids, coverage, fixtures, and skill references.
+  --without-skill      Baseline arm: withhold canonical skill text (requires blinded cases).
 `);
 }
 
@@ -48,7 +49,7 @@ function parseArgs(argv) {
   const out = {
     runtime: '', all: false, skills: [], cases: [], repoDir: '', cookbookRoot: '',
     corpus: defaultCorpus, artifactsDir: '', model: process.env.SKILL_EVAL_MODEL || '',
-    list: false, validateCorpus: false,
+    list: false, validateCorpus: false, withoutSkill: false,
   };
   const take = (argvRef, indexRef, name) => {
     indexRef.value += 1;
@@ -60,6 +61,7 @@ function parseArgs(argv) {
     const arg = argv[indexRef.value];
     if (arg === '--runtime') out.runtime = take(argv, indexRef, arg);
     else if (arg === '--all') out.all = true;
+    else if (arg === '--without-skill') out.withoutSkill = true;
     else if (arg === '--skill') out.skills.push(take(argv, indexRef, arg));
     else if (arg === '--case') out.cases.push(take(argv, indexRef, arg));
     else if (arg === '--cookbook-root') out.cookbookRoot = take(argv, indexRef, arg);
@@ -111,6 +113,7 @@ function validateCorpus(corpus, cookbook, specialists) {
     if (!['positive', 'control', 'confusion'].includes(item.kind)) errors.push(`${item.id}: invalid kind ${item.kind}`);
     if (!['FINDING', 'CLEAN'].includes(item.expected)) errors.push(`${item.id}: expected must be FINDING or CLEAN`);
     if (!item.scenario || typeof item.scenario !== 'string') errors.push(`${item.id}: missing scenario`);
+    if (item.blind !== undefined && typeof item.blind !== 'boolean') errors.push(`${item.id}: blind must be boolean`);
     if (item.fixture && item.expected === 'FINDING') {
       const contract = item.evidence_contract;
       if (!contract || contract.status !== 'pinned-fixture-anchor'
@@ -159,6 +162,7 @@ function evaluatorSystem(skillText, skillName) {
 }
 
 function casePrompt(item) {
+  if (item.blind) return 'Inspect the entire current repository for reachable defects in the declared review scope. Discover and justify the outcome from repository evidence. Do not assume a defect exists. Report only the strongest proven finding or a scoped clean result. No gold expectations or file locations are supplied.';
   const source = item.fixture
     ? 'Inspect the files in the current working directory; they are the complete fixture for this case.'
     : 'The scenario below is the complete evidence for this bounded case.';
@@ -228,7 +232,7 @@ function parseResult(output) {
 
 function persist(result, base) {
   if (!base) return;
-  const dir = path.join(base, result.runtime, result.id); ensureDir(dir);
+  const dir = path.join(base, result.runtime, result.arm || 'skill', result.id); ensureDir(dir);
   fs.writeFileSync(path.join(dir, 'stdout.txt'), result.stdout);
   fs.writeFileSync(path.join(dir, 'stderr.txt'), result.stderr);
   const copy = { ...result }; delete copy.stdout; delete copy.stderr;
@@ -237,7 +241,7 @@ function persist(result, base) {
 
 function executeCase(item, options, cookbook) {
   const skillText = fs.readFileSync(cookbook.file(path.join('skills', item.skill, 'SKILL.md')), 'utf8');
-  const systemPrompt = evaluatorSystem(skillText, item.skill), prompt = casePrompt(item);
+  const systemPrompt = evaluatorSystem(options.withoutSkill ? 'You are a read-only code reviewer. Determine whether a material defect exists; do not invent findings.' : skillText, item.skill), prompt = casePrompt(item);
   const cwd = item.fixture ? path.resolve(repoRoot, item.fixture) : options.repoDir;
   const execution = options.runtime === 'pi' ? runPi(systemPrompt, prompt, cwd, options.model) : runOpenCode(systemPrompt, prompt, cwd, options.model);
   const parsed = parseResult(execution.stdout), expectedScope = item.expected === 'FINDING' ? item.skill : 'NONE';
@@ -255,7 +259,7 @@ function executeCase(item, options, cookbook) {
     skill: item.skill, proof,
   });
   const pass = qualified.pass;
-  return { id: item.id, skill: item.skill, kind: item.kind, runtime: options.runtime, model: options.model || null,
+  return { id: item.id, skill: item.skill, kind: item.kind, arm: options.withoutSkill ? 'baseline' : 'skill', blinded: !!item.blind, runtime: options.runtime, model: options.model || null,
     expected: item.expected, expectedScope, status: pass ? 'pass' : 'fail', exitCode: execution.status,
     elapsedMs: execution.elapsedMs, outputChars: execution.stdout.length, verdict: parsed.verdict || null,
     scope: parsed.scope || null, evidence: parsed.evidence || null,
@@ -291,7 +295,9 @@ function main() {
   }
   if (options.list) { for (const item of corpus.cases) process.stdout.write(`CASE id=${item.id} skill=${item.skill} kind=${item.kind} expected=${item.expected} fixture=${item.fixture || 'none'}\n`); return; }
   if (!['opencode', 'pi'].includes(options.runtime)) { process.stderr.write('Error: --runtime must be opencode or pi.\n'); process.exit(2); }
-  const cases = selectedCases(corpus, options); if (options.artifactsDir) ensureDir(options.artifactsDir);
+  const cases = selectedCases(corpus, options);
+  if (options.withoutSkill && cases.some(item => !item.blind)) throw new Error('--without-skill requires all selected cases to be blinded');
+  if (options.artifactsDir) ensureDir(options.artifactsDir);
   const results = [];
   for (const item of cases) {
     process.stdout.write(`CASE id=${item.id} skill=${item.skill} runtime=${options.runtime} status=running\n`);
