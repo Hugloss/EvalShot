@@ -108,5 +108,9 @@ when the classification score happens to pass. A deliberate difference in skill
 availability is separately recorded as the intervention, not mistaken for a
 difference in the frozen task.
 
+A pre-existing result receipt is never overwritten. To execute another
+replicate, select a fresh artifacts directory. This prevents silent replacement
+of completed observations; it is not cryptographic provenance protection.
+
 Historic receipts remain readable but are not comparable without sufficient
 observed evidence. This checkpoint does **not** qualify causal improvement claims.
