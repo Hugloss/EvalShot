@@ -1631,6 +1631,61 @@
           }
         ]
       }
+    },
+    {
+      "id": "blind-investigation-clean-identity",
+      "skill": "single-source-of-truth-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "blind": true,
+      "blind_scope": "repository identity authority",
+      "fixture": "evals/fixtures/investigation-clean",
+      "scenario": "Independent blind clean control: one owner resolves identity; verifier only validates."
+    },
+    {
+      "id": "blind-investigation-backtrack-positive",
+      "skill": "resolved-fact-regression-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "blind": true,
+      "blind_scope": "repository identity transport into execution",
+      "fixture": "evals/fixtures/investigation-backtrack",
+      "scenario": "The executor discards available resolved identity and reconstructs it from an artifact name.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "entrypoint.py",
+            "line": 5,
+            "quote": "resolved = resolve(source)"
+          },
+          {
+            "path": "worker.py",
+            "line": 2,
+            "quote": "identity = source[\"artifact\"].split(\".\")[0]"
+          }
+        ]
+      }
+    },
+    {
+      "id": "blind-investigation-backtrack-confusion",
+      "skill": "single-source-of-truth-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "blind": true,
+      "blind_scope": "repository identity authority",
+      "fixture": "evals/fixtures/investigation-backtrack",
+      "scenario": "The backward resolution is not two accepted identity authorities; single-source review must reject neighbor finding."
+    },
+    {
+      "id": "blind-investigation-clean-backtrack",
+      "skill": "resolved-fact-regression-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "blind": true,
+      "blind_scope": "repository identity transport into execution",
+      "fixture": "evals/fixtures/investigation-clean",
+      "scenario": "Canonical result is retained; validation is not re-resolution."
     }
   ]
 }
