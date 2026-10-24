@@ -55,7 +55,7 @@ def validate_oracle_reviews(
         evidence = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as exc:
         raise OracleReviewError("oracle review evidence cannot be read") from exc
-    if evidence.get("schema") != "agents-cookbook-oracle-reviews.v1":
+    if not isinstance(evidence, dict) or evidence.get("schema") != "agents-cookbook-oracle-reviews.v1":
         raise OracleReviewError("unknown oracle review evidence schema")
     rows = evidence.get("tasks")
     if not isinstance(rows, dict):
@@ -115,7 +115,8 @@ def validate_oracle_reviews(
                 or not isinstance(review.get("reviewer"), str)
                 or not review["reviewer"].strip()
                 or review.get("task_digest") != task_digest
-                or review.get("decision") not in {"unique", "ambiguous", "invalid"}
+                or not isinstance(review.get("decision"), str)
+                or review["decision"] not in {"unique", "ambiguous", "invalid"}
                 or not isinstance(review.get("reason"), str)
                 or not review["reason"].strip()
             ):
