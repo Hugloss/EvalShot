@@ -60,8 +60,8 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
     def assertion(self, *, decision="unique", index=0):
         data = review(self.packet, decision=decision, index=index)
         data["source_evidence"] = [{
-            "path": "hashmarks/a.py", "line": 9,
-            "observation": "checked this source line, meaning still unverified",
+            "path": "hashmarks/a.py", "line": 1,
+            "observation": "checked the actual source declaration, meaning still unverified",
         }]
         return data
 
@@ -147,6 +147,76 @@ class FrozenReviewerCitationChecks(unittest.TestCase):
             self.status(self.check([claim])),
             "CANDIDATE_PYTHON_NOT_PARSEABLE",
         )
+
+    def test_unrelated_line_in_same_candidate_file_cannot_substitute_for_declaration(self):
+        claim = self.assertion()
+        claim["source_evidence"][0]["line"] = 9  # actual unrelated private_helper
+        result = self.check([claim])
+        self.assertEqual(
+            self.status(result), "CANDIDATE_WITHOUT_DECLARATION_SPAN_CITATION"
+        )
+        self.assertEqual(result["summary"]["pinned_references_exist"], 0)
+        self.assertEqual(result["summary"]["approved_oracles"], 0)
+        self.assertNotIn("hashmarks/a.py", json.dumps(result))
+
+    def test_local_function_with_matching_name_is_not_an_observed_owner(self):
+        (self.repo / "hashmarks/local.py").write_text(
+            "def wrapper():\n"
+            "    def a():\n"
+            "        return 3\n"
+            "    return a\n", encoding="utf-8",
+        )
+        self.freeze("local declaration")
+        for q in self.packet["packets"]:
+            q["repository"]["commit"] = self.commit
+            q["repository"]["tree"] = self.tree
+        claim = self.assertion()
+        claim["candidate_locations"] = [{"path": "hashmarks/local.py", "symbol": "a"}]
+        claim["source_evidence"][0].update(path="hashmarks/local.py", line=2)
+        report = self.check([claim])
+        self.assertEqual(self.status(report), "CANDIDATE_ONLY_LOCAL_DECLARATION")
+        self.assertEqual(report["summary"]["pinned_references_exist"], 0)
+
+    def test_two_same_name_declarations_in_one_file_cannot_be_called_unique(self):
+        (self.repo / "hashmarks/duplicate.py").write_text(
+            "class First:\n"
+            "    def a(self): pass\n"
+            "class Second:\n"
+            "    def a(self): pass\n", encoding="utf-8",
+        )
+        self.freeze("duplicate declarations")
+        for q in self.packet["packets"]:
+            q["repository"]["commit"] = self.commit
+            q["repository"]["tree"] = self.tree
+        claim = self.assertion()
+        claim["candidate_locations"] = [{"path": "hashmarks/duplicate.py", "symbol": "a"}]
+        claim["source_evidence"][0].update(path="hashmarks/duplicate.py", line=2)
+        report = self.check([claim])
+        self.assertEqual(self.status(report), "CANDIDATE_MULTIPLE_DECLARATIONS_OBSERVED")
+        self.assertEqual(report["summary"]["pinned_references_exist"], 0)
+        self.assertEqual(report["summary"]["approved_oracles"], 0)
+
+    def test_method_decorator_line_is_a_valid_syntactic_source_anchor(self):
+        (self.repo / "hashmarks/decorated.py").write_text(
+            "class Example:\n"
+            "    @property\n"
+            "    def a(self):\n"
+            "        return 1\n", encoding="utf-8",
+        )
+        self.freeze("decorated method")
+        for q in self.packet["packets"]:
+            q["repository"]["commit"] = self.commit
+            q["repository"]["tree"] = self.tree
+        claim = self.assertion()
+        claim["candidate_locations"] = [
+            {"path": "hashmarks/decorated.py", "symbol": "a"}
+        ]
+        claim["source_evidence"][0].update(path="hashmarks/decorated.py", line=2)
+        result = self.check([claim])
+        self.assertEqual(
+            self.status(result), "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF"
+        )
+        self.assertFalse(result["tasks"][0]["semantic_owner_proven"])
 
     def test_existing_candidate_without_own_citation_is_not_source_anchored(self):
         claim = self.assertion()

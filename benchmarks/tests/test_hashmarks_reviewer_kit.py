@@ -400,6 +400,74 @@ assert result["approved_oracles"] == 0
         )
         self.assertFalse(report["approved_oracles"])
 
+    def test_offline_same_file_unrelated_line_cannot_anchor_method(self):
+        process, private = self._private_claim_check(line=1)  # class, not method
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_WITHOUT_DECLARATION_SPAN_CITATION",
+        )
+        self.assertEqual(report["references_exist"], 0)
+        self.assertFalse(report["approved_oracles"])
+        self.assertNotIn("hashmarks/store.py", process.stdout)
+
+    def test_offline_local_nested_function_is_not_a_module_owner(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "def unrelated():\n"
+            "    def lookup():\n"
+            "        return 1\n"
+            "    return lookup\n", encoding="utf-8"
+        )
+        self.freeze("local nested helper")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_ONLY_LOCAL_DECLARATION",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+
+    def test_offline_multiple_same_named_methods_are_not_qualified_unique(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class One:\n"
+            "    def lookup(self): pass\n"
+            "class Two:\n"
+            "    def lookup(self): pass\n", encoding="utf-8"
+        )
+        self.freeze("two distinct methods same name")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "CANDIDATE_MULTIPLE_DECLARATIONS_OBSERVED",
+        )
+        self.assertFalse(report["approved_oracles"])
+
+    def test_offline_decorated_method_anchor_remains_valid_syntax_only(self):
+        (self.hashmarks / "hashmarks/store.py").write_text(
+            "class Store:\n"
+            "    @property\n"
+            "    def lookup(self):\n"
+            "        return 1\n", encoding="utf-8"
+        )
+        self.freeze("decorated")
+        self.update_source_pin()
+        process, _ = self._private_claim_check(line=2)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        report = json.loads(process.stdout)
+        self.assertEqual(report["references_exist"], 1)
+        self.assertEqual(
+            report["review_statuses"][0]["source_reference_status"],
+            "SOURCE_REFERENCES_EXIST_NOT_SEMANTIC_PROOF",
+        )
+        self.assertFalse(report["semantic_owner_proven"])
+        self.assertFalse(report["approved_oracles"])
+
     def test_offline_source_contract_matches_canonical_file(self):
         self.build()
         self.assertEqual(
@@ -455,6 +523,13 @@ assert result["approved_oracles"] == 0
                 item["candidate_locations"].append(
                     {"path": "hashmarks/store.py", "symbol": "alternative"}
                 )
+                item["source_evidence"].append({
+                    "path": "hashmarks/store.py",
+                    "line": 4,
+                    "observation": "private synthetic second declaration evidence",
+                })
+            elif candidate[1] == "alternative":
+                item["source_evidence"][0]["line"] = 4
             path.write_text(json.dumps({
                 "schema": "evalshot.hashmarks-external-first-pass-returns.v1",
                 "blinded_packet_identity": manifest["packet_digest"],

@@ -44,8 +44,14 @@ the kit's content tree; EvalShot does not own the agent loop or tool selection.
    evidence may cite other files. These known-symbol tasks expect Python
    definitions: a README or other non-Python file can be background evidence,
    but the current checker cannot establish its claimed symbol declaration.
-   Explain the specific semantic relationship at each citation. A real file
-   and line prove only source existence, not that the interpretation is right.
+   Cite at least one line **inside each named Python declaration's own
+   span** (including its decorators or body), not just an unrelated class
+   definition, import, comment or helper elsewhere in the same file.
+   A matching name defined only inside another function is a local helper,
+   not a supported module-level or class-method owner; multiple observable
+   declarations of the same name in one file are not syntactically unique.
+   Explain the specific semantic relationship at each citation. These rules
+   observe only source syntax, not whether the declaration owns the behavior.
 6. Select one provisional decision:
    - `unique`: exactly one defensible owner, with evidence and alternatives
      explicitly challenged.
