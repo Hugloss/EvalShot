@@ -346,6 +346,19 @@ a mutation of the candidate. The checker does not evaluate execution
 order, conditional truth, dynamic aliases, or runtime behavior. These
 binding statuses cannot approve a reviewer, oracle or native baseline.
 
+**Binding order / wildcard imports:** earlier explicit imports or assignments
+are now distinguished from *later* potential replacements in the same
+module or class scope. An unconditional `def` observed after an earlier
+binding is not rejected merely for the superseded earlier name, while
+later mutations continue to yield `CANDIDATE_BINDING_MUTATION_OBSERVED`.
+Module-level `from package import *` after the candidate declaration
+yields `CANDIDATE_WILDCARD_IMPORT_MAY_REBIND`: actual imported names
+are not available from static source, so a positive owner check would
+be unsupported. Earlier wildcard imports are likewise superseded by
+a later plain `def`; a module wildcard import does not by itself
+replace a method inside a class. Checks are **source-order observations**,
+not an execution trace, run-time binding guarantee, or qualified oracle.
+
 Source existence and semantic ownership remain separate responsibilities,
 with independent approval reserved to EvalShot's canonical oracle review
 owner.
