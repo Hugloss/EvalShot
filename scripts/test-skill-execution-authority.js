@@ -30,6 +30,17 @@ try {
     assert.equal(observed.model_identity, null);
     assert.equal(observed.intervention, 'WITH_CANONICAL_SKILL');
     assertUnchanged(observed, repo);
+    const skillFile = path.join(root, 'SKILL.md');
+    fs.writeFileSync(skillFile, 'canonical text');
+    assertUnchanged(observed, repo, skillFile);
+    fs.writeFileSync(skillFile, 'changed canonical text');
+    assert.throws(() => assertUnchanged(observed, repo, skillFile),
+      /Canonical skill changed after authority resolution/);
+    fs.writeFileSync(skillFile, 'canonical text');
+    assert.throws(() => assertUnchanged({ ...observed, oracle_revision: 'stale-oracle' }, repo, skillFile),
+      /Evaluation oracle changed after authority resolution/);
+    assert.throws(() => assertUnchanged({ ...observed, runtime_executable_sha256: 'stale-binary' }, repo, skillFile),
+      /Runtime executable changed after authority resolution/);
     const baseline = resolveAuthority({ item, options: { ...options, withoutSkill: true },
       cookbook, cwd: repo, prompt: 'inspect repository', skillText: 'canonical text' });
     assert.equal(baseline.task_sha256, observed.task_sha256);
