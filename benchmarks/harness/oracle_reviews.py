@@ -16,6 +16,34 @@ class OracleReviewError(ValueError):
     pass
 
 
+def _unique_review_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    """Reject duplicate JSON keys at every depth of canonical oracle evidence."""
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise OracleReviewError("duplicate oracle review evidence JSON key")
+        result[key] = value
+    return result
+
+
+def _reject_nonfinite_review_number(value: str) -> Any:
+    raise OracleReviewError("non-finite oracle review evidence JSON number")
+
+
+def _read_oracle_review_evidence(path: Path) -> Any:
+    """One strict JSON interpretation shared by validation and review guidance."""
+    try:
+        return json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=_unique_review_object,
+            parse_constant=_reject_nonfinite_review_number,
+        )
+    except OracleReviewError:
+        raise
+    except (OSError, ValueError, UnicodeError, RecursionError) as exc:
+        raise OracleReviewError("oracle review evidence cannot be read") from exc
+
+
 def oracle_review_path(suite: SuiteDefinition) -> Path:
     """Return the configured review path, including the legacy fallback."""
     configured = suite.experiment.get("oracle_reviews")
@@ -51,10 +79,7 @@ def validate_oracle_reviews(
             "approved_tasks": 0,
             "complete": False,
         }
-    try:
-        evidence = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        raise OracleReviewError("oracle review evidence cannot be read") from exc
+    evidence = _read_oracle_review_evidence(path)
     if not isinstance(evidence, dict) or evidence.get("schema") != "agents-cookbook-oracle-reviews.v1":
         raise OracleReviewError("unknown oracle review evidence schema")
     rows = evidence.get("tasks")
@@ -190,7 +215,9 @@ def oracle_review_guide(suite: SuiteDefinition) -> str:
             "Then: make benchmark"
         )
 
-    evidence = json.loads(path.read_text(encoding="utf-8"))
+    # Keep the operator guide on the same strict JSON decoding contract as
+    # canonical validation; it must never silently reinterpret duplicate keys.
+    evidence = _read_oracle_review_evidence(path)
     rows = evidence["tasks"]
     escalated = set(result.get("escalated_tasks", []))
     lines = [
