@@ -260,7 +260,8 @@ function persist(result, base) {
 }
 
 function executeCase(item, options, cookbook) {
-  const skillText = fs.readFileSync(cookbook.file(path.join('skills', item.skill, 'SKILL.md')), 'utf8');
+  const skillFile = cookbook.file(path.join('skills', item.skill, 'SKILL.md'));
+  const skillText = fs.readFileSync(skillFile, 'utf8');
   const systemPrompt = options.withoutSkill
     ? 'You are a read-only code reviewer. Investigate repository identity authority and report only proven defects. Do not guess. Finish with EVAL_VERDICT: FINDING|CLEAN, EVAL_SCOPE: NONE, EVAL_EVIDENCE: <evidence>, EVAL_EVIDENCE_LOCATION: <path:line or NONE>, EVAL_EVIDENCE_QUOTE: <exact quote or NONE>.'
     : evaluatorSystem(skillText, item.skill);
@@ -268,7 +269,7 @@ function executeCase(item, options, cookbook) {
   const cwd = item.fixture ? path.resolve(repoRoot, item.fixture) : options.repoDir;
   const experimentalAuthority = resolveAuthority({ item, options, cookbook, cwd, prompt, skillText });
   const execution = options.runtime === 'pi' ? runPi(systemPrompt, prompt, cwd, options.model) : runOpenCode(systemPrompt, prompt, cwd, options.model);
-  assertUnchanged(experimentalAuthority, cwd);
+  assertUnchanged(experimentalAuthority, cwd, skillFile);
   const parsed = parseResult(execution.stdout), expectedScope = options.withoutSkill ? 'NONE' : item.expected === 'FINDING' ? item.skill : 'NONE';
   const proof = qualifyEvidence({
     verdict: parsed.verdict,
