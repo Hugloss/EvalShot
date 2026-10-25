@@ -77,9 +77,17 @@ function resolveAuthority({ item, options, cookbook, cwd, prompt, skillText }) {
   return authority;
 }
 
-function assertUnchanged(authority, cwd) {
+function assertUnchanged(authority, cwd, skillFile) {
   if (directoryDigest(cwd) !== authority.repository_sha256)
     throw new Error('Repository inputs changed after authority resolution');
+  if (skillFile && digestFile(skillFile) !== authority.skill_revision)
+    throw new Error('Canonical skill changed after authority resolution');
+  const oracle = digestFile(path.join(__dirname, 'skill-evidence-contract.js')) +
+    ':' + digestFile(path.join(__dirname, 'skill-outcome-qualification.js'));
+  if (oracle !== authority.oracle_revision)
+    throw new Error('Evaluation oracle changed after authority resolution');
+  if (digestFile(authority.runtime_executable_path) !== authority.runtime_executable_sha256)
+    throw new Error('Runtime executable changed after authority resolution');
 }
 
 module.exports = { digest, directoryDigest, resolveExecutable, resolveAuthority, assertUnchanged };
