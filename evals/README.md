@@ -90,6 +90,19 @@ uncovered specialists require independent, reviewed neighbor-confusion
 fixtures and model-backed qualification on OpenCode/Pi. Those evaluations
 are not performed by GitHub CI.
 
+## Execution-time input stability
+
+The existing experimental authority owner now revalidates four observed inputs
+after each agent invocation: repository contents, selected canonical skill bytes,
+the two evaluator-oracle implementations, and the runtime executable bytes.
+A changed input rejects the result instead of persisting a success receipt.
+The skill revision is checked against the exact file selected before execution,
+including when a fixture repository differs from the cookbook checkout.
+
+This is detection of observed input drift, not an assertion that the selected
+runtime configuration or provider-resolved model was independently attested.
+Changes that revert to identical bytes between checks are not detectable.
+
 ## Experimental authority on paired skill runs
 
 The skill evaluator records observed repository-content, frozen task, canonical
