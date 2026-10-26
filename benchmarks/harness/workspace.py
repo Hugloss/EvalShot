@@ -99,10 +99,13 @@ def _run_git(
     argv: tuple[str, ...],
     *,
     timeout: float = 120.0,
+    environment: Mapping[str, str] | None = None,
 ) -> bytes:
     result = run_bounded(
         repository_root=repository_root,
         argv=argv,
+        environment=environment,
+        inherit_environment=environment is None,
         limits=ProcessLimits(
             timeout_seconds=timeout,
             max_stdout_bytes=2_000_000,
@@ -121,6 +124,58 @@ def _run_git(
             + result.stderr.decode(errors="replace")
         )
     return result.stdout
+
+
+def initialize_git_subdirectory(
+    *,
+    workspace: Path,
+    subdirectory: str,
+    control_root: Path,
+    environment: Mapping[str, str],
+) -> Path:
+    """Materialize an explicit actor Git root before the source snapshot.
+
+    Native Git owns the repository representation. Its metadata remains in the
+    enclosing benchmark snapshot and contamination accounting; it is not an
+    additional ignored/generated allowance.
+    """
+    root = workspace.resolve(strict=True)
+    relative = Path(subdirectory)
+    if relative.is_absolute() or ".." in relative.parts or relative == Path("."):
+        raise WorkspaceError(
+            "actor Git directory must be an explicit contained subdirectory"
+        )
+    candidate = root / relative
+    resolved = candidate.resolve(strict=True)
+    if resolved != candidate or not resolved.is_dir():
+        raise WorkspaceError(
+            "actor Git directory redirects outside its declared source"
+        )
+    metadata = candidate / ".git"
+    if metadata.exists() or metadata.is_symlink():
+        raise WorkspaceError("actor fixture already contains Git metadata")
+    control = control_root.resolve(strict=True)
+    if control.is_relative_to(root):
+        raise WorkspaceError("Git template must remain outside actor source")
+    template = control / "actor-git-template"
+    template.mkdir()
+    _run_git(
+        candidate,
+        (
+            "git",
+            "init",
+            "--quiet",
+            "--initial-branch=evalshot",
+            "--template=" + str(template),
+        ),
+        environment=environment,
+    )
+    observed = _run_git(
+        candidate, ("git", "rev-parse", "--show-toplevel"), environment=environment
+    )
+    if Path(os.fsdecode(observed).removesuffix("\n")).resolve(strict=True) != candidate:
+        raise WorkspaceError("native Git did not establish the declared actor root")
+    return candidate
 
 
 def materialize_git(
