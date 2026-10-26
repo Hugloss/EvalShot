@@ -24,6 +24,7 @@ PROCESS_SUBSTRATE_ENV_KEYS = (
 
 RUNTIME_AUTHORITY_ENV_KEYS = (
     "BENCHMARK_OH_GOON_NATIVE_HOME",
+    "BENCHMARK_OH_GOON_TEMP_PARENT",
     "BENCHMARK_OH_GOON_BASELINE_PYTHON",
     "BENCHMARK_OH_GOON_BASELINE_CONFIG",
     "BENCHMARK_OH_GOON_BASELINE_RECEIPT",
@@ -113,11 +114,40 @@ def required_runtime_authority(
     for agent in agents:
         definition = suite.agents.get(agent, {})
         if definition.get("adapter") == "oh-goon":
-            runtime = str(definition.get("configuration", {}).get("runtime", "")).upper()
-            required.add("BENCHMARK_OH_GOON_NATIVE_HOME")
-            required.update("BENCHMARK_OH_GOON_" + runtime + "_" + name
-                            for name in ("PYTHON", "CONFIG", "RECEIPT"))
+            runtime = str(
+                definition.get("configuration", {}).get("runtime", "")
+            ).upper()
+            required.update(
+                ("BENCHMARK_OH_GOON_NATIVE_HOME", "BENCHMARK_OH_GOON_TEMP_PARENT")
+            )
+            required.update(
+                "BENCHMARK_OH_GOON_" + runtime + "_" + name
+                for name in ("PYTHON", "CONFIG", "RECEIPT")
+            )
     return tuple(sorted(required))
+
+
+def oh_goon_temporary_parent(source: Mapping[str, str]) -> Path:
+    """Validate the caller-selected allocation boundary without reading stores."""
+    raw = source.get("BENCHMARK_OH_GOON_TEMP_PARENT")
+    native_home = source.get("BENCHMARK_OH_GOON_NATIVE_HOME")
+    if not raw or not native_home:
+        raise ValueError(
+            "explicit Oh-Goon temporary parent and native home are required"
+        )
+    parent = Path(raw)
+    home = Path(native_home).expanduser().resolve(strict=True)
+    if (
+        not parent.is_absolute()
+        or parent.resolve(strict=True) != parent
+        or not parent.is_dir()
+        or not home.is_dir()
+        or parent.is_relative_to(home)
+    ):
+        raise ValueError(
+            "Oh-Goon temporary parent must be a canonical public directory outside native home"
+        )
+    return parent
 
 
 def transport_runtime_authority(

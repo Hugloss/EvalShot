@@ -20,12 +20,20 @@ from unittest.mock import patch
 from benchmarks.adapters.oh_goon import OhGoonAgent, _public_path
 from benchmarks.adapters.registry import AdapterConfigurationError, build_agent
 from benchmarks.adapters.subjects import NoneSubject
-from benchmarks.harness.admission import _agent_authority, admit_trial
+from benchmarks.harness.admission import (
+    TrialAdmissionError,
+    _agent_authority,
+    admit_trial,
+    runtime_environment_identity,
+)
 from benchmarks.harness.campaign_authority import _global_agent_authority
 from benchmarks.harness.contamination import classify_contamination
 from benchmarks.harness.model import Observation, TrialContext
 from benchmarks.harness.readiness import ReadinessCheck, check_runtime_readiness
-from benchmarks.harness.runtime_authority import required_runtime_authority
+from benchmarks.harness.runtime_authority import (
+    oh_goon_temporary_parent,
+    required_runtime_authority,
+)
 from benchmarks.harness.suite import load_suite
 from benchmarks.harness.workspace import (
     WorkspaceError,
@@ -69,10 +77,13 @@ class OhGoonAdapterTests(unittest.TestCase):
         self.workspace = self.root / "workspace"
         (self.workspace / "candidate").mkdir(parents=True)
         self.control = self.root / "control"
-        environment = isolated_environment(self.control)
+        self.temp_root = self.root / "short-temp"
+        self.temp_root.mkdir()
+        environment = isolated_environment(self.control, temporary_root=self.temp_root)
         self.home = self.root / "native-private"
         self.home.mkdir()
         environment["BENCHMARK_OH_GOON_NATIVE_HOME"] = str(self.home)
+        environment["BENCHMARK_OH_GOON_TEMP_PARENT"] = str(self.root)
         self.source = self.root / "oh-source"
         (self.source / "backend/src/oh_goon").mkdir(parents=True)
         (self.source / "backend/src/oh_goon/__init__.py").write_text(
@@ -126,7 +137,9 @@ class OhGoonAdapterTests(unittest.TestCase):
             ("RECEIPT", str(self.receipt_path)),
         ):
             environment["BENCHMARK_OH_GOON_CANDIDATE_" + name] = value
-        self.context = TrialContext(self.workspace, self.control, environment)
+        self.context = TrialContext(
+            self.workspace, self.control, environment, temporary_root=self.temp_root
+        )
         self.agent = OhGoonAgent(
             "candidate", "0.32.1", "gpt-6-luna", "low", "benchmark-service", "candidate"
         )
@@ -250,6 +263,140 @@ class OhGoonAdapterTests(unittest.TestCase):
             "def merge_ranges(ranges): return ranges\n"
         )
         return root, candidate, git("rev-parse", "HEAD")
+
+    def admission(self, *, source=None):
+        suite = load_suite(SUITE)
+        task = copy.deepcopy(suite.tasks["ranges"])
+        task["repository"] = {
+            "url": str(self.source),
+            "commit": self.receipt["oh_goon_source_commit"],
+            "tree": self.receipt["oh_goon_source_tree"],
+        }
+        return admit_trial(
+            suite=dataclasses.replace(suite, tasks={"ranges": task}),
+            task_id="ranges",
+            condition_id="candidate-hashmarks-0.32.1",
+            trial_index=0,
+            harness_root=self.source,
+            cache_root=self.root / "temp-cache",
+            work_root=self.root / "temp-work",
+            local_source=self.source,
+            source=self.context.environment if source is None else source,
+        )
+
+    def test_explicit_short_temp_is_stable_authority_and_cleaned_after_child_exit(self):
+        identities = []
+        for _ in range(2):
+            with (
+                patch.object(
+                    OhGoonAgent,
+                    "prepare",
+                    return_value=Observation({"available": True}, ""),
+                ),
+                self.admission() as admission,
+            ):
+                context = admission.context
+                temporary = context.temporary_root
+                self.assertEqual(temporary.parent, self.root)
+                self.assertNotEqual(temporary, self.temp_root)
+                self.assertEqual(context.environment["TMPDIR"], str(temporary / "t"))
+                self.assertEqual(
+                    context.environment["TMP"], context.environment["TEMP"]
+                )
+                self.assertFalse(temporary.is_relative_to(context.control_root))
+                child = subprocess.Popen(
+                    [
+                        sys.executable,
+                        "-I",
+                        "-c",
+                        "import os, pathlib; pathlib.Path(os.environ['TMPDIR'], 'child').write_text('done')",
+                    ],
+                    env=context.environment,
+                )
+                try:
+                    self.assertEqual(child.wait(timeout=10), 0)
+                    self.assertTrue((temporary / "t/child").is_file())
+                finally:
+                    if child.poll() is None:
+                        child.kill()
+                        child.wait()
+                identities.append(admission.environment_authority)
+            self.assertFalse(temporary.exists())
+        self.assertEqual(identities[0], identities[1])
+        changed = dict(
+            context.environment, BENCHMARK_OH_GOON_TEMP_PARENT=str(self.root.parent)
+        )
+        self.assertNotEqual(
+            identities[-1],
+            runtime_environment_identity(
+                changed, control_root=context.control_root, temporary_root=temporary
+            ),
+        )
+
+    def test_preparation_failure_retires_owned_temp(self):
+        observed = []
+
+        def fail(agent, context, subject):
+            observed.append(context.temporary_root)
+            self.assertTrue(context.temporary_root.is_dir())
+            raise ValueError("synthetic preparation failed")
+
+        with patch.object(OhGoonAgent, "prepare", fail):
+            with self.assertRaisesRegex(ValueError, "synthetic preparation failed"):
+                with self.admission():
+                    self.fail("preparation must refuse")
+        self.assertEqual(len(observed), 1)
+        self.assertFalse(observed[0].exists())
+
+    def test_private_temp_parent_alias_refuses_before_allocation_or_content_read(self):
+        alias = self.root / "private-temp-alias"
+        alias.symlink_to(self.home, target_is_directory=True)
+        for selected in (self.home, alias):
+            source = dict(
+                self.context.environment, BENCHMARK_OH_GOON_TEMP_PARENT=str(selected)
+            )
+            admission_context = self.admission(source=source)
+            with (
+                self.subTest(selected=selected),
+                patch(
+                    "benchmarks.harness.admission.tempfile.TemporaryDirectory"
+                ) as allocate,
+                patch.object(
+                    Path, "read_bytes", side_effect=AssertionError("no content read")
+                ),
+            ):
+                with self.assertRaises(TrialAdmissionError):
+                    with admission_context:
+                        self.fail("private parent must refuse")
+                allocate.assert_not_called()
+        missing = dict(self.context.environment)
+        missing.pop("BENCHMARK_OH_GOON_TEMP_PARENT")
+        with self.assertRaises(ValueError):
+            oh_goon_temporary_parent(missing)
+
+    def test_coding_refuses_unowned_or_redirected_temporary_paths_before_probe(self):
+        for context in (
+            dataclasses.replace(self.context, temporary_root=None),
+            dataclasses.replace(
+                self.context,
+                environment=dict(self.context.environment, TMPDIR=str(self.home)),
+            ),
+        ):
+            with (
+                self.subTest(context=context),
+                patch.object(OhGoonAgent, "_command") as command,
+            ):
+                with self.assertRaisesRegex(ValueError, "temporary"):
+                    self.agent.prepare(context, NoneSubject())
+                command.assert_not_called()
+
+    def test_temporary_child_native_home_alias_refuses_before_probe(self):
+        (self.temp_root / "t").rmdir()
+        (self.temp_root / "t").symlink_to(self.home, target_is_directory=True)
+        with self.guarded_reads(), patch.object(OhGoonAgent, "_command") as command:
+            with self.assertRaisesRegex(ValueError, "native authentication home"):
+                self.agent.prepare(self.context, NoneSubject())
+            command.assert_not_called()
 
     def test_candidate_git_root_preserves_parent_and_accounts_for_metadata(self):
         parent, candidate, head = self.parent_workspace("historical")
@@ -670,7 +817,7 @@ print(json.dumps({'agent': selected.agent, 'root': str(git.root(Path(sys.argv[1]
         self.assertEqual({row["replicate_id"] for row in rows}, {9101})
         self.assertEqual(len({row["definition_id"] for row in rows}), 6)
         required = required_runtime_authority(suite, rows)
-        self.assertEqual(len(required), 7)
+        self.assertEqual(len(required), 8)
         for definition in suite.agents.values():
             build_agent(
                 definition, budgets={"timeout_seconds": 300}, suite_root=suite.root

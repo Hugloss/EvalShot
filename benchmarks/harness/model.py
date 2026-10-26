@@ -43,6 +43,7 @@ class TrialContext:
     control_root: Path
     environment: dict[str, str]
     admission_scope: str | None = None
+    temporary_root: Path | None = None
 
 
 @dataclass(frozen=True)

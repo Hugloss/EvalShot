@@ -12,6 +12,7 @@ from typing import Any
 
 from benchmarks.adapters.runtime import observe_executable
 from benchmarks.harness.identity import canonical_json
+from benchmarks.harness.runtime_authority import oh_goon_temporary_parent
 from benchmarks.harness.model import (
     Observation,
     ParticipantIdentity,
@@ -176,6 +177,27 @@ class OhGoonAgent:
             raise ValueError(
                 "native authentication home must be an existing directory boundary"
             )
+        parent = oh_goon_temporary_parent(context.environment)
+        temporary = context.temporary_root
+        if temporary is not None:
+            _public_path(temporary, home)
+            _public_path(temporary / "t", home)
+            if (
+                temporary.parent != parent
+                or temporary.resolve(strict=True) != temporary
+                or not temporary.is_dir()
+                or (temporary / "t").resolve(strict=True) != temporary / "t"
+                or not (temporary / "t").is_dir()
+                or any(
+                    context.environment.get(name) != str(temporary / "t")
+                    for name in ("TMPDIR", "TMP", "TEMP")
+                )
+            ):
+                raise ValueError(
+                    "Oh-Goon temporary paths differ from the admitted owned root"
+                )
+        elif (context.workspace / self.workspace_subdirectory).is_dir():
+            raise ValueError("Oh-Goon coding requires an admitted owned temporary root")
         paths = tuple(
             _public_path(Path(context.environment[prefix + "_" + name]), home)
             for name in ("PYTHON", "CONFIG", "RECEIPT")
@@ -407,6 +429,7 @@ class OhGoonAgent:
                 "selected native Codex executable authority is unavailable or unstable"
             )
         return {
+            "temporary_parent": str(oh_goon_temporary_parent(context.environment)),
             "source_identity": source_identity,
             "python_sha256": executable.payload["executable_sha256"],
             "supply_receipt_sha256": hashlib.sha256(receipt_raw).hexdigest(),

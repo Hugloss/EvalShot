@@ -81,14 +81,24 @@ reasoning effort `low`, and the exact campaign workspace root. Native Codex alon
 owns sign-in. The adapter invokes the selected virtual-environment Python
 launcher without resolving away its uv environment.
 
-Copy `.env.example` outside source, replace the seven explicit runtime paths and
+`BENCHMARK_OH_GOON_TEMP_PARENT` explicitly selects an existing canonical public
+directory (for example `/tmp`). Each trial allocates and retires its own private
+short child there using the existing trial lifetime; native socket paths inherit
+that child through `TMPDIR`, `TMP`, and `TEMP`. There is no automatic temporary
+path fallback. The selected parent is campaign authority; random owned child
+names are normalized in environment identity. Choose a sufficiently short parent
+for the selected native transport. Native home aliases are refused before
+allocation. Cleanup occurs after the bounded coding process and original native
+settlement, without changing the frozen coding result.
+
+Copy `.env.example` outside source, replace the eight explicit runtime inputs and
 campaign paths, then use the existing front door:
 
 ```sh
 ./benchmark check --env-file /absolute/private/paired.env
 ./benchmark prepare --new --env-file /absolute/private/paired.env
 ./benchmark campaign-audit --env-file /absolute/private/paired.env
-./benchmark run --resume --env-file /absolute/private/paired.env
+./benchmark run --resume --run-id <run-id-returned-by-prepare> --env-file /absolute/private/paired.env
 ./benchmark report --env-file /absolute/private/paired.env
 ```
 
