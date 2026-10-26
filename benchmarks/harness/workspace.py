@@ -210,12 +210,19 @@ def materialize_git(
 
 
 def isolated_environment(
-    root: Path, *, source: Mapping[str, str] | None = None
+    root: Path,
+    *,
+    source: Mapping[str, str] | None = None,
+    temporary_root: Path | None = None,
 ) -> dict[str, str]:
     source = os.environ if source is None else source
     root = root.resolve()
     home = root / "_environment" / "home"
-    tmp = root / "_environment" / "tmp"
+    tmp = (
+        root / "_environment" / "tmp"
+        if temporary_root is None
+        else temporary_root / "t"
+    )
     config = root / "_environment" / "xdg-config"
     cache = root / "_environment" / "xdg-cache"
     data = root / "_environment" / "xdg-data"

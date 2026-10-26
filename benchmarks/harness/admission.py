@@ -10,7 +10,7 @@ import shutil
 from collections.abc import Mapping
 import tempfile
 import time
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator
@@ -27,6 +27,7 @@ from benchmarks.harness.model import (
 )
 from benchmarks.harness.mutation import apply_mutation
 from benchmarks.harness.runtime_authority import (
+    oh_goon_temporary_parent,
     transport_native_codex_environment,
     native_host_paths,
     transport_runtime_authority,
@@ -241,18 +242,24 @@ def runtime_environment_identity(
     environment: dict[str, str],
     *,
     control_root: Path,
+    temporary_root: Path | None = None,
 ) -> dict[str, Any]:
     control_root = control_root.resolve()
+    roots = [(control_root, "$CONTROL_ROOT/")]
+    if temporary_root is not None:
+        roots.insert(0, (temporary_root.resolve(), "$TRIAL_TEMP/"))
 
     def semantic_value(value: str) -> str:
         candidate = Path(value)
         if not candidate.is_absolute():
             return value
-        try:
-            relative = candidate.resolve().relative_to(control_root)
-        except (OSError, ValueError):
-            return value
-        return "$CONTROL_ROOT/" + relative.as_posix()
+        for root, token in roots:
+            try:
+                relative = candidate.resolve().relative_to(root)
+            except (OSError, ValueError):
+                continue
+            return token + relative.as_posix()
+        return value
 
     semantic = {
         key: semantic_value(value) for key, value in sorted(environment.items())
@@ -460,6 +467,14 @@ def admit_trial(
         **({"seed": replicate_id} if legacy_seed else {"replicate_id": replicate_id}),
     )
 
+    agent_definition = suite.agents[str(condition["agent"])]
+    temporary_parent = None
+    if agent_definition["adapter"] == "oh-goon":
+        try:
+            temporary_parent = oh_goon_temporary_parent(source)
+        except (OSError, ValueError) as exc:
+            raise TrialAdmissionError(str(exc)) from exc
+
     admission_started = time.monotonic()
     timings_ms: dict[str, int] = {}
 
@@ -474,10 +489,13 @@ def admit_trial(
     )
 
     work_root.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(
-        prefix=f"{definition[:12]}-",
-        dir=work_root,
-    ) as temporary:
+    with (
+        ExitStack() as resources,
+        tempfile.TemporaryDirectory(
+            prefix=f"{definition[:12]}-",
+            dir=work_root,
+        ) as temporary,
+    ):
         run_root = Path(temporary)
         workspace = run_root / "workspace"
 
@@ -494,7 +512,16 @@ def admit_trial(
 
         stage_started = time.monotonic()
         control_root = run_root / "control"
-        environment = isolated_environment(control_root, source=source)
+        temporary_root = None
+        if temporary_parent is not None:
+            temporary_root = Path(
+                resources.enter_context(
+                    tempfile.TemporaryDirectory(prefix="e-", dir=temporary_parent)
+                )
+            )
+        environment = isolated_environment(
+            control_root, source=source, temporary_root=temporary_root
+        )
         try:
             transport_runtime_authority(source, environment)
         except ValueError as exc:
@@ -503,6 +530,7 @@ def admit_trial(
             workspace=workspace,
             control_root=control_root,
             environment=environment,
+            temporary_root=temporary_root,
         )
         timings_ms["environment"] = int(
             round((time.monotonic() - stage_started) * 1000)
@@ -515,8 +543,9 @@ def admit_trial(
             mutation=task["mutation"],
         )
         _materialize_fixtures(suite.root, workspace, task.get("fixtures", []))
-        agent_definition = suite.agents[str(condition["agent"])]
-        agent = build_agent(agent_definition, budgets=task["budgets"], suite_root=suite.root)
+        agent = build_agent(
+            agent_definition, budgets=task["budgets"], suite_root=suite.root
+        )
         if agent_definition["adapter"] == "oh-goon":
             initialize_git_subdirectory(
                 workspace=workspace,
@@ -576,6 +605,7 @@ def admit_trial(
         environment_authority = runtime_environment_identity(
             context.environment,
             control_root=context.control_root,
+            temporary_root=context.temporary_root,
         )
 
         oracle = build_oracle(
