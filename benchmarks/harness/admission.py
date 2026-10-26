@@ -33,7 +33,11 @@ from benchmarks.harness.runtime_authority import (
 )
 from benchmarks.harness.source import materialize_repository
 from benchmarks.harness.suite import SuiteDefinition
-from benchmarks.harness.workspace import isolated_environment, snapshot
+from benchmarks.harness.workspace import (
+    initialize_git_subdirectory,
+    isolated_environment,
+    snapshot,
+)
 from scripts.agent_economics.bounded_process import ProcessLimits, run_bounded
 
 
@@ -511,6 +515,15 @@ def admit_trial(
             mutation=task["mutation"],
         )
         _materialize_fixtures(suite.root, workspace, task.get("fixtures", []))
+        agent_definition = suite.agents[str(condition["agent"])]
+        agent = build_agent(agent_definition, budgets=task["budgets"], suite_root=suite.root)
+        if agent_definition["adapter"] == "oh-goon":
+            initialize_git_subdirectory(
+                workspace=workspace,
+                subdirectory=agent.workspace_subdirectory,
+                control_root=control_root,
+                environment=context.environment,
+            )
         timings_ms["mutation_fixtures"] = int(
             round((time.monotonic() - stage_started) * 1000)
         )
@@ -532,8 +545,6 @@ def admit_trial(
         )
 
         subject = build_subject(suite.subjects[str(condition["subject"])])
-        agent_definition = suite.agents[str(condition["agent"])]
-        agent = build_agent(agent_definition, budgets=task["budgets"], suite_root=suite.root)
         native_codex = (
             agent_definition["adapter"] == "codex"
             and agent_definition.get("configuration", {}).get("native_host") is True

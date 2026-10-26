@@ -811,6 +811,48 @@ def _write_manifest(directory: Path, value: dict[str, Any]) -> None:
         Path(temporary).unlink(missing_ok=True)
 
 
+def _observe_subject_catalogs(
+    *,
+    suite: SuiteDefinition,
+    contracts: list[dict[str, str]],
+    source: Mapping[str, str] | None,
+    on_progress: Callable[[dict[str, Any]], None] | None,
+) -> list[dict[str, Any]]:
+    if not contracts:
+        return []
+    if on_progress is not None:
+        on_progress(
+            {
+                "stage": "subject-tool-catalog",
+                "status": "checking",
+                "subjects": len(contracts),
+            }
+        )
+    try:
+        with tempfile.TemporaryDirectory(
+            prefix="agents-cookbook-subject-catalog-"
+        ) as temporary:
+            proofs = probe_subject_catalog_contracts(
+                suite=suite,
+                contracts=contracts,
+                source=os.environ if source is None else source,
+                root=Path(temporary),
+            )
+    except (OSError, ValueError) as exc:
+        raise CampaignAuthorityError(
+            f"subject MCP catalog admission failed: {exc}"
+        ) from exc
+    if on_progress is not None:
+        on_progress(
+            {
+                "stage": "subject-tool-catalog",
+                "status": "verified",
+                "subjects": len(proofs),
+            }
+        )
+    return proofs
+
+
 def audit_campaign(
     *,
     suite: SuiteDefinition,
@@ -864,6 +906,16 @@ def audit_campaign(
     if len(selected) != len(set(selected)):
         raise CampaignAuthorityError(
             "campaign selection contains duplicate definitions"
+        )
+    if subject_catalog_proofs is None:
+        # Admission transports its current observation. A separate audit must
+        # reobserve the same catalog authority, including a qualified empty set,
+        # rather than derive a weaker protocol or trust a saved receipt.
+        subject_catalog_proofs = _observe_subject_catalogs(
+            suite=suite,
+            contracts=exposure_contracts,
+            source=source,
+            on_progress=on_progress,
         )
     observed: dict[str, dict[str, Any]] = {}
     agents: dict[str, dict[str, Any]] = {}
@@ -1006,21 +1058,13 @@ def audit_campaign(
         )
 
     payload = {
-        "contract": (
-            "benchmark-campaign-authority.v5"
-            if subject_catalog_proofs is not None
-            else "benchmark-campaign-authority.v4"
-        ),
+        "contract": "benchmark-campaign-authority.v5",
         "selected_definitions": selected,
         "task_conditions": observed,
         "agents": agents,
         "subjects": subjects,
         "subject_exposure_contracts": exposure_contracts,
-        **(
-            {"subject_tool_catalog_proofs": subject_catalog_proofs}
-            if subject_catalog_proofs is not None
-            else {}
-        ),
+        "subject_tool_catalog_proofs": subject_catalog_proofs,
         "task_inputs": task_inputs,
         "suite_identity": campaign_suite_identity(suite),
         "oracle_review_sha256": (
@@ -1073,35 +1117,12 @@ def admit_campaign(
             suite=suite,
             expected_rows=rows,
         )
-        if exposure_contracts:
-            if on_progress is not None:
-                on_progress(
-                    {
-                        "stage": "subject-tool-catalog",
-                        "status": "checking",
-                        "subjects": len(exposure_contracts),
-                    }
-                )
-            runtime_source = os.environ if source is None else source
-            with tempfile.TemporaryDirectory(
-                prefix="agents-cookbook-subject-catalog-"
-            ) as temporary:
-                subject_catalog_proofs = probe_subject_catalog_contracts(
-                    suite=suite,
-                    contracts=exposure_contracts,
-                    source=runtime_source,
-                    root=Path(temporary),
-                )
-            if on_progress is not None:
-                on_progress(
-                    {
-                        "stage": "subject-tool-catalog",
-                        "status": "verified",
-                        "subjects": len(subject_catalog_proofs),
-                    }
-                )
-        else:
-            subject_catalog_proofs = []
+        subject_catalog_proofs = _observe_subject_catalogs(
+            suite=suite,
+            contracts=exposure_contracts,
+            source=source,
+            on_progress=on_progress,
+        )
     except (OSError, ValueError) as exc:
         raise CampaignAuthorityError(
             f"subject MCP catalog admission failed: {exc}"

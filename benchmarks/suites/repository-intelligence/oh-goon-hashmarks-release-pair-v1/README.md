@@ -22,6 +22,13 @@ provides the existing materialization owner; each actor receives only its new
 implementation files may change. The suite-owned oracle files and expected
 answers stay outside the actor's admitted repository and Hashmarks evidence.
 The optional caller-selected maintenance Skill is separately captured by Oh-Goon.
+Native Git initializes the candidate directory as its own repository before the
+admitted snapshot, with a deterministic branch and an empty owned template.
+The historical parent checkout remains unchanged. Candidate Git metadata stays
+in EvalShot's enclosing snapshot and contamination accounting; no extra ignored
+source or generated-output allowance is introduced. Actual trial preparation
+also invokes Oh-Goon's public CLI-selection owner for this exact root, without
+starting a native service or model. Readiness remains a metadata-only probe.
 
 EvalShot's existing campaign authority freezes suite/task/fixture/oracle/harness,
 runtime supply, and paired inputs before inference. Its existing CommandOracle
@@ -97,3 +104,12 @@ unavailable and omitted from numeric measurements. Missing metrics must remain
 unknown. Generic report assistance rows do not measure this version treatment;
 inspect the three task-matched baseline/candidate outcomes and their exact
 original Run IDs. No bare-versus-Hashmarks treatment is claimed.
+
+The optional installed CLI-selection regression is model-free. Select the public
+Oh-Goon Python environment explicitly; its synthetic service catalog and native
+home stay in test scratch, with no native daemon or inference:
+
+```sh
+BENCHMARK_OH_GOON_CANDIDATE_PYTHON=/absolute/Oh-Goon/backend/.venv/bin/python \
+uv run --no-project python -m unittest benchmarks.tests.test_oh_goon_adapter -v
+```

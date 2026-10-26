@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import copy
+import dataclasses
 import hashlib
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -17,13 +20,19 @@ from unittest.mock import patch
 from benchmarks.adapters.oh_goon import OhGoonAgent, _public_path
 from benchmarks.adapters.registry import AdapterConfigurationError, build_agent
 from benchmarks.adapters.subjects import NoneSubject
-from benchmarks.harness.admission import _agent_authority
+from benchmarks.harness.admission import _agent_authority, admit_trial
 from benchmarks.harness.campaign_authority import _global_agent_authority
-from benchmarks.harness.model import TrialContext
+from benchmarks.harness.contamination import classify_contamination
+from benchmarks.harness.model import Observation, TrialContext
 from benchmarks.harness.readiness import ReadinessCheck, check_runtime_readiness
 from benchmarks.harness.runtime_authority import required_runtime_authority
 from benchmarks.harness.suite import load_suite
-from benchmarks.harness.workspace import isolated_environment
+from benchmarks.harness.workspace import (
+    WorkspaceError,
+    initialize_git_subdirectory,
+    isolated_environment,
+    snapshot,
+)
 
 SUITE = (
     Path(__file__).resolve().parents[1]
@@ -137,6 +146,7 @@ class OhGoonAdapterTests(unittest.TestCase):
             "native_executable": str(self.native),
             "native_executable_sha256": native_sha,
             "native_runtime_roots": [str(self.native.parent.parent)],
+            "workspace_git_root": "verified",
         }
         self.run = {
             "run": {"fleet_run_id": "fleet-original", "status": "COMPLETED"},
@@ -205,6 +215,266 @@ class OhGoonAdapterTests(unittest.TestCase):
             prepared = self.agent.prepare(self.context, NoneSubject())
             observed = self.agent.run(self.context, "Frozen task", NoneSubject())
         return prepared, observed
+
+    def parent_workspace(self, name):
+        root = self.root / name
+        root.mkdir()
+        (root / "README.md").write_text("Historical parent source.\n")
+        environment = self.context.environment
+
+        def git(*arguments):
+            return (
+                subprocess.check_output(
+                    ["git", "-C", str(root), *arguments],
+                    env=environment,
+                    stderr=subprocess.DEVNULL,
+                )
+                .decode()
+                .strip()
+            )
+
+        git("init", "-q")
+        git("add", "README.md")
+        git(
+            "-c",
+            "user.name=EvalShot",
+            "-c",
+            "user.email=evalshot@example.invalid",
+            "commit",
+            "-qm",
+            "parent",
+        )
+        candidate = root / "candidate"
+        candidate.mkdir()
+        (candidate / "ranges.py").write_text(
+            "def merge_ranges(ranges): return ranges\n"
+        )
+        return root, candidate, git("rev-parse", "HEAD")
+
+    def test_candidate_git_root_preserves_parent_and_accounts_for_metadata(self):
+        parent, candidate, head = self.parent_workspace("historical")
+        self.assertEqual(
+            Path(
+                subprocess.check_output(
+                    ["git", "-C", str(candidate), "rev-parse", "--show-toplevel"],
+                    env=self.context.environment,
+                )
+                .decode()
+                .strip()
+            ),
+            parent,
+        )
+        initialize_git_subdirectory(
+            workspace=parent,
+            subdirectory="candidate",
+            control_root=self.control,
+            environment=self.context.environment,
+        )
+        self.assertEqual(
+            Path(
+                subprocess.check_output(
+                    ["git", "-C", str(candidate), "rev-parse", "--show-toplevel"],
+                    env=self.context.environment,
+                )
+                .decode()
+                .strip()
+            ),
+            candidate,
+        )
+        self.assertEqual(
+            subprocess.check_output(
+                ["git", "-C", str(parent), "rev-parse", "HEAD"],
+                env=self.context.environment,
+            )
+            .decode()
+            .strip(),
+            head,
+        )
+        admitted = snapshot(parent)
+        self.assertIn("candidate/.git/HEAD", admitted)
+        self.assertIn("candidate/.git/config", admitted)
+        config = candidate / ".git/config"
+        config.write_text(config.read_text() + "\n# unauthorized metadata change\n")
+        changed = classify_contamination(
+            before=admitted,
+            after=snapshot(parent),
+            allowed_change_globs=("candidate/ranges.py",),
+            allowed_generated_globs=(),
+        )
+        self.assertTrue(changed["contaminated"])
+        self.assertIn("candidate/.git/config", changed["unexpected"]["changed"])
+
+    def test_paired_candidate_git_initialization_has_identical_snapshot_bytes(self):
+        observed = []
+        for arm in ("baseline-git", "candidate-git"):
+            parent, _, _ = self.parent_workspace(arm)
+            control = self.root / (arm + "-control")
+            environment = isolated_environment(control)
+            initialize_git_subdirectory(
+                workspace=parent,
+                subdirectory="candidate",
+                control_root=control,
+                environment=environment,
+            )
+            observed.append(snapshot(parent))
+        self.assertEqual(observed[0], observed[1])
+
+    def test_candidate_git_initialization_refuses_escape_before_native_effect(self):
+        parent, candidate, _ = self.parent_workspace("escape-parent")
+        outside = self.root / "outside"
+        outside.mkdir()
+        (parent / "alias").symlink_to(outside, target_is_directory=True)
+        for subdirectory in ("../outside", "alias"):
+            with (
+                self.subTest(subdirectory=subdirectory),
+                patch("benchmarks.harness.workspace._run_git") as command,
+            ):
+                with self.assertRaises(WorkspaceError):
+                    initialize_git_subdirectory(
+                        workspace=parent,
+                        subdirectory=subdirectory,
+                        control_root=self.control,
+                        environment=self.context.environment,
+                    )
+                command.assert_not_called()
+        (candidate / ".git").write_text("untrusted existing metadata")
+        with patch("benchmarks.harness.workspace._run_git") as command:
+            with self.assertRaises(WorkspaceError):
+                initialize_git_subdirectory(
+                    workspace=parent,
+                    subdirectory="candidate",
+                    control_root=self.control,
+                    environment=self.context.environment,
+                )
+            command.assert_not_called()
+
+    def test_trial_initializes_candidate_git_before_admitted_source_freeze(self):
+        suite = load_suite(SUITE)
+        task = copy.deepcopy(suite.tasks["ranges"])
+        task["repository"] = {
+            "url": str(self.source),
+            "commit": self.receipt["oh_goon_source_commit"],
+            "tree": self.receipt["oh_goon_source_tree"],
+        }
+        suite = dataclasses.replace(suite, tasks={"ranges": task})
+        with (
+            patch.object(
+                OhGoonAgent,
+                "prepare",
+                return_value=Observation({"available": True}, ""),
+            ),
+            admit_trial(
+                suite=suite,
+                task_id="ranges",
+                condition_id="candidate-hashmarks-0.32.1",
+                trial_index=0,
+                harness_root=self.source,
+                cache_root=self.root / "cache",
+                work_root=self.root / "admission-work",
+                local_source=self.source,
+                source=self.context.environment,
+            ) as admission,
+        ):
+            candidate = admission.context.workspace / "candidate"
+            observed = (
+                subprocess.check_output(
+                    ["git", "-C", str(candidate), "rev-parse", "--show-toplevel"],
+                    env=admission.context.environment,
+                )
+                .decode()
+                .strip()
+            )
+            self.assertEqual(Path(observed), candidate)
+            self.assertIn("candidate/.git/config", admission.admitted_state)
+            self.assertFalse(admission.prework_contamination()["contaminated"])
+            self.assertEqual(admission.initial_outcome(), (None, None))
+
+    @unittest.skipUnless(
+        os.environ.get("BENCHMARK_OH_GOON_CANDIDATE_PYTHON"),
+        "select the public Oh-Goon environment for installed CLI-selection proof",
+    )
+    def test_installed_oh_cli_selection_admits_only_the_initialized_candidate_root(
+        self,
+    ):
+        parent, candidate, _ = self.parent_workspace("installed-selection")
+        catalog = self.root / "selection-providers.json"
+        catalog.write_text(
+            json.dumps(
+                {
+                    "native_agents": {
+                        "codex": {
+                            "executable": str(self.native),
+                            "runtime_roots": [str(self.native.parent.parent)],
+                        }
+                    },
+                    "native_profiles": {
+                        "benchmark-service": {
+                            "backend": "local",
+                            "allowed_agents": ["codex"],
+                            "workspace_roots": [str(parent)],
+                            "timeout_seconds": 30,
+                            "codex_service": {
+                                "home": str(self.home),
+                                "model": "gpt-6-luna",
+                                "reasoning_effort": "low",
+                            },
+                        }
+                    },
+                }
+            )
+        )
+        script = """
+import json, sys
+from pathlib import Path
+from oh_goon.cli_ai import resolve_native_cli_selection
+selected, isolation, git = resolve_native_cli_selection(agent='codex', profile='benchmark-service',
+    workspace=Path(sys.argv[1]), config_file=Path(sys.argv[2]))
+print(json.dumps({'agent': selected.agent, 'root': str(git.root(Path(sys.argv[1]))),
+    'model': selected.profile.codex_service.model, 'reasoning_effort': selected.profile.codex_service.reasoning_effort}))
+"""
+        invocation = [
+            os.environ["BENCHMARK_OH_GOON_CANDIDATE_PYTHON"],
+            "-I",
+            "-B",
+            "-c",
+            script,
+            str(candidate),
+            str(catalog),
+        ]
+        rejected = subprocess.run(
+            invocation,
+            env=self.context.environment,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertIn(b"existing Git repository root", rejected.stderr)
+        initialize_git_subdirectory(
+            workspace=parent,
+            subdirectory="candidate",
+            control_root=self.control,
+            environment=self.context.environment,
+        )
+        before = snapshot(parent)
+        admitted = subprocess.run(
+            invocation,
+            env=self.context.environment,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        self.assertEqual(admitted.returncode, 0, admitted.stderr.decode())
+        self.assertEqual(
+            json.loads(admitted.stdout),
+            {
+                "agent": "codex",
+                "root": str(candidate),
+                "model": "gpt-6-luna",
+                "reasoning_effort": "low",
+            },
+        )
+        self.assertEqual(snapshot(parent), before)
 
     def test_selected_virtual_environment_launcher_is_preserved(self):
         alias = self.root / "venv/bin/python"
