@@ -88,8 +88,10 @@ Use both declared agents; do not drop an unfavorable arm or task. Existing
 create-once receipts, campaign locking, interrupted-launch history, and resume
 semantics remain authoritative. A changed harness or experiment needs a new run.
 
-Only original coding duration is measured by this adapter. Native tool counts,
-context consumption, tokens, final-edit timing, and provider sampling seed are
+The adapter measures elapsed wall time of `oh-goon ai`, including its startup
+and shutdown. Runtime observation probes and independent grading are outside
+that counter. Native tool counts, context consumption, tokens, final-edit timing,
+and provider sampling seed are
 unavailable and omitted from numeric measurements. Missing metrics must remain
 unknown. Generic report assistance rows do not measure this version treatment;
 inspect the three task-matched baseline/candidate outcomes and their exact

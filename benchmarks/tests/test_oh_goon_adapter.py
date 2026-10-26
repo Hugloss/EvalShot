@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import subprocess
 import sys
@@ -408,6 +409,72 @@ class OhGoonAdapterTests(unittest.TestCase):
             suite.tasks["deploy-order"]["contamination"]["allowed_change_globs"],
             ["candidate/deploy_order/graph.py", "candidate/deploy_order/__main__.py"],
         )
+
+    def release_pair_score_module(self):
+        spec = importlib.util.spec_from_file_location(
+            "release_pair_score", SUITE / "score.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_suite_satisfies_actual_campaign_reporting_frontdoor(self):
+        from benchmarks.__main__ import _validate_reporting_contract
+        from benchmarks.config import BenchmarkConfig
+
+        script, output = _validate_reporting_contract(
+            BenchmarkConfig.load(None, host={}), load_suite(SUITE), {}
+        )
+        self.assertEqual(script, SUITE / "score.py")
+        self.assertEqual(output, Path("score.json"))
+
+    def test_scorer_refuses_dropped_arm_or_unfavorable_assignment(self):
+        module = self.release_pair_score_module()
+        agents = ("oh-goon-baseline", "oh-goon-candidate")
+        with self.assertRaisesRegex(ValueError, "both frozen runtime arms"):
+            module.score(
+                suite_root=SUITE, results=self.root / "results", agents=agents[:1]
+            )
+        definitions = tuple(
+            row["definition_id"] for row in load_suite(SUITE).trial_definitions()
+        )
+        with self.assertRaisesRegex(ValueError, "all six frozen assignments"):
+            module.score(
+                suite_root=SUITE,
+                results=self.root / "results",
+                agents=agents,
+                definition_ids=definitions[:-1],
+            )
+
+    def test_scorer_keeps_failed_outcomes_and_unknown_metrics(self):
+        module = self.release_pair_score_module()
+        report = {
+            "expected_trials": 6,
+            "observed_trials": 6,
+            "status_counts": {"PASS": 5, "FAIL": 1},
+            "conditions": {
+                "baseline": {"input_tokens": {"observations": 0, "mean": None}}
+            },
+            "diagnostics": {},
+            "campaign_qualification": {"status": "QUALIFIED"},
+            "cross_agent_observations": [
+                {"task_id": "cidr-policy", "baseline": "FAIL", "candidate": "PASS"}
+            ],
+        }
+        with patch.object(module, "build_report", return_value=report) as build:
+            observed = module.score(
+                suite_root=SUITE,
+                results=self.root / "results",
+                agents=("oh-goon-baseline", "oh-goon-candidate"),
+            )
+        self.assertTrue(build.call_args.kwargs["require_complete"])
+        self.assertEqual(len(build.call_args.kwargs["selected_definitions"]), 6)
+        self.assertEqual(observed["status_counts"], report["status_counts"])
+        self.assertEqual(observed["conditions"], report["conditions"])
+        self.assertEqual(
+            observed["runtime_arm_observations"], report["cross_agent_observations"]
+        )
+        self.assertIsNone(observed["authority"]["overall_winner"])
 
     def test_readiness_reports_integrated_evidence_without_a_bare_claim(self):
         suite = load_suite(SUITE)
