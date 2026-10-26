@@ -21,6 +21,7 @@ from benchmarks.harness.campaign_authority import (
     verify_campaign_suite_authority,
 )
 from benchmarks.harness.identity import definition_id, execution_evidence_id
+from benchmarks.harness.run_store import exclusive_store, prepare_saved_run
 from benchmarks.harness.suite import SuiteDefinition
 
 
@@ -80,7 +81,128 @@ def _fake_condition_authority(admission):
     }
 
 
+@contextmanager
+def _stable_campaign_observers(suite, catalog_proofs):
+    @contextmanager
+    def fake_admission(**kwargs):
+        condition = next(
+            value
+            for value in suite.experiment["conditions"]
+            if value["id"] == kwargs["condition_id"]
+        )
+        yield SimpleNamespace(
+            task=suite.tasks[kwargs["task_id"]],
+            condition=condition,
+            admitted_state={"source": "same"},
+            mutation_authority=None,
+            initial_outcome=lambda: (None, None),
+            cleanup_subject=lambda: None,
+            admission_timings_ms={"total": 1},
+        )
+
+    with (
+        mock.patch(
+            "benchmarks.harness.campaign_authority.admit_trial", fake_admission
+        ),
+        mock.patch(
+            "benchmarks.harness.campaign_authority.condition_authority",
+            side_effect=_fake_condition_authority,
+        ),
+        mock.patch(
+            "benchmarks.harness.campaign_authority.harness_identity",
+            return_value={"commit": "stable-harness"},
+        ),
+        mock.patch(
+            "benchmarks.harness.campaign_authority.probe_subject_catalog_contracts",
+            return_value=catalog_proofs,
+        ) as probe,
+    ):
+        yield probe
+
+
 class CampaignAuthorityTests(unittest.TestCase):
+    def test_saved_control_campaign_audits_without_rewriting_authority(self) -> None:
+        suite = _suite()
+        suite.experiment["conditions"] = suite.experiment["conditions"][:1]
+        with tempfile.TemporaryDirectory() as tmp, _stable_campaign_observers(
+            suite, []
+        ) as probe:
+            root = Path(tmp)
+            options = dict(
+                suite=suite,
+                rows=suite.trial_definitions(),
+                results_root=root / "results",
+                harness_root=root,
+                cache_root=root / "cache",
+                work_root=root / "work",
+            )
+            with exclusive_store(root):
+                saved, admitted = prepare_saved_run(
+                    root,
+                    lambda staged: admit_campaign(
+                        **{
+                            **options,
+                            "results_root": staged / "results",
+                            "cache_root": staged / "cache",
+                            "work_root": staged / "work",
+                        }
+                    ),
+                )
+            options.update(
+                results_root=saved.root / "results",
+                cache_root=saved.root / "cache",
+                work_root=saved.root / "work",
+            )
+            manifest = saved.root / "results/.campaign/authority.json"
+            original = manifest.read_bytes()
+
+            audited = audit_campaign(**options)
+
+            self.assertEqual(audited, admitted)
+            self.assertEqual(audited["contract"], "benchmark-campaign-authority.v5")
+            self.assertEqual(audited["subject_tool_catalog_proofs"], [])
+            self.assertEqual(manifest.read_bytes(), original)
+            probe.assert_not_called()
+
+    def test_saved_campaign_audit_reobserves_catalog_and_rejects_drift(self) -> None:
+        suite = _suite()
+        proof = {
+            "subject_id": "tool",
+            "required_tool": "tool_context",
+            "required_operation": "context",
+            "protocol_version": "2024-11-05",
+            "tool_names": ["context"],
+            "required_tool_visible": True,
+            "tool_count": 1,
+            "catalog_sha256": "a" * 64,
+        }
+        with tempfile.TemporaryDirectory() as tmp, _stable_campaign_observers(
+            suite, [proof]
+        ) as probe:
+            root = Path(tmp)
+            options = dict(
+                suite=suite,
+                rows=suite.trial_definitions(),
+                results_root=root / "results",
+                harness_root=root,
+                cache_root=root / "cache",
+                work_root=root / "work",
+            )
+            admitted = admit_campaign(**options)
+            manifest = root / "results/.campaign/authority.json"
+            original = manifest.read_bytes()
+            self.assertEqual(audit_campaign(**options), admitted)
+            self.assertEqual(probe.call_count, 2)
+
+            probe.return_value = [{**proof, "catalog_sha256": "b" * 64}]
+            with self.assertRaisesRegex(
+                CampaignAuthorityError, "selection or execution authority changed"
+            ):
+                audit_campaign(**options)
+
+            self.assertEqual(probe.call_count, 3)
+            self.assertEqual(manifest.read_bytes(), original)
+
     def test_frozen_suite_authority_has_one_owner(self) -> None:
         suite = _suite()
         campaign = {"suite_identity": campaign_suite_identity(suite)}

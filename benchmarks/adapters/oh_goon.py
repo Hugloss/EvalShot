@@ -45,6 +45,19 @@ metadata = program.stat()
 if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
     raise ValueError('benchmark public Codex executable must be a regular single-link file')
 native_digest = native_executable_sha256(program)
+workspace = Path(sys.argv[4])
+workspace_selection = 'metadata_only'
+if workspace.is_dir():
+    # Actual trial admission reuses the public CLI selection owner. Readiness
+    # has no actor candidate and remains a metadata observation, not admission.
+    require_codex_authentication_home_separation(Path(connection.home), (workspace,))
+    from oh_goon.cli_ai import resolve_native_cli_selection
+    selected, isolation, git = resolve_native_cli_selection(agent='codex', profile=sys.argv[2],
+        workspace=workspace, config_file=Path(sys.argv[1]))
+    if (selected.executable_sha256 != native_digest
+            or selected.profile.codex_service != connection):
+        raise ValueError('public CLI selection differs from the observed service authority')
+    workspace_selection = 'verified'
 print(json.dumps({
     'oh_goon_version': importlib.metadata.version('oh-goon'),
     'oh_goon_module': oh_goon.__file__,
@@ -55,6 +68,7 @@ print(json.dumps({
     'native_executable': str(program),
     'native_executable_sha256': native_digest,
     'native_runtime_roots': definition.runtime_roots,
+    'workspace_git_root': workspace_selection,
 }))
 """
 
@@ -349,6 +363,7 @@ class OhGoonAgent:
                     str(config),
                     self.profile,
                     str(home),
+                    str(context.workspace / self.workspace_subdirectory),
                 ),
                 timeout=30,
             )
@@ -360,6 +375,12 @@ class OhGoonAgent:
             or observed.get("model") != self.model
             or observed.get("reasoning_effort") != self.reasoning_effort
             or Path(observed["native_home"]).expanduser().resolve() != home
+            or observed.get("workspace_git_root")
+            != (
+                "verified"
+                if (context.workspace / self.workspace_subdirectory).is_dir()
+                else "metadata_only"
+            )
         ):
             raise ValueError(
                 "loaded runtime or service connection differs from frozen authority"
