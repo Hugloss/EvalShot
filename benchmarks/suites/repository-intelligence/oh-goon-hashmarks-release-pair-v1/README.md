@@ -79,8 +79,9 @@ campaign paths, then use the existing front door:
 
 ```sh
 ./benchmark check --env-file /absolute/private/paired.env
+./benchmark prepare --new --env-file /absolute/private/paired.env
 ./benchmark campaign-audit --env-file /absolute/private/paired.env
-./benchmark run --new --env-file /absolute/private/paired.env
+./benchmark run --resume --env-file /absolute/private/paired.env
 ./benchmark report --env-file /absolute/private/paired.env
 ```
 
