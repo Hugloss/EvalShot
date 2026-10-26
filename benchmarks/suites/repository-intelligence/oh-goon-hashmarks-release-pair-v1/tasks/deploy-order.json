@@ -1,0 +1,71 @@
+{
+  "id": "deploy-order",
+  "version": 1,
+  "family": "python-defect-repair",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+    "tree": "65a32888329e308615647dda194f0e36c2afe2ac"
+  },
+  "prompt": "Repair the deployment manifest tool according to README.md. Implement deterministic dependency ordering, complete manifest validation and atomic CLI error handling. Use only the Python standard library. Before editing, execute the exact repository_tools.list Hashmarks command from the supplied instructions. Run that list command and the supplied repository_tools.search command in the same shell invocation, in that order, joining the two complete commands with &&. Create a private query file under the native $TMPDIR scratch directory, outside the working repository, containing exactly order_services with no newline. Replace the search template's entire <private-query-file> placeholder with its quoted actual path; do not concatenate the two commands' arguments. Both commands must succeed before editing. Inspect the frozen source evidence before editing. Change only deploy_order/graph.py and deploy_order/__main__.py. Independent verification runs after your coding Step.\nThe admitted repository is the candidate directory. Independent grading runs after the original coding Run; its checks are not actor context. Use the supplied qualified Hashmarks evidence and follow-up command. Report incomplete work accurately.",
+  "mutation": null,
+  "fixtures": [
+    {
+      "artifact": "fixtures/deploy-order/deploy_order/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "target": "candidate/deploy_order/__init__.py"
+    },
+    {
+      "artifact": "fixtures/deploy-order/deploy_order/graph.py",
+      "sha256": "a913272944b89621f9b34f0a4c3a59456ba9bd73803825c1d7655708e97b4f74",
+      "target": "candidate/deploy_order/graph.py"
+    },
+    {
+      "artifact": "fixtures/deploy-order/deploy_order/__main__.py",
+      "sha256": "bf955dd85d5453f6f7a067fb4433ad873cbfa17fe12055fc9f12fa657da80a4c",
+      "target": "candidate/deploy_order/__main__.py"
+    },
+    {
+      "artifact": "fixtures/deploy-order/README.md",
+      "sha256": "e0294d4f5e46aa8af192c72e335511df4e125a98ad683b36b6a870f462ae82ad",
+      "target": "candidate/README.md"
+    }
+  ],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "oh-goon-release-pair-deploy-order",
+      "version": "1",
+      "verifier_sha256": "7e83ea4a9465e3099f1d047642b316ce53f3579803e0e2af234ab2468faea6e0"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "-I",
+        "-B",
+        "{suite}/oracles/health.py",
+        "deploy-order"
+      ],
+      "grade_argv": [
+        "{python}",
+        "-I",
+        "-B",
+        "{suite}/oracles/verify_deploy_order.py",
+        "candidate"
+      ],
+      "timeout_seconds": 45
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 300,
+    "max_output_bytes": 5000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "candidate/deploy_order/graph.py",
+      "candidate/deploy_order/__main__.py"
+    ],
+    "allowed_generated_globs": []
+  }
+}

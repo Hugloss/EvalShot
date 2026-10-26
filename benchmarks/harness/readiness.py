@@ -159,6 +159,7 @@ def _agent(
 ):
     return build_agent(
         suite.agents[agent_id],
+        suite_root=suite.root,
         budgets={
             "timeout_seconds": READINESS_TIMEOUT_SECONDS,
             "max_output_bytes": READINESS_MAX_OUTPUT_BYTES,
@@ -332,9 +333,16 @@ def check_runtime_readiness(
                 )
             else:
                 result = _pair_check(suite, agent_id, subject_id, root, source)
+            subject_label = subject_id
+            if subject_id == "none":
+                subject_label = (
+                    "integrated Hashmarks (no additional MCP)"
+                    if suite.agents[agent_id]["adapter"] == "oh-goon"
+                    else "bare"
+                )
             checks.append(
                 ReadinessCheck(
-                    f"{agent_id} + {'bare' if subject_id == 'none' else subject_id}",
+                    f"{agent_id} + {subject_label}",
                     result.state,
                     result.reason,
                 )

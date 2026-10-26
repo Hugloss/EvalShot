@@ -1,0 +1,2 @@
+Marker: evalshot-oh-goon-release-pair-frozen-skill
+Independent benchmark graders retain correctness authority. Change only the task-declared source files.

@@ -1,0 +1,55 @@
+{
+  "id": "ranges",
+  "version": 1,
+  "family": "python-defect-repair",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+    "tree": "65a32888329e308615647dda194f0e36c2afe2ac"
+  },
+  "prompt": "Fix merge_ranges in ranges.py for inclusive integer ranges. Return sorted merged (start, end) tuples, combining overlapping or immediately adjacent ranges. Handle empty, unsorted, contained, duplicate and negative ranges without modifying the input list. Inputs have start <= end. Keep the public function and use only the Python standard library. Change ranges.py only.\nThe admitted repository is the candidate directory. Independent grading runs after the original coding Run; its checks are not actor context. Use the supplied qualified Hashmarks evidence and follow-up command. Report incomplete work accurately.",
+  "mutation": null,
+  "fixtures": [
+    {
+      "artifact": "fixtures/ranges/ranges.py",
+      "sha256": "663254d72dd2f8e6f837a8afd2dbdbe74b0dbfeb1f077ae52c606971178f1102",
+      "target": "candidate/ranges.py"
+    }
+  ],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "oh-goon-release-pair-ranges",
+      "version": "1",
+      "verifier_sha256": "06e08431465d3e7622fcfb2b9a691c28adf22878c4f2d4f8f1af76263746fbda"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "-I",
+        "-B",
+        "{suite}/oracles/health.py",
+        "ranges"
+      ],
+      "grade_argv": [
+        "{python}",
+        "-I",
+        "-B",
+        "{suite}/oracles/verify_ranges.py",
+        "candidate"
+      ],
+      "timeout_seconds": 45
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 300,
+    "max_output_bytes": 5000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "candidate/ranges.py"
+    ],
+    "allowed_generated_globs": []
+  }
+}

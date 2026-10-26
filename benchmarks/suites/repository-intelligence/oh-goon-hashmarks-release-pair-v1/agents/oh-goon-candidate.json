@@ -1,0 +1,24 @@
+{
+  "id": "oh-goon-candidate",
+  "adapter": "oh-goon",
+  "identity": {
+    "id": "oh-goon-codex",
+    "version": "public-cli-service-v1"
+  },
+  "capabilities": [
+    "workspace_edit",
+    "original_run_step_readback",
+    "mandatory_hashmarks_evidence",
+    "native_owned_authentication"
+  ],
+  "configuration": {
+    "runtime": "candidate",
+    "hashmarks_version": "0.32.1",
+    "model": "gpt-6-luna",
+    "reasoning_effort": "low",
+    "profile": "benchmark-service",
+    "workspace_subdirectory": "candidate",
+    "timeout_seconds": 300,
+    "skill": "skills/maintenance"
+  }
+}

@@ -389,7 +389,7 @@ class RuntimeReadinessTests(unittest.TestCase):
         suite = fake_suite()
         calls: list[tuple[str, str | None]] = []
 
-        def agent(definition, *, budgets):
+        def agent(definition, *, budgets, suite_root=None):
             return FakeAgent(str(definition["id"]), calls)
 
         observed = Observation(
@@ -474,7 +474,7 @@ class RuntimeReadinessTests(unittest.TestCase):
                 return HashmarksSubject(timeout_seconds=15)
             return FakeSubject(str(definition["id"]))
 
-        def agent(definition, *, budgets):
+        def agent(definition, *, budgets, suite_root=None):
             self.assertEqual(budgets["timeout_seconds"], 15)
             return FakeAgent(str(definition["id"]), calls)
 

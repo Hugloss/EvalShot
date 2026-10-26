@@ -83,6 +83,7 @@ def _agent_common(admission: TrialAdmission) -> dict[str, Any]:
                 "model",
                 "provider",
                 "reasoning_effort",
+                "execution_runtime_identity",
                 "native_config_sha256",
                 "native_config_observation",
                 "native_state_isolation",
@@ -150,6 +151,7 @@ def _global_agent_authority(value: dict[str, Any]) -> dict[str, Any]:
                 "model",
                 "provider",
                 "reasoning_effort",
+                "execution_runtime_identity",
             )
         },
     }

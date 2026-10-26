@@ -1,0 +1,71 @@
+{
+  "id": "cidr-policy",
+  "version": 1,
+  "family": "python-defect-repair",
+  "mode": "edit",
+  "repository": {
+    "url": "https://github.com/Hugloss/agentsCookbook.git",
+    "commit": "0841a8822f417b8fd03af61c03779df8f1cdc941",
+    "tree": "65a32888329e308615647dda194f0e36c2afe2ac"
+  },
+  "prompt": "Repair the offline IP/CIDR access-policy lookup library and CLI described in README.md. Preserve compile_policy and decide, use native ipaddress authority, enforce longest-prefix and address-family semantics, validate the full one-pass rule source, detach policy state, and keep CLI errors atomic. Use only the Python standard library. Edit netpolicy/policy.py and netpolicy/__main__.py only. Honor the required string types for actions and defaults; mutable non-str wrappers such as collections.UserString must be rejected even when they compare equal to an allowed string. Before editing, execute the exact supplied repository_tools.list Hashmarks command and read the frozen Skill reference. Independent verification runs after your coding Step.\nThe admitted repository is the candidate directory. Independent grading runs after the original coding Run; its checks are not actor context. Use the supplied qualified Hashmarks evidence and follow-up command. Report incomplete work accurately.",
+  "mutation": null,
+  "fixtures": [
+    {
+      "artifact": "fixtures/cidr-policy/netpolicy/__init__.py",
+      "sha256": "3532f3f3e16b23dc88c60f266a23c5054ea06c2c9808f1a661fd553e1d320f64",
+      "target": "candidate/netpolicy/__init__.py"
+    },
+    {
+      "artifact": "fixtures/cidr-policy/netpolicy/policy.py",
+      "sha256": "f30cc70aba51d20f63c6772dea629f6d3c8273bc5eceb014bd869eece6621da8",
+      "target": "candidate/netpolicy/policy.py"
+    },
+    {
+      "artifact": "fixtures/cidr-policy/netpolicy/__main__.py",
+      "sha256": "b841414a1d79620ada9fd28127cca5c178d07188d7d72fd935db981a2bfcd00c",
+      "target": "candidate/netpolicy/__main__.py"
+    },
+    {
+      "artifact": "fixtures/cidr-policy/README.md",
+      "sha256": "6486ef94f38d583a58b6887110cc057ebbde970c88f34ee74be9c1723672379d",
+      "target": "candidate/README.md"
+    }
+  ],
+  "oracle": {
+    "adapter": "command",
+    "identity": {
+      "id": "oh-goon-release-pair-cidr-policy",
+      "version": "1",
+      "verifier_sha256": "92d76e13a428a4dccdd06175286937fc6ab47c8aed8e263910a2d08199732650"
+    },
+    "configuration": {
+      "health_argv": [
+        "{python}",
+        "-I",
+        "-B",
+        "{suite}/oracles/health.py",
+        "cidr-policy"
+      ],
+      "grade_argv": [
+        "{python}",
+        "-I",
+        "-B",
+        "{suite}/oracles/verify_cidr_policy.py",
+        "candidate"
+      ],
+      "timeout_seconds": 45
+    }
+  },
+  "budgets": {
+    "timeout_seconds": 300,
+    "max_output_bytes": 5000000
+  },
+  "contamination": {
+    "allowed_change_globs": [
+      "candidate/netpolicy/policy.py",
+      "candidate/netpolicy/__main__.py"
+    ],
+    "allowed_generated_globs": []
+  }
+}
