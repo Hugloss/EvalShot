@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import re
 import sys
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from benchmarks.adapters.codex import CodexAgent
+from benchmarks.adapters.oh_goon import OhGoonAgent
 from benchmarks.adapters.enola import EnolaSubject
 from benchmarks.adapters.hashmarks import HashmarksSubject
 from benchmarks.adapters.opencode_native import OpenCodeNativeAgent
@@ -36,7 +38,7 @@ def build_subject(definition: dict[str, Any]):
     raise AdapterConfigurationError(f"unknown subject adapter: {adapter}")
 
 
-def build_agent(definition: dict[str, Any], *, budgets: dict[str, Any]):
+def build_agent(definition: dict[str, Any], *, budgets: dict[str, Any], suite_root: Path | None = None):
     adapter = definition["adapter"]
     config = definition.get("configuration", {})
     timeout_seconds = min(
@@ -47,6 +49,27 @@ def build_agent(definition: dict[str, Any], *, budgets: dict[str, Any]):
     max_tool_calls = (
         int(budgets["max_tool_calls"]) if "max_tool_calls" in budgets else None
     )
+
+    if adapter == "oh-goon":
+        required = ("runtime", "hashmarks_version", "model", "reasoning_effort", "profile", "workspace_subdirectory")
+        if any(not isinstance(config.get(key), str) or not config[key].strip() for key in required):
+            raise AdapterConfigurationError("Oh-Goon needs explicit runtime, released producer, model, profile, and candidate directory")
+        if config["runtime"] not in {"baseline", "candidate"}:
+            raise AdapterConfigurationError("Oh-Goon runtime must select baseline or candidate")
+        directory = PurePosixPath(config["workspace_subdirectory"])
+        if directory.is_absolute() or ".." in directory.parts or str(directory) in {"", "."}:
+            raise AdapterConfigurationError("Oh-Goon candidate directory must be contained and explicit")
+        if max_tool_calls is not None:
+            raise AdapterConfigurationError("Oh-Goon does not expose authoritative tool-call counts")
+        skill = None
+        if config.get("skill") is not None:
+            if suite_root is None or not isinstance(config["skill"], str):
+                raise AdapterConfigurationError("Oh-Goon Skill needs its explicit suite root")
+            skill = (suite_root / config["skill"]).resolve(strict=True)
+            if not skill.is_relative_to(suite_root.resolve()) or not skill.is_dir():
+                raise AdapterConfigurationError("Oh-Goon Skill escapes its suite")
+        return OhGoonAgent(**{key: config[key] for key in required}, skill_directory=skill,
+            timeout_seconds=timeout_seconds, max_output_bytes=max_output_bytes)
 
     if adapter == "codex":
         model = config.get("model")

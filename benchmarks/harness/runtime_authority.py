@@ -23,6 +23,13 @@ PROCESS_SUBSTRATE_ENV_KEYS = (
 
 
 RUNTIME_AUTHORITY_ENV_KEYS = (
+    "BENCHMARK_OH_GOON_NATIVE_HOME",
+    "BENCHMARK_OH_GOON_BASELINE_PYTHON",
+    "BENCHMARK_OH_GOON_BASELINE_CONFIG",
+    "BENCHMARK_OH_GOON_BASELINE_RECEIPT",
+    "BENCHMARK_OH_GOON_CANDIDATE_PYTHON",
+    "BENCHMARK_OH_GOON_CANDIDATE_CONFIG",
+    "BENCHMARK_OH_GOON_CANDIDATE_RECEIPT",
     "HASHMARKS_BENCH_SOURCE",
     "BENCHMARK_OPENCODE_AGENT",
     "BENCHMARK_PASSTHROUGH_ENV_KEYS",
@@ -103,6 +110,13 @@ def required_runtime_authority(
         if agent in suite.agents
     ):
         required.add("BENCHMARK_OPENCODE_AGENT")
+    for agent in agents:
+        definition = suite.agents.get(agent, {})
+        if definition.get("adapter") == "oh-goon":
+            runtime = str(definition.get("configuration", {}).get("runtime", "")).upper()
+            required.add("BENCHMARK_OH_GOON_NATIVE_HOME")
+            required.update("BENCHMARK_OH_GOON_" + runtime + "_" + name
+                            for name in ("PYTHON", "CONFIG", "RECEIPT"))
     return tuple(sorted(required))
 
 

@@ -172,7 +172,7 @@ def _git_value(root: Path, argv: tuple[str, ...]) -> str:
     return _git_bytes(root, argv).decode("utf-8", errors="strict").strip()
 
 
-def harness_identity(root: Path) -> dict[str, Any]:
+def harness_identity(root: Path, *, repository: str = "Hugloss/EvalShot") -> dict[str, Any]:
     root = root.resolve()
     commit = _git_value(root, ("git", "rev-parse", "HEAD"))
     tree = _git_value(root, ("git", "rev-parse", f"{commit}^{{tree}}"))
@@ -225,7 +225,7 @@ def harness_identity(root: Path) -> dict[str, Any]:
         ) from exc
 
     return {
-        "repository": "Hugloss/EvalShot",
+        "repository": repository,
         "commit": commit,
         "tree": tree,
         "working_copy_sha256": fingerprint.hexdigest(),
@@ -357,6 +357,7 @@ def _agent_authority(agent, prepared: Observation) -> dict[str, Any]:
             "model": prepared.payload.get("model"),
             "reasoning_effort": prepared.payload.get("reasoning_effort"),
             "provider": prepared.payload.get("provider"),
+            "execution_runtime_identity": prepared.payload.get("execution_runtime_identity"),
             "native_config_sha256": prepared.payload.get("native_config_sha256"),
             "native_config_observation": prepared.payload.get("native_config_observation"),
             "native_state_isolation": prepared.payload.get("native_state_isolation"),
@@ -532,7 +533,7 @@ def admit_trial(
 
         subject = build_subject(suite.subjects[str(condition["subject"])])
         agent_definition = suite.agents[str(condition["agent"])]
-        agent = build_agent(agent_definition, budgets=task["budgets"])
+        agent = build_agent(agent_definition, budgets=task["budgets"], suite_root=suite.root)
         native_codex = (
             agent_definition["adapter"] == "codex"
             and agent_definition.get("configuration", {}).get("native_host") is True

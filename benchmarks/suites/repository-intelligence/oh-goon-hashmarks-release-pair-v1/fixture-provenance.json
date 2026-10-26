@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/oh-goon/oh-goon",
+  "commit": "f528e1ab26ebfff84368109b17b5b04a7c15dc77",
+  "path": "backend/tests/integration/services/test_native_codex_live.py",
+  "sha256": "cbcaa181f293e046020dd797effa5969f6f279cd59dbef1c2c0867bf53befac1",
+  "cases": [
+    "ranges",
+    "deploy-order",
+    "cidr-policy"
+  ],
+  "policy": "Frozen fixture and independent-verifier literals only; no production harness copied. Graders are outside candidate source."
+}

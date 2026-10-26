@@ -1,0 +1,78 @@
+{
+  "id": "oh-goon-hashmarks-release-pair-v1",
+  "version": 1,
+  "suite": "repository-intelligence",
+  "tasks": [
+    "ranges",
+    "deploy-order",
+    "cidr-policy"
+  ],
+  "conditions": [
+    {
+      "id": "baseline-hashmarks-0.32.0",
+      "subject": "none",
+      "agent": "oh-goon-baseline",
+      "trials": 1,
+      "replicate_ids": [
+        9101
+      ]
+    },
+    {
+      "id": "candidate-hashmarks-0.32.1",
+      "subject": "none",
+      "agent": "oh-goon-candidate",
+      "trials": 1,
+      "replicate_ids": [
+        9101
+      ]
+    }
+  ],
+  "execution_order": [
+    {
+      "task_id": "ranges",
+      "condition_id": "baseline-hashmarks-0.32.0",
+      "replicate_id": 9101
+    },
+    {
+      "task_id": "ranges",
+      "condition_id": "candidate-hashmarks-0.32.1",
+      "replicate_id": 9101
+    },
+    {
+      "task_id": "deploy-order",
+      "condition_id": "candidate-hashmarks-0.32.1",
+      "replicate_id": 9101
+    },
+    {
+      "task_id": "deploy-order",
+      "condition_id": "baseline-hashmarks-0.32.0",
+      "replicate_id": 9101
+    },
+    {
+      "task_id": "cidr-policy",
+      "condition_id": "baseline-hashmarks-0.32.0",
+      "replicate_id": 9101
+    },
+    {
+      "task_id": "cidr-policy",
+      "condition_id": "candidate-hashmarks-0.32.1",
+      "replicate_id": 9101
+    }
+  ],
+  "scoring": {
+    "id": "oh-goon-release-pair-descriptive",
+    "version": 1,
+    "metrics": [
+      "task_success",
+      "duration_ms",
+      "contamination"
+    ]
+  },
+  "analysis_contract": {
+    "primary_observation": "matched released-Hashmarks version outcomes through one Oh-Goon source and native service",
+    "minimum_pairs": 3,
+    "minimum_replicates": 1,
+    "below_minimum": "descriptive-only",
+    "cross_agent_ranking": false
+  }
+}
