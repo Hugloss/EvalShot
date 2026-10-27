@@ -1631,6 +1631,84 @@
           }
         ]
       }
+    },
+    {
+      "id": "change-source-regression-positive",
+      "skill": "source-change-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/change-review/regression",
+      "scenario": "Compare before.py and after.py under REQUIREMENTS.md. Trace charge(5, 9) from the supported entrypoint; prove the active reject-excess-discount contract is violated in the candidate, not merely that a test changed.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "before.py",
+            "line": 2,
+            "quote": "    if discount > total:"
+          },
+          {
+            "path": "after.py",
+            "line": 2,
+            "quote": "    return total - discount"
+          }
+        ]
+      }
+    },
+    {
+      "id": "change-test-regression-positive",
+      "skill": "test-removal-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/change-review/regression",
+      "scenario": "Compare before_test.py with after_test.py and both production revisions. The active rejection check disappeared without equivalent protection. Prove the escaped counterexample and separate the source defect from lost failure detection.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "before_test.py",
+            "line": 3,
+            "quote": "def test_reject_excess_discount():"
+          },
+          {
+            "path": "after_test.py",
+            "line": 3,
+            "quote": "def test_normal_charge():"
+          }
+        ]
+      }
+    },
+    {
+      "id": "change-source-retirement-control",
+      "skill": "source-change-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/retirement",
+      "scenario": "The accepted requirements deliberately retire allow_negative. Check the supported new entrypoint and avoid treating permitted breaking changes as source regressions."
+    },
+    {
+      "id": "change-test-retirement-control",
+      "skill": "test-removal-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/retirement",
+      "scenario": "The accepted requirements deliberately retire allow_negative and replace the legacy test with an applicable rejection check. Decide whether removal of the obsolete assertion loses active protection."
+    },
+    {
+      "id": "change-source-test-only-confusion",
+      "skill": "source-change-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/test-only",
+      "scenario": "The source is byte-identical and correct. An active test was removed, which belongs to test-removal-review. Do not claim the verification gap as a source-change defect."
+    },
+    {
+      "id": "change-test-source-only-confusion",
+      "skill": "test-removal-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/source-only",
+      "scenario": "The source regresses, but before_test.py and after_test.py are byte-identical. A weak test suite is not itself evidence that a test was removed or weakened in this change. Stay within test-removal-review scope."
     }
   ]
 }
