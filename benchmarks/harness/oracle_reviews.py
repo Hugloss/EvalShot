@@ -63,7 +63,7 @@ def _validate_finding_quality_record(record: Any, task_id: str) -> None:
         raise OracleReviewError(f"invalid finding-quality record for {task_id}")
     if record["schema"] != "evalshot-finding-quality.v1":
         raise OracleReviewError(f"unknown finding-quality schema for {task_id}")
-    if record["verdict"] not in _FINDING_VERDICTS or not isinstance(record["verdict"], str):
+    if not isinstance(record["verdict"], str) or record["verdict"] not in _FINDING_VERDICTS:
         raise OracleReviewError(f"invalid finding-quality verdict for {task_id}")
     for key in (
         "requirement", "trigger", "causal_owner", "supported_path",
