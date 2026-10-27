@@ -44,6 +44,53 @@ def _read_oracle_review_evidence(path: Path) -> Any:
         raise OracleReviewError("oracle review evidence cannot be read") from exc
 
 
+
+_FINDING_VERDICTS = frozenset({"FINDING", "CLEAN", "LEAVE ALONE", "INSUFFICIENT EVIDENCE"})
+_FINDING_FIELDS = frozenset({
+    "schema", "verdict", "requirement", "trigger", "causal_owner",
+    "supported_path", "consequence", "source_references",
+    "evidence_qualifier", "unresolved_scope",
+})
+
+
+def _validate_finding_quality_record(record: Any, task_id: str) -> None:
+    """Validate optional reviewer-proposed finding shape, never adjudicate truth.
+
+    An agent/reviewer-authored record is not an independent finding-quality
+    score or a substitute for the existing task-bound oracle review gate.
+    """
+    if not isinstance(record, dict) or set(record) != _FINDING_FIELDS:
+        raise OracleReviewError(f"invalid finding-quality record for {task_id}")
+    if record["schema"] != "evalshot-finding-quality.v1":
+        raise OracleReviewError(f"unknown finding-quality schema for {task_id}")
+    if record["verdict"] not in _FINDING_VERDICTS or not isinstance(record["verdict"], str):
+        raise OracleReviewError(f"invalid finding-quality verdict for {task_id}")
+    for key in (
+        "requirement", "trigger", "causal_owner", "supported_path",
+        "consequence", "evidence_qualifier", "unresolved_scope",
+    ):
+        value = record[key]
+        if not isinstance(value, str) or not value.strip():
+            raise OracleReviewError(f"invalid finding-quality {key} for {task_id}")
+    references = record["source_references"]
+    if not isinstance(references, list):
+        raise OracleReviewError(f"invalid finding-quality source references for {task_id}")
+    for ref in references:
+        if (
+            not isinstance(ref, dict)
+            or set(ref) != {"path", "line", "quote"}
+            or not isinstance(ref["path"], str)
+            or not ref["path"].strip()
+            or type(ref["line"]) is not int
+            or ref["line"] < 1
+            or not isinstance(ref["quote"], str)
+            or not ref["quote"].strip()
+        ):
+            raise OracleReviewError(f"invalid finding-quality source reference for {task_id}")
+    if record["verdict"] == "FINDING" and not references:
+        raise OracleReviewError(f"finding-quality FINDING lacks source references for {task_id}")
+
+
 def oracle_review_path(suite: SuiteDefinition) -> Path:
     """Return the configured review path, including the legacy fallback."""
     configured = suite.experiment.get("oracle_reviews")
@@ -129,6 +176,9 @@ def validate_oracle_reviews(
             raise OracleReviewError(
                 f"non-escalated oracle review cannot carry escalation reason for {task_id}"
             )
+
+        if "finding_quality" in row:
+            _validate_finding_quality_record(row["finding_quality"], task_id)
 
         reviews = row.get("reviews")
         if not isinstance(reviews, list):
