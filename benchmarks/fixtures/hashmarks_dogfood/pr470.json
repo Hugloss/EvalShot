@@ -1,0 +1,25 @@
+{
+  "schema": "evalshot-hashmarks-dogfood-source-pins.v1",
+  "status": "SOURCE_PINNED_SEMANTIC_GOLD_PENDING",
+  "origin": {
+    "repository": "Hugloss/Hashmarks",
+    "pull_request": 470,
+    "base_commit": "1d5a487913a1115ec9bd9f5428b1faadc4fdef7c",
+    "candidate_commit": "a2c92f84247d387a7307ac240a58904a7787b0f1",
+    "title": "fix(codemap): avoid false self-binding in Python definition headers"
+  },
+  "bounded_claim": "Python header evaluation precedes binding of the newly declared name; this is a source-backed scenario candidate, not an independently approved agent-quality oracle.",
+  "scenarios": [
+    {"id":"default-argument","expected_before_publication":"imported","expected_after_publication":"declared"},
+    {"id":"decorator","expected_before_publication":"imported","expected_after_publication":"declared"},
+    {"id":"class-base","expected_before_publication":"imported","expected_after_publication":"declared"},
+    {"id":"body-recursion-control","expected_before_publication":"none","expected_after_publication":"declared"}
+  ],
+  "qualification": {
+    "source_snapshot_bytes_verified": false,
+    "independent_gold_review_complete": false,
+    "agent_blindness_verified": false,
+    "model_backed_evaluation_complete": false,
+    "semantic_finding_quality_score": null
+  }
+}
