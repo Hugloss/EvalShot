@@ -9,7 +9,7 @@ const { resolveCookbookSource } = require('./cookbook-source');
 
 const root = path.resolve(__dirname, '..');
 const specialistSections = new Set([
-  'Skill authoring', 'Concurrency', 'Execution integrity', 'Data handling',
+  'Skill authoring', 'Change review', 'Concurrency', 'Execution integrity', 'Data handling',
   'Evidence integrity', 'Semantic authority', 'Qualification integrity',
   'Structural simplicity', 'Test-derived architecture', 'Discovery',
 ]);
