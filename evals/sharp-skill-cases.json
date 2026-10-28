@@ -1709,6 +1709,20 @@
       "expected": "CLEAN",
       "fixture": "evals/fixtures/change-review/source-only",
       "scenario": "The source regresses, but before_test.py and after_test.py are byte-identical. A weak test suite is not itself evidence that a test was removed or weakened in this change. Stay within test-removal-review scope."
+    },
+    {
+      "id": "known-good-contract-reconstruction-positive",
+      "skill": "known-good-contract-reconstruction",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A verified old revision returned a normalized status and its public caller accepted both supported representations. A later revision preserves the underlying successful operation but a new caller assumes only the old representation, rejects the valid new result, and retries the effect. The caller defect is reproduced at the public entrypoint on the same input. Reconstruct the stable externally observable contract from the historical working revision, distinguish the changed representation from the required behavior, and identify the rightful single normalization owner without copying old implementation details."
+    },
+    {
+      "id": "known-good-contract-reconstruction-control",
+      "skill": "known-good-contract-reconstruction",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "An old verified version accepted a legacy configuration alias, but an explicitly authorized major-version contract retires that alias. The current supported entrypoint implements every retained obligation and handles all now-supported input shapes. No applicable requirement or caller still uses the retired form. Do not restore the old alias or infer compatibility solely from the former good revision."
     }
   ]
 }
