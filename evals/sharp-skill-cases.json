@@ -1723,6 +1723,13 @@
       "kind": "control",
       "expected": "CLEAN",
       "scenario": "An old verified version accepted a legacy configuration alias, but an explicitly authorized major-version contract retires that alias. The current supported entrypoint implements every retained obligation and handles all now-supported input shapes. No applicable requirement or caller still uses the retired form. Do not restore the old alias or infer compatibility solely from the former good revision."
+    },
+    {
+      "id": "known-good-contract-reconstruction-confusion",
+      "skill": "known-good-contract-reconstruction",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "A component's current and verified historical public outcomes are equivalent for every supported entrypoint and input representation. A separate consumer internally duplicates a native tool's configuration lookup, but does not mishandle a historical-to-current contract transition, return-shape normalization, or a repaired historical obligation. That duplication may warrant native-tool-authority-review or semantic-redecision-review, not known-good-contract-reconstruction. Do not report a historical contract regression merely because an adjacent architectural defect exists."
     }
   ]
 }
