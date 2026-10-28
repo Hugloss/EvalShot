@@ -1645,12 +1645,12 @@
           {
             "path": "before.py",
             "line": 2,
-            "quote": "    if discount > total:"
+            "quote": "if discount > total:"
           },
           {
             "path": "after.py",
             "line": 2,
-            "quote": "    return total - discount"
+            "quote": "return total - discount"
           }
         ]
       }
