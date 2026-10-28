@@ -206,7 +206,11 @@ def validate_oracle_reviews(
         has_non_unique = any(
             review["decision"] != "unique" for review in reviews
         )
-        lacks_required_review = len(reviewers) < minimum_reviews
+        # A finding-quality assertion is a higher-impact semantic claim. A
+        # candidate-supplied optional record cannot lower review authority.
+        # Require two distinct independent reviewers before approving its row.
+        required_reviews = max(minimum_reviews, 2 if "finding_quality" in row else 1)
+        lacks_required_review = len(reviewers) < required_reviews
         if has_non_unique:
             non_unique.append(task_id)
         elif lacks_required_review:

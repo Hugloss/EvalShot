@@ -57,7 +57,17 @@ class FindingQualityContractTests(unittest.TestCase):
 
             check(row)  # Existing evidence remains valid without optional metadata.
             row["finding_quality"] = _record()
-            check(row)  # Shape validated, not semantic approval.
+            # An optional semantic finding must not be approved by the
+            # one-review baseline: the asserted quality needs independent
+            # corroboration, not the record author's own confidence.
+            check(row, "independent oracle review incomplete")
+            row["reviews"].append({
+                "reviewer": "independent-b",
+                "task_digest": digest(task),
+                "decision": "unique",
+                "reason": "separate source-based review",
+            })
+            check(row)  # Still a shape/admission check, not semantic proof.
             for change, message in (
                 ({"schema": "future.v2"}, "unknown finding-quality schema"),
                 ({"verdict": "CERTAIN"}, "invalid finding-quality verdict"),
