@@ -1631,6 +1631,105 @@
           }
         ]
       }
+    },
+    {
+      "id": "change-source-regression-positive",
+      "skill": "source-change-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/change-review/regression",
+      "scenario": "Compare before.py and after.py under REQUIREMENTS.md. Trace charge(5, 9) from the supported entrypoint; prove the active reject-excess-discount contract is violated in the candidate, not merely that a test changed.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "before.py",
+            "line": 2,
+            "quote": "if discount > total:"
+          },
+          {
+            "path": "after.py",
+            "line": 2,
+            "quote": "return total - discount"
+          }
+        ]
+      }
+    },
+    {
+      "id": "change-test-regression-positive",
+      "skill": "test-removal-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/change-review/regression",
+      "scenario": "Compare before_test.py with after_test.py and both production revisions. The active rejection check disappeared without equivalent protection. Prove the escaped counterexample and separate the source defect from lost failure detection.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "before_test.py",
+            "line": 3,
+            "quote": "def test_reject_excess_discount():"
+          },
+          {
+            "path": "after_test.py",
+            "line": 3,
+            "quote": "def test_normal_charge():"
+          }
+        ]
+      }
+    },
+    {
+      "id": "change-source-retirement-control",
+      "skill": "source-change-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/retirement",
+      "scenario": "The accepted requirements deliberately retire allow_negative. Check the supported new entrypoint and avoid treating permitted breaking changes as source regressions."
+    },
+    {
+      "id": "change-test-retirement-control",
+      "skill": "test-removal-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/retirement",
+      "scenario": "The accepted requirements deliberately retire allow_negative and replace the legacy test with an applicable rejection check. Decide whether removal of the obsolete assertion loses active protection."
+    },
+    {
+      "id": "change-source-test-only-confusion",
+      "skill": "source-change-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/test-only",
+      "scenario": "The source is byte-identical and correct. An active test was removed, which belongs to test-removal-review. Do not claim the verification gap as a source-change defect."
+    },
+    {
+      "id": "change-test-source-only-confusion",
+      "skill": "test-removal-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "fixture": "evals/fixtures/change-review/source-only",
+      "scenario": "The source regresses, but before_test.py and after_test.py are byte-identical. A weak test suite is not itself evidence that a test was removed or weakened in this change. Stay within test-removal-review scope."
+    },
+    {
+      "id": "known-good-contract-reconstruction-positive",
+      "skill": "known-good-contract-reconstruction",
+      "kind": "positive",
+      "expected": "FINDING",
+      "scenario": "A verified old revision returned a normalized status and its public caller accepted both supported representations. A later revision preserves the underlying successful operation but a new caller assumes only the old representation, rejects the valid new result, and retries the effect. The caller defect is reproduced at the public entrypoint on the same input. Reconstruct the stable externally observable contract from the historical working revision, distinguish the changed representation from the required behavior, and identify the rightful single normalization owner without copying old implementation details."
+    },
+    {
+      "id": "known-good-contract-reconstruction-control",
+      "skill": "known-good-contract-reconstruction",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "An old verified version accepted a legacy configuration alias, but an explicitly authorized major-version contract retires that alias. The current supported entrypoint implements every retained obligation and handles all now-supported input shapes. No applicable requirement or caller still uses the retired form. Do not restore the old alias or infer compatibility solely from the former good revision."
+    },
+    {
+      "id": "known-good-contract-reconstruction-confusion",
+      "skill": "known-good-contract-reconstruction",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "A component's current and verified historical public outcomes are equivalent for every supported entrypoint and input representation. A separate consumer internally duplicates a native tool's configuration lookup, but does not mishandle a historical-to-current contract transition, return-shape normalization, or a repaired historical obligation. That duplication may warrant native-tool-authority-review or semantic-redecision-review, not known-good-contract-reconstruction. Do not report a historical contract regression merely because an adjacent architectural defect exists."
     }
   ]
 }

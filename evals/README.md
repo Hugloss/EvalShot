@@ -130,3 +130,47 @@ of completed observations; it is not cryptographic provenance protection.
 
 Historic receipts remain readable but are not comparable without sufficient
 observed evidence. This checkpoint does **not** qualify causal improvement claims.
+
+## Paired source-change and test-removal discrimination
+
+The specialist corpus now covers the two complementary AgentsCookbook reviewers
+`source-change-review` and `test-removal-review` using shared, bounded
+before/after repository snapshots under `evals/fixtures/change-review/`.
+Each fixture's `REQUIREMENTS.md` states the governing contract; `before.py`
+and `after.py` are the source revisions, and `before_test.py` and
+`after_test.py` represent the associated tests. They are **evaluation
+fixtures**, not real Git history or a substitute for reviewing the actual
+project's decision authority.
+
+The cases deliberately separate four outcomes:
+
+- A live source regression whose detection was also removed: **both**
+  specialists have their own positive case, and the evidence must preserve the
+  distinction between a broken product and weakened test detection.
+- A supported contract retirement: **neither** specialist may demand legacy
+  compatibility or the obsolete test's return.
+- A source-only regression with byte-identical tests: the
+  `test-removal-review` case is a **confusion** control, not a claim that
+  the source is correct.
+- A test-only removal with byte-identical correct production code: the
+  `source-change-review` case is a **confusion** control, not a claim that
+  verification remains adequate.
+
+To exercise these cases with the actual canonical skills, first run
+`--validate-corpus` and then select the two skills explicitly:
+
+```sh
+node scripts/run-skill-benchmarks.js --cookbook-root ../agentsCookbook --validate-corpus
+node scripts/run-skill-benchmarks.js --cookbook-root ../agentsCookbook --runtime pi \
+  --skill source-change-review --skill test-removal-review \
+  --artifacts-dir .runs/change-review-evals
+```
+
+Repeat with `--runtime opencode` using a fresh artifacts directory to
+distinguish runtime behavior. Corpus validation establishes only fixture
+integrity. Positive source anchors establish source localization, **not**
+independent semantic proof, regression sensitivity, or reliable review ability.
+Until model-backed runs and independent semantic counterfactual oracles exist,
+results remain classification-level evidence with explicitly limited
+qualification. Do not combine the two reviewers into one pass/fail score:
+each has an independent failure mode, with reconciled shared findings.
