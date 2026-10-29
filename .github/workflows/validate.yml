@@ -25,8 +25,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: Hugloss/agentsCookbook
-          # Explicit integration source; distinct from frozen migration provenance.
-          ref: da1d9435c7555fcc59b2a7773f6d7e3da4b123cf
+          # Explicit pinned AgentsCookbook PR #268 integration source;
+          # distinct from frozen migration provenance. Refresh after merge.
+          ref: f9545c53aa2a7479f999fcbc51448a365399deaa
           path: .test-inputs/agentsCookbook
           persist-credentials: false
 
