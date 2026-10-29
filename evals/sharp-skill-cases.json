@@ -1730,6 +1730,43 @@
       "kind": "confusion",
       "expected": "CLEAN",
       "scenario": "A component's current and verified historical public outcomes are equivalent for every supported entrypoint and input representation. A separate consumer internally duplicates a native tool's configuration lookup, but does not mishandle a historical-to-current contract transition, return-shape normalization, or a repaired historical obligation. That duplication may warrant native-tool-authority-review or semantic-redecision-review, not known-good-contract-reconstruction. Do not report a historical contract regression merely because an adjacent architectural defect exists."
+    },
+    {
+      "id": "kafka-delivery-safety-offset-gap-positive",
+      "skill": "kafka-delivery-safety-review",
+      "kind": "positive",
+      "expected": "FINDING",
+      "fixture": "evals/fixtures/kafka-offset-gap",
+      "scenario": "Inspect REQUIREMENTS.md and worker.py. The two messages are consecutive offsets 41 and 42 from the same Kafka partition, and gate starts unset. Prove whether the manual commit can acknowledge offset 42 while offset 41 has not persisted; cite the decisive source locations and explain the loss window under restart or rebalance.",
+      "evidence_contract": {
+        "status": "pinned-fixture-anchor",
+        "anchors": [
+          {
+            "path": "worker.py",
+            "line": 10,
+            "quote": "await gate.wait()"
+          },
+          {
+            "path": "worker.py",
+            "line": 15,
+            "quote": "await consumer.commit({topic_partition: second.offset + 1})"
+          }
+        ]
+      }
+    },
+    {
+      "id": "kafka-delivery-safety-sequential-control",
+      "skill": "kafka-delivery-safety-review",
+      "kind": "control",
+      "expected": "CLEAN",
+      "scenario": "A Kafka consumer with manual commits processes one partition in sequence. For offsets 41 and 42, it first durably persists each effect with an idempotency key and atomic completion proof, then commits the next offset 43. Commit failures cause safe at-least-once replay; rebalances stop stale owners; intake and execution are bounded, and no external side effect is unprotected. Do not demand extra worker queues, registries, or exactly-once claims absent a delivery-safety violation."
+    },
+    {
+      "id": "kafka-delivery-safety-neighbor-confusion",
+      "skill": "kafka-delivery-safety-review",
+      "kind": "confusion",
+      "expected": "CLEAN",
+      "scenario": "A Kafka-to-Kafka transform atomically commits produced records and consumed offsets in one Kafka transaction; downstream consumers read only committed transactions. A separate HTTP notification endpoint in the same service retries a non-idempotent email send after a client timeout, but this endpoint is not invoked by the Kafka path. The email duplication belongs to generic retry-idempotency-review, not Kafka fetch/ack/rebalance delivery safety. Keep this skill's conclusion bounded to its Kafka-owned invariant."
     }
   ]
 }
