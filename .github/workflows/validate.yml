@@ -27,7 +27,7 @@ jobs:
           repository: Hugloss/agentsCookbook
           # Explicit pinned AgentsCookbook PR #268 integration source;
           # distinct from frozen migration provenance. Refresh after merge.
-          ref: f9545c53aa2a7479f999fcbc51448a365399deaa
+          ref: 7ac6ed08e66446d552e14fcefbb83629b060642d
           path: .test-inputs/agentsCookbook
           persist-credentials: false
 
@@ -83,6 +83,9 @@ jobs:
 
       - name: Compile benchmark framework
         run: uv run --no-project python -m compileall -q benchmarks
+
+      - name: Kafka delivery-boundary failure and control models
+        run: uv run --no-project python scripts/test-kafka-delivery-safety.py
 
       - name: Validate benchmark schema JSON
         run: |
