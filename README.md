@@ -1,5 +1,7 @@
 # EvalShot
 
+[![Validate EvalShot](https://github.com/Hugloss/EvalShot/actions/workflows/validate.yml/badge.svg)](https://github.com/Hugloss/EvalShot/actions/workflows/validate.yml)
+
 Benchmarks and evaluation tools for coding agents, repository intelligence,
 skill discrimination, and agent workflow outcomes.
 
@@ -9,6 +11,69 @@ installation adapters live in
 [agentsCookbook](https://github.com/Hugloss/agentsCookbook).
 
 EvalShot also owns [observing and evaluating runtime-reported model context usage](docs/model-context-observation.md), [tool-routing measurement](benchmarks/tool_routing.py), and [Agent Economics execution security](SECURITY.md). Model context limits and compaction settings belong to the selected model provider/agent runtime, not EvalShot or the cookbook. The cookbook retains portable prompt guidance and reviewer-selection flows; neither provides duplicate scoring or process-execution implementations.
+
+
+## Evaluation model
+
+EvalShot separates experiment responsibilities that are easy to conflate:
+
+- **Frozen inputs.** Task suites and fixtures identify the exact work being evaluated.
+- **Runtime adapters.** An explicitly selected adapter invokes the agent or workflow while retaining runtime-owned authentication and execution semantics.
+- **Independent decisions.** Oracles, graders and reports remain separate from the system under evaluation.
+- **Durable evidence.** Run identities, receipts, outputs and qualification state are retained so incomplete or incomparable work cannot silently become a result.
+- **Scoped claims.** Model-free validation proves harness and corpus integrity; empirical claims require completed campaigns and the evidence contract selected by that experiment.
+
+This separation lets the same harness evaluate repository intelligence,
+coding-agent behavior, prompt and skill discrimination, and workflow outcomes
+without making one project the execution, scoring and oracle authority for
+everything.
+
+## Recorded qualification examples
+
+Qualification is attached to specific suites, runtimes, inputs and evidence,
+not to EvalShot as a universal benchmark claim.
+
+- A six-trial paired Oh-Goon campaign completed five `PASS` results and one valid semantic `FAIL` with zero authority transitions. The result explicitly did not claim a release winner, causal uplift or token-cost comparison ([PR #72](https://github.com/Hugloss/EvalShot/pull/72)).
+- The Hashmarks dogfood path combines source-bound review contracts, checkout-free reviewer-kit verification and fail-closed oracle admission. Positive source-reference checks remain syntactic evidence until separate semantic review admits an oracle.
+- Cookbook skill evaluation keeps the selected cookbook checkout, evaluated repository and runtime adapter as separate inputs; loading a prompt or passing corpus validation is not reported as measured behavioral quality.
+
+See the [benchmark guide](benchmarks/README.md), [evaluation guide](evals/README.md), and [Agent Economics security boundary](SECURITY.md).
+
+
+## What a campaign retains
+
+EvalShot keeps the evidence needed to distinguish a completed result from
+an interrupted, drifted or incomparable attempt.
+
+| Evidence | What it establishes |
+| --- | --- |
+| Frozen suite, task and subject identity | Which exact inputs and repository revision were evaluated? |
+| Adapter, agent and runtime observations | Which execution path was selected, and which identity remains observed or unknown? |
+| Run and attempt receipts | What executed, completed, failed or stopped before a valid result? |
+| Oracle and grader decisions | Which independent contract produced the verdict or score? |
+| Qualification and comparability state | Can the result support the requested comparison, and why not when it cannot? |
+| Reports and retained artifacts | Which bounded evidence can another reviewer inspect without replaying the experiment? |
+
+`PASS`, `FAIL` and `INCOMPLETE` remain materially different outcomes.
+Missing authority, input drift or unfinished execution is preserved as a
+limitation rather than normalized into a successful trial.
+
+## Related projects and ownership
+
+EvalShot is the evaluation owner in a deliberately separated toolchain.
+It can evaluate these projects or unrelated systems without becoming their
+product runtime.
+
+| Project | Owns | Does not own |
+| --- | --- | --- |
+| [Hashmarks](https://github.com/Hugloss/Hashmarks) | Local repository facts, identity, relationships, freshness, impact and verification evidence | Edits, command execution, retries or evaluation verdicts |
+| [OH-Goon](https://github.com/oh-goon/oh-goon) | Declared workflow admission, supervised execution, durable Run evidence and recovery | Independent benchmark scoring or reusable review methodology |
+| [Agents Cookbook](https://github.com/Hugloss/agentsCookbook) | Canonical portable skills, thin agent roles and optional review flows | The evaluator, model runtime or result authority |
+| **EvalShot** | Frozen suites, runtime adapters, oracles, graders, qualification contracts and reports | The implementation being measured or the runtime's native authentication and tool policy |
+
+This boundary is why an evaluation can pin a cookbook checkout, run through
+OH-Goon, observe Hashmarks-assisted behavior and still retain one explicit
+owner for the experiment and its claims.
 
 ## Get started
 
